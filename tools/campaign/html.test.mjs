@@ -21,13 +21,32 @@ test('rich escapes tags outside the allowlist', () => {
   assert.equal(rich('<script>alert(1)</script>'), '&lt;script&gt;alert(1)&lt;/script&gt;')
 })
 
-test('rich strips attributes from allowed tags', () => {
-  assert.equal(rich('<b onclick="x()">t</b>'), '<b>t</b>')
+test('rich rejects attributes on allowed tags', () => {
+  assert.equal(rich('<b onclick="x()">t</b>'), '&lt;b onclick=&quot;x()&quot;&gt;t&lt;/b&gt;')
 })
 
 test('rich still escapes ampersands', () => {
   assert.equal(rich('Tools &amp; permission'), 'Tools &amp;amp; permission')
   assert.equal(rich('Tools & permission'), 'Tools &amp; permission')
+})
+
+test('rich rejects attributes containing angle brackets', () => {
+  const output = rich('<b title="<script>alert(1)</script>">x</b>')
+  // Ensure no bare <b> tag and no unescaped alert(1)
+  assert(!output.includes('<b>'), 'should not contain bare <b> tag')
+  assert(!output.match(/\balert\(1\)\s*[^&]/), 'should not contain bare alert(1)')
+})
+
+test('rich rejects non-allowed tags like bold', () => {
+  assert.equal(rich('<bold>x</bold>'), '&lt;bold&gt;x&lt;/bold&gt;')
+})
+
+test('rich rejects non-allowed tags like code2', () => {
+  assert.equal(rich('<code2>x</code2>'), '&lt;code2&gt;x&lt;/code2&gt;')
+})
+
+test('rich rejects non-allowed tags like embed', () => {
+  assert.equal(rich('<embed>'), '&lt;embed&gt;')
 })
 
 test('attr escapes quotes and angle brackets', () => {

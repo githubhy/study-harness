@@ -21,7 +21,7 @@ export function attr(s) {
 export function rich(s) {
   const escaped = esc(s)
   const tags = ALLOWED.join('|')
-  return escaped
-    .replace(new RegExp(`&lt;(${tags})(?:\\s(?:[^&]|&(?!gt;)[^;&]*;)*)?&gt;`, 'gi'), (_, t) => `<${t.toLowerCase()}>`)
-    .replace(new RegExp(`&lt;/(${tags})&gt;`, 'gi'), (_, t) => `</${t.toLowerCase()}>`)
+  return escaped.replace(new RegExp(`&lt;(${tags})&gt;([\\s\\S]*?)&lt;/(\\1)&gt;`, 'gi'), (_, t, content) => {
+    return `<${t.toLowerCase()}>${content}</${t.toLowerCase()}>`
+  })
 }
