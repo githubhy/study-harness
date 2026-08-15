@@ -18,7 +18,8 @@ Start at [`campaigns/index.html`](campaigns/index.html) for the board, or open a
 | Path | Scope |
 |---|---|
 | `campaigns/<name>/CONTEXT.md` | That campaign's vocabulary — its output |
-| `campaigns/<name>/roadmap.html` | Its map, board, and thread menu |
+| `campaigns/<name>/campaign.json` | The source of truth for that campaign's generated pages |
+| `campaigns/<name>/roadmap.html`, `worklog.html` | **Generated** from `campaign.json` — never hand-edited |
 | `campaigns/<name>/plan.md` | Its executable plan |
 | `campaigns/<name>/docs/adr/` | Decisions scoped to that campaign (created lazily) |
 | `campaigns/<name>/notes/`, `captures/`, `experiments/` | Its working material |
@@ -33,6 +34,10 @@ campaign roadmap before writing anything to disk.
 
 These four terms are method vocabulary. They mean the same thing in every campaign, so they are
 defined here rather than in any one glossary.
+
+`campaigns/index.html` shows the same four, abridged, from `campaigns/board.json`. The **names** are
+the vocabulary and must match this list exactly — a test asserts it. The board's bodies are
+deliberately shorter; the definitions below are the canonical ones.
 
 **Campaign**:
 One investigation, scoped to **one subject**. It owns a glossary, a plan, a roadmap, and its working

@@ -1,0 +1,599 @@
+{
+  "campaign": "agent-harnesses",
+  "title": "Harness Dissection",
+  "subject": "agent harnesses as a category",
+  "specimen": {
+    "name": "deepseek-harness",
+    "short": "dsh",
+    "pinned": "47f9438",
+    "pinnedFull": "47f943859bef60e4160492346772ded9b24f765a",
+    "date": "2026-08-13",
+    "repo": "deepseek-ai/deepseek-harness",
+    "packageCount": 49
+  },
+  "transferSpecimen": { "name": "Claude Code", "via": "transcripts" },
+  "surpriseBudget": 2,
+  "canonicalTask": "Create a file called fizzbuzz.js that prints FizzBuzz for 1..20, then run it with node and show me the output.",
+  "copy": {
+    "standfirst": "Build a transferable model of <strong>agent harnesses as a category</strong> by dissecting DeepSeek Harness — then test whether that model explains a harness it was never derived from.",
+    "claims": [
+      {
+        "title": "You can't read what you can't name",
+        "body": "Writing a harness first supplies the vocabulary that makes a real one legible. Reading <code>agent-loop</code> cold teaches nothing; reading it after writing a loop teaches everything."
+      },
+      {
+        "title": "The wire beats the source",
+        "body": "Prompt assembly is scattered across dozens of files. The bytes sent to the API are single, literal ground truth. When a reading and a capture disagree, the capture wins."
+      },
+      {
+        "title": "A vocabulary must transfer",
+        "body": "Concepts that only explain their own specimen are worthless. The study succeeds if ideas derived from dsh explain Claude Code — and fails if they don't."
+      }
+    ],
+    "standingOrders": [
+      {
+        "title": "The canonical task",
+        "body": "Used verbatim for <em>every</em> harness so captures stay comparable — your toy, dsh, and Claude Code all get the same prompt: {{canonicalTask}} It forces read, write, and execute in one run."
+      },
+      {
+        "title": "The surprise budget",
+        "body": "There is no completion criterion. Abandon a thread after <strong>two consecutive findings that don't surprise you</strong>, and file it as a <code>needs-triage</code> issue. A dry thread is a result, not a failure."
+      },
+      {
+        "title": "The wire wins",
+        "body": "When your reading of the source and the captured bytes disagree, the reading is wrong. Fix the note, not the capture."
+      },
+      {
+        "title": "Never commit captures",
+        "body": "<code>captures/</code> is gitignored and the proxy redacts auth headers before writing. A leaked key in a capture is the one unrecoverable mistake here."
+      },
+      {
+        "title": "Analyse, don't dump",
+        "body": "dsh's prompt ships in a public MIT repo and can be quoted freely. Claude Code transcripts are personal working history — cite structure, counts, and tool names only. This repo is public."
+      },
+      {
+        "title": "Glossary as you go",
+        "body": "When a thread sharpens a term, it lands in <code>CONTEXT.md</code> that session — never batched to the end. Terms get re-sorted in Phase 4, and being wrong early is data."
+      }
+    ],
+    "sections": {
+      "s1": "A language model is a function from text to text. It cannot read a file, run a command, or remember anything. A <strong>harness</strong> is the program wrapped around it that supplies all three. <em>Everything else — compaction, permissions, plugins, sandboxing, delegation — is a refinement of one of these five steps</em>, which is why §4 files each of the fifteen threads under the step it explains.",
+      "s4": "Lettered because there is no correct order, and grouped by <strong>which step of the loop each one explains</strong> — read a band top to bottom and you have one step fully accounted for. Each card carries the shortcut in your own harness that raised it (<code>FROM</code>), the packages it covers, and the command that opens it.",
+      "s5": "§4 is a <em>filing</em> system. This is the <em>generating</em> one. Phase 1's toy harness is not a warm-up, it is the <strong>question generator</strong>: every shortcut it takes is a question a real harness had to answer, and thirteen of the fifteen threads start life as a row in this table. Reading it top to bottom gives the order the study actually discovers things in — C, D, B, A, G, F, I, E, H, K, L, J, O.",
+      "s6": "Claude Code here runs on a subscription, so it's studied through the ~3,800 session transcripts already on disk rather than through wire capture. <em>Know these limits before predicting against it.</em>"
+    },
+    "map": {
+      "lede": "<strong>0 → 1 → 2.0 is a strict chain</strong>; everything after it fans out. The fifteen threads have no order among themselves — but two things downstream are gated, and one of them is gated on a <em>finding</em>, not a phase. The five columns are the five steps of the loop above; click one to jump to its band.",
+      "chain": [
+        {
+          "id": "Phase 0 · no blockers · no API key",
+          "kind": "plain",
+          "title": "Scaffold & instrument",
+          "sub": "Clone at the pinned SHA, build, write the capture proxy."
+        },
+        {
+          "id": "Phase 1 · the experimental control",
+          "kind": "control",
+          "title": "Write a harness from scratch",
+          "sub": "~45 lines. The only harness whose every byte you can account for."
+        },
+        {
+          "id": "Task 2.0 · observation only",
+          "kind": "observe",
+          "title": "Baseline capture of dsh",
+          "sub": "Write down what you saw <em>before</em> reading any source. This is the control Thread B reconciles against."
+        }
+      ],
+      "links": ["produces the instrument", "produces the question list", "opens the menu — 15 threads, no order"],
+      "outputs": [
+        {
+          "id": "Phase 3 · gated on Thread D alone",
+          "title": "Exam · one tool, two harnesses",
+          "sub": "Runnable as soon as D lands — it does not wait for the other fourteen."
+        },
+        {
+          "id": "Phase 4 · gated on all of Phase 2",
+          "title": "Transfer test",
+          "sub": "Last by design. Reading the transcripts earlier makes the test circular."
+        }
+      ],
+      "caption": "Solid = required. Dashed = must be written blind."
+    },
+    "transferPull": "So Phase 4 tests the model of the loop, tools, and permissions — and stays silent on prompt assembly. That gap is a known cost of having no Anthropic API key, not an oversight."
+  },
+  "loopSteps": [
+    {
+      "id": "assemble",
+      "label": "Assemble",
+      "step": "Step 1",
+      "question": "What goes <b>into</b> the request, and what gets left out?"
+    },
+    {
+      "id": "call",
+      "label": "Call",
+      "step": "Step 2",
+      "question": "What sits between the harness and <b>any</b> model provider?"
+    },
+    {
+      "id": "execute",
+      "label": "Execute",
+      "step": "Steps 3–4 · Parse",
+      "question": "What the model asked for — and <b>what is allowed to happen</b> as a result."
+    },
+    {
+      "id": "control",
+      "label": "Control",
+      "step": "Step 5 & the repeat",
+      "question": "What makes it go round again — and <b>what survives when it stops</b>."
+    },
+    {
+      "id": "around",
+      "label": "Around",
+      "step": "Outside the loop",
+      "question": "The frame the loop sits in — <b>none of these is a step</b>, and that is the point."
+    }
+  ],
+  "phases": [
+    {
+      "id": "Task 0.1",
+      "lane": "ready",
+      "title": "Pin the checkout",
+      "body": "Clone, detach at <code>47f9438</code>, install frozen, build. Then discover and record the base-URL override and the non-interactive run command.",
+      "pre": "<span class=\"c\"># pin the specimen</span>\ngit clone https://github.com/deepseek-ai/deepseek-harness.git \\\n  ../deepseek-harness\ngit -C ../deepseek-harness checkout <span class=\"k\">{{pinnedFull}}</span>\n\n<span class=\"c\"># build it</span>\ncd ../deepseek-harness && corepack enable\npnpm install --frozen-lockfile && pnpm build\n\n<span class=\"c\"># find the base-URL override — this is what lets you capture later</span>\nrg -n 'baseURL|baseUrl|base_url|BASE_URL' packages/llm/ apps/ --type ts",
+      "halt": null,
+      "detail": [],
+      "blocks": "nothing",
+      "note": null,
+      "produces": ["LLM_BASE_URL_ENV", "DSH_CMD"],
+      "unblocks": "Task 0.2",
+      "consumes": null
+    },
+    {
+      "id": "Task 0.2",
+      "lane": "ready",
+      "title": "Build the capture proxy",
+      "body": "~70 lines of dependency-free Node. Tees SSE to disk without buffering the client's view, and redacts <code>authorization</code>, <code>x-api-key</code>, <code>api-key</code>, <code>cookie</code> before any write.",
+      "pre": null,
+      "halt": {
+        "title": "The one check you must not skip",
+        "pre": "rg -n 'sk-|Bearer' captures/session-smoke.jsonl\n<span class=\"c\"># must print nothing</span>",
+        "body": "A leaked key in a capture is the single unrecoverable mistake in this study. If that prints anything, stop and fix <code>redact()</code> before going further."
+      },
+      "detail": [
+        "<strong>Deliverables:</strong> <code>.gitignore</code>, <code>tools/capture-proxy/server.mjs</code>, and <code>notes/00-orientation.md</code> holding the pinned SHA, the package map, and the two discovered values every later task consumes by name."
+      ],
+      "blocks": "Task 0.1",
+      "note": null,
+      "produces": [],
+      "unblocks": "everything downstream",
+      "consumes": null
+    },
+    {
+      "id": "Phase 1 · the control",
+      "lane": "next",
+      "title": "Write a harness from scratch",
+      "body": "~45 lines against the DeepSeek API: a message list, two tools, a loop, a step cap. <strong>The only harness whose every byte you can account for</strong> — and therefore the reference against which dsh's captures are read.",
+      "pre": "messages = [system, user]\n<span class=\"k\">for</span> step <span class=\"k\">in</span> 1..10:\n    msg = POST /chat/completions {model, messages, tools}\n    messages.push(msg)\n    <span class=\"k\">if</span> not msg.tool_calls: print(msg.content); <span class=\"k\">break</span>\n    <span class=\"k\">for</span> call <span class=\"k\">in</span> msg.tool_calls:\n        result = impls[call.name](call.args)\n        messages.push({role:'tool', tool_call_id,\n          content: result<span class=\"k\">.slice(0,4000)</span>})",
+      "halt": null,
+      "detail": [
+        "<strong>Then break it deliberately:</strong>",
+        {
+          "bullets": [
+            "<strong>Blow the truncation</strong> — read <code>package-lock.json</code> and list the dependencies.",
+            "<strong>Blow the step cap</strong> — twelve sorting algorithms, each run and compared.",
+            "<strong>Expose the missing permission layer</strong> — delete every <code>.tmp</code> under <code>/tmp</code>. The alarm you feel is <code>packages/guard</code>'s entire reason to exist."
+          ]
+        },
+        "<strong>Deliverables:</strong> <code>experiments/minimal-harness/harness.mjs</code>, a capture of your own harness through the proxy, and <code>notes/01-what-my-harness-lacks.md</code> — the table that becomes §4 and §5. First real <code>CONTEXT.md</code> terms land here: loop, turn, step, tool call, tool result, context window."
+      ],
+      "blocks": "Phase 0",
+      "note": "· uses the DeepSeek key",
+      "produces": [],
+      "unblocks": "the whole 15-thread menu",
+      "consumes": null
+    },
+    {
+      "id": "Task 2.0 · observation only",
+      "lane": "next",
+      "title": "Baseline capture of dsh",
+      "body": "Capture dsh on the canonical task, then write <code>notes/02-baseline-behavior.md</code> recording <strong>only what was observable</strong>: round-trip count, tool order, when approval was requested, what displayed between steps, whether it verified its own work.",
+      "pre": "rg -n 'packages/' notes/02-baseline-behavior.md\n<span class=\"c\"># must print nothing</span>",
+      "halt": null,
+      "detail": [
+        "That note is the control Thread B must later reconcile against, line by line. <strong>It only works if it was written before you read any source.</strong>",
+        "Then diff your toy against the specimen: same task, two harnesses, two captures. Every difference is a thread to pull."
+      ],
+      "blocks": "Phase 1",
+      "note": null,
+      "produces": [],
+      "unblocks": "Thread B · Threads A, C",
+      "consumes": null
+    },
+    {
+      "id": "Phase 3",
+      "lane": "gate",
+      "title": "One tool, two harnesses",
+      "body": "The same trivial tool built twice — as a dsh plugin and as an MCP server for Claude Code. <strong>The diff between the two integrations is the finding.</strong>",
+      "pre": null,
+      "halt": null,
+      "detail": [
+        "<strong>Two things must be true, per harness:</strong> the tool was <em>offered</em>, and the model <em>called it</em>. Proving only the first is the classic false pass — it shows registration worked while the loop never closed around it.",
+        {
+          "pre": "<span class=\"c\"># offered (dsh, from the capture)</span>\njq -r 'select(.dir==\"request\") | .body.tools[]? | .function.name' \\\n  captures/session-plugin.jsonl | sort -u | rg hello_study\n\n<span class=\"c\"># called (either harness — grep the marker)</span>\nrg -c 'STUDY-MARKER-7f3a' captures/session-plugin.jsonl"
+        },
+        "<strong>Why this is the category exam:</strong> what <em>both</em> harnesses demand of a tool is essential to the category. What only one demands is incidental to its implementation. That intersection is the real model of “a tool” — and MCP versus a Cordis plugin is itself an answer to Thread E's question about where an extension boundary belongs."
+      ],
+      "blocks": "Thread D only",
+      "note": "— it does <em>not</em> wait for the other fourteen",
+      "produces": [],
+      "unblocks": null,
+      "consumes": "D's “what a new tool must provide” checklist"
+    },
+    {
+      "id": "Phase 4",
+      "lane": "last",
+      "title": "Transfer test",
+      "body": "Commit predictions <em>before</em> opening the Claude Code transcripts already on disk, then score them. Sort every glossary term into universal, dsh-specific, or missing.",
+      "pre": null,
+      "halt": null,
+      "detail": [
+        "<strong>Predict first, and commit the prediction.</strong> From the dsh-derived model alone, write down which tools you expect, how results appear serialized, what stop reasons exist, how permissions are gated. A prediction made after looking tests nothing — so it goes in a commit before the first <code>jq</code> runs.",
+        "<strong>Three buckets, and two of them are the output:</strong>",
+        {
+          "bullets": [
+            "<strong>Universal</strong> — explains both harnesses. Stays canonical in <code>CONTEXT.md</code>.",
+            "<strong>dsh-specific</strong> — an implementation detail you mistook for a category concept.",
+            "<strong>Missing</strong> — Claude Code does something your vocabulary can't name. <code>thinking</code> blocks, hooks, and sidechains are the likely candidates."
+          ]
+        },
+        "Buckets two and three are what the study actually produced. Bucket one is just what survived."
+      ],
+      "blocks": "all of Phase 2",
+      "note": "· see §6 for what transcripts can and can't show",
+      "produces": [],
+      "unblocks": null,
+      "consumes": null
+    }
+  ],
+  "threads": [
+    {
+      "letter": "A",
+      "name": "Prompt & presentation",
+      "loop": "assemble",
+      "question": "What actually belongs in a system prompt, and how much behaviour is bought with prose rather than code?",
+      "raisedBy": { "kind": "toy" },
+      "packages": ["core/system-prompt", "agent-tool-presentation", "preset"],
+      "needs": "capture",
+      "gates": null,
+      "comparison": false,
+      "entry": "jq -r 'select(.dir==\"request\") | .body.messages[]\n  | select(.role==\"system\") | .content' \\\n  captures/session-dsh-canonical.jsonl | head -1",
+      "detail": [
+        "<strong>Answer with a number.</strong> What fraction of behavioural instruction lives in tool <em>descriptions</em> versus the system prompt? That ratio is a category-level property you can carry to any harness.",
+        "Take a distinctive six-word phrase from the capture and <code>rg</code> for it. If it isn't found literally, the prompt is assembled from fragments — record which, and where."
+      ]
+    },
+    {
+      "letter": "B",
+      "name": "The agent loop",
+      "loop": "control",
+      "question": "What legitimately terminates a loop? Your toy just used a hard step cap of ten.",
+      "raisedBy": { "kind": "toy" },
+      "packages": ["core/agent-loop", "core/agent", "agent-default-model"],
+      "needs": "note-2.0",
+      "gates": null,
+      "comparison": false,
+      "entry": "rg -n 'break|return|maxSteps|maxTurns|stop|finish' \\\n  packages/core/agent-loop --type ts\npnpm vitest run packages/core/agent-loop --reporter=verbose",
+      "detail": [
+        "Mark the line where each of the five phases happens, then record <strong>every</strong> termination condition in precedence order — no tool calls emitted, step cap, token budget, user interrupt.",
+        "The tests are executable spec: an invariant you wouldn't have predicted marks a gap in your model. Then reconcile every observation in <code>notes/02-baseline-behavior.md</code> against a specific line, or list it as open — <strong>which is why this one waits for Task 2.0.</strong>"
+      ]
+    },
+    {
+      "letter": "C",
+      "name": "Context & compaction",
+      "loop": "assemble",
+      "question": "What should be dropped when the context fills, and is the decision positional, semantic, or size-based?",
+      "raisedBy": { "kind": "toy" },
+      "packages": ["compaction/*", "context", "spill", "core/session"],
+      "needs": "capture",
+      "gates": null,
+      "comparison": false,
+      "entry": "jq -r 'select(.dir==\"request\")\n  | \"\\(.id)\\t\\(.body.messages|length)\\t\\(.body.messages|tostring|length)\"' \\\n  captures/session-dsh-long.jsonl",
+      "detail": [
+        "A monotonic rise followed by a <strong>drop in message count</strong> is a compaction event. The canonical task is too short to trigger one — run the twelve-algorithm task instead.",
+        "The densest engineering in the repo: compaction is a top-level package with a dedicated <code>compaction-tool-result-pruner</code>, and <code>spill</code> sits alongside it. Direct answer to your toy's worst shortcut."
+      ]
+    },
+    {
+      "letter": "D",
+      "name": "Tools & permission",
+      "loop": "execute",
+      "question": "What must a harness be told about a tool, and where does the permission boundary sit?",
+      "raisedBy": { "kind": "toy" },
+      "packages": ["core/tools", "fs", "guard", "web"],
+      "needs": "source",
+      "gates": "Phase 3",
+      "comparison": false,
+      "entry": "rg -n 'approve|permission|confirm|allow|deny' packages/guard --type ts",
+      "detail": [
+        "Trace the file-edit tool through <strong>six layers</strong>, each cited <code>path:line</code>: schema → registration → presentation → dispatch → permission → result serialization.",
+        "Then answer: is approval per-call, per-tool, per-session, or path-scoped — and what's the default posture? Output is a harness-neutral checklist, “what a new tool must provide,” which Phase 3 consumes directly."
+      ]
+    },
+    {
+      "letter": "E",
+      "name": "Plugin architecture",
+      "loop": "around",
+      "question": "Where should a harness's extension boundary sit, and what does “everything is a plugin” make hard?",
+      "raisedBy": { "kind": "toy" },
+      "packages": ["core/scope", "boot", "extensions", "bundle"],
+      "needs": "source",
+      "gates": null,
+      "comparison": false,
+      "entry": "cat packages/core/README.md AGENTS.md CLAUDE.md packages/AGENTS.md\nrg -n 'ctx\\.(plugin|on|set|inject)' packages/core --type ts",
+      "detail": [
+        "<strong>Learn Cordis first or this thread fails.</strong> It's dependency injection plus an event bus — nothing calls anything directly, so grep-based tracing finds nothing and the codebase reads as indirection with no call graph. There's a paper behind it: <em>A Programming Paradigm for Spatiotemporal Composability</em>.",
+        "The repo's own <code>AGENTS.md</code> and <code>CLAUDE.md</code> are written to orient agents working in it, which makes them the best human onboarding docs too — usually fresher than <code>docs/</code>."
+      ]
+    },
+    {
+      "letter": "F",
+      "name": "Delegation & sub-agents",
+      "loop": "execute",
+      "question": "When does a harness spawn <em>another</em> harness, and what does the child inherit?",
+      "raisedBy": { "kind": "toy" },
+      "packages": ["subagent", "plan", "goal", "jobs", "schedule"],
+      "needs": "source",
+      "gates": null,
+      "comparison": true,
+      "entry": "rg -n 'fork|spawn|child|sub.?agent|delegate' \\\n  packages/subagent packages/jobs --type ts",
+      "detail": [
+        "The design question is what a child inherits — tools? history? permissions? — and how its result re-enters the parent's context.",
+        "<strong>One of the sharpest comparison surfaces in the study.</strong> Claude Code has the same feature: sub-agent invocations appear in transcripts as <code>Task</code>/<code>Agent</code> tool calls, and <code>isSidechain</code> marks the child sessions."
+      ]
+    },
+    {
+      "letter": "G",
+      "name": "Execution & sandboxing",
+      "loop": "execute",
+      "question": "Where does model-authored code actually run, and what contains it?",
+      "raisedBy": { "kind": "toy" },
+      "packages": ["sandbox", "e2b", "code-runtime", "shell", "subprocess", "terminal"],
+      "needs": "source",
+      "gates": null,
+      "comparison": false,
+      "entry": "rg -n 'unsafe|escape|host|local|bypass' packages/sandbox --type ts",
+      "detail": [
+        "Six packages here against your toy's bare <code>execSync</code> — that alone says the answer isn't obvious. Distinguish the layers: is <code>code-runtime</code> the abstraction, <code>sandbox</code> the local implementation, <code>e2b</code> a remote provider?",
+        "Then find the escape hatch — is there a path where code runs unsandboxed, and what gates it? Map the isolation strategies (none / subprocess / container / remote VM) and what each costs in latency and fidelity."
+      ]
+    },
+    {
+      "letter": "H",
+      "name": "Interop · MCP & ACP",
+      "loop": "around",
+      "question": "When a harness standardises its extension boundary, what does it give up?",
+      "raisedBy": { "kind": "toy" },
+      "packages": ["mcp", "acp", "api", "sdk"],
+      "needs": "source",
+      "gates": null,
+      "comparison": true,
+      "entry": "cat packages/acp/README.md   <span class=\"c\"># Agent Client Protocol — what connects to what?</span>",
+      "detail": [
+        "Thread E covers the <em>native</em> extension boundary. This covers the <em>standard</em> one — and both harnesses under study speak MCP, making it the one integration surface you can compare directly.",
+        "<strong>The question that matters:</strong> which capabilities can a native plugin express that an MCP server cannot? That gap is precisely why native plugin systems still exist alongside MCP."
+      ]
+    },
+    {
+      "letter": "I",
+      "name": "Persistence & resumption",
+      "loop": "control",
+      "question": "What must be saved for a harness to resume a conversation it isn't currently holding in memory?",
+      "raisedBy": { "kind": "toy" },
+      "packages": ["session", "session-query", "settings", "storage", "workspace"],
+      "needs": "source",
+      "gates": null,
+      "comparison": true,
+      "entry": "rg -n 'persist|save|write|serialize' packages/session --type ts\n\nF=$(find ~/.claude/projects -name '*.jsonl' | head -1)\njq -r '.type' \"$F\" | sort | uniq -c",
+      "detail": [
+        "Your toy loses everything on exit. This is the thread with the <strong>richest comparison data</strong>, because Claude Code's own answer is sitting on your disk in ~3,800 files.",
+        "Then determine what <code>session-query</code> is for: is history searchable, and does the <em>model</em> get to search it, or only the user? That distinction is a real design fork."
+      ]
+    },
+    {
+      "letter": "J",
+      "name": "Observability & cost",
+      "loop": "around",
+      "question": "How does a harness let someone outside the loop observe it — or interrupt it?",
+      "raisedBy": { "kind": "toy" },
+      "packages": ["hooks", "feedback", "runtime-diagnostics", "token-meter"],
+      "needs": "source",
+      "gates": null,
+      "comparison": true,
+      "entry": "rg -n 'hook|before|after|intercept' packages/hooks --type ts",
+      "detail": [
+        "Map the hook points: which loop phases can be intercepted, and can a hook <strong>block</strong> an action or only observe it? In Claude Code the answer is visible — <code>preventedContinuation</code> on system records proves hooks there can block.",
+        "<code>token-meter</code> connects straight back to Thread C: does the harness count tokens before sending (budgeting) or after (accounting)? That determines whether compaction can be predictive."
+      ]
+    },
+    {
+      "letter": "K",
+      "name": "The host boundary",
+      "loop": "around",
+      "question": "Where does the harness end and the user interface begin? Could you drive it with no UI at all?",
+      "raisedBy": { "kind": "toy" },
+      "packages": ["host", "client", "interaction", "apps/"],
+      "needs": "source",
+      "gates": null,
+      "comparison": false,
+      "entry": null,
+      "detail": [
+        "Your toy printed to stdout. dsh serves a web UI on <code>127.0.0.1:3080</code>, so it has drawn a boundary somewhere — and where that line sits determines whether the harness can be embedded, scripted, or driven headlessly.",
+        "Determine the transport between core and UI (HTTP, WebSocket, JSON-RPC, in-process?), and whether streaming reaches the UI as the raw model stream or as re-emitted domain events. Then answer the real question: <strong>what is the minimum surface a headless embedder needs?</strong>"
+      ]
+    },
+    {
+      "letter": "L",
+      "name": "Provider abstraction",
+      "loop": "call",
+      "question": "What does it take to be model-agnostic, and where does the abstraction leak?",
+      "raisedBy": { "kind": "toy" },
+      "packages": ["llm/*", "llm-deepseek", "llm-pi-ai", "llm-retry", "credentials", "identity"],
+      "needs": "source",
+      "gates": null,
+      "comparison": false,
+      "entry": null,
+      "detail": [
+        "Read the shared <code>llm</code> interface, then both implementations behind it. <strong>What sits in the interface that only one provider actually needs? That is where the abstraction leaks.</strong>",
+        "Then <code>llm-retry</code>: which failures are retried, with what backoff, and is a retried call visible to the loop or hidden beneath it? A hidden retry changes what “one step” means.",
+        "The category question: can a harness be genuinely model-agnostic, given that prompt engineering, tool-call formats, and thinking blocks all differ per model?"
+      ]
+    },
+    {
+      "letter": "M",
+      "name": "Inputs & code intelligence",
+      "loop": "assemble",
+      "question": "What does a harness feed the model besides text and tool results?",
+      "raisedBy": { "kind": "census", "text": "the package census — the toy never raised this one" },
+      "packages": ["attachment", "lsp"],
+      "needs": "source",
+      "gates": null,
+      "comparison": false,
+      "entry": null,
+      "detail": [
+        "<strong>attachment:</strong> how are images and files injected — re-sent every turn, or referenced? That has a direct cost consequence; connect it to Thread C.",
+        "<strong>lsp:</strong> the harness runs a language server and hands the model its output. Determine whether that arrives as a tool the model <em>calls</em>, or as context <em>injected</em> without being asked. Those are very different designs — decide which is better, and why dsh chose as it did."
+      ]
+    },
+    {
+      "letter": "N",
+      "name": "Cross-language embedding",
+      "loop": "around",
+      "question": "Can a TypeScript harness be driven from Python, and what does that boundary force it to make explicit?",
+      "raisedBy": { "kind": "census", "text": "the package census — the toy never raised this one" },
+      "packages": ["python/", "native/", "sdk", "examples"],
+      "needs": "source",
+      "gates": null,
+      "comparison": false,
+      "entry": null,
+      "detail": [
+        "An RPC boundary forces the cleanest possible statement of what a harness <em>is</em>, because everything crossing it must be serialisable. <code>BENCHMARK.md</code> points at a Python SDK and a <code>jsonrpc-agent</code> variant.",
+        "Read the SDK's surface — that operation list is dsh's own answer to “what is the harness API?” Then compare it to your toy's function signatures: <strong>what did dsh have to make explicit that you left implicit?</strong>"
+      ]
+    },
+    {
+      "letter": "O",
+      "name": "Agent self-management",
+      "loop": "execute",
+      "question": "What tools does a harness give the model for managing its own process, rather than the user's task?",
+      "raisedBy": { "kind": "toy" },
+      "packages": ["todo", "skill", "workflow"],
+      "needs": "source",
+      "gates": null,
+      "comparison": true,
+      "entry": null,
+      "detail": [
+        "A category of tool your toy has no concept of: the model tracking its own plan, loading its own instructions, running predefined procedures. <strong>Every one has a direct Claude Code analogue</strong>, making this the densest comparison surface in the study.",
+        {
+          "bullets": [
+            "<strong>todo</strong> — is the list <em>context</em> (re-sent every turn, costing tokens) or <em>external state</em> (stored, referenced)? That choice is the whole design question.",
+            "<strong>skill</strong> — does the model request one by name, or does the harness inject it on a match?",
+            "<strong>workflow</strong> — what distinguishes it from a plan (Thread F) and from a skill? If the code doesn't make that clear, the ambiguity is the finding."
+          ]
+        }
+      ]
+    }
+  ],
+  "infrastructurePackages": ["util", "typert", "test-support", "bundle"],
+  "transferLedger": [
+    { "q": "Which tools exist and get called", "available": true, "source": "<code>tool_use</code> blocks" },
+    { "q": "How the loop terminates", "available": true, "source": "<code>stopReason</code>" },
+    { "q": "How permissions are gated", "available": true, "source": "<code>permission-mode</code>" },
+    { "q": "Whether hooks can block", "available": true, "source": "<code>preventedContinuation</code>" },
+    { "q": "Whether sub-agents fork context", "available": true, "source": "<code>isSidechain</code>" },
+    { "q": "Whether the model reasons before acting", "available": true, "source": "<code>thinking</code> blocks" },
+    { "q": "What the system prompt says", "available": false, "source": "not stored locally" },
+    { "q": "What the tool schemas declare", "available": false, "source": "not stored locally" }
+  ],
+  "log": [],
+  "questionIndex": [
+    {
+      "shortcut": "<code>.slice(0, 4000)</code> on every tool result",
+      "from": ".slice(0, 4000) on every tool result",
+      "question": "What should be dropped when context fills, and how is that decided?",
+      "threads": ["C"]
+    },
+    {
+      "shortcut": "Runs every tool unchecked, including <code>rm</code>",
+      "from": "running every tool unchecked, including rm",
+      "question": "Where does a permission boundary belong, and what does it gate?",
+      "threads": ["D"]
+    },
+    {
+      "shortcut": "Hard-coded <code>MAX_STEPS = 10</code>",
+      "from": "hard-coded MAX_STEPS = 10",
+      "question": "What legitimately terminates a loop?",
+      "threads": ["B"]
+    },
+    {
+      "shortcut": "Two tools in an array literal",
+      "from": "two tools in an array literal",
+      "question": "How does a tool get registered and described at scale?",
+      "threads": ["D", "A"]
+    },
+    {
+      "shortcut": "One hard-coded system prompt string",
+      "from": "one hard-coded system prompt string",
+      "question": "What actually belongs in a system prompt?",
+      "threads": ["A"]
+    },
+    {
+      "shortcut": "Bare <code>execSync</code> on the host",
+      "from": "bare execSync on the host",
+      "question": "Where should model-authored code run, and what contains it?",
+      "threads": ["G"]
+    },
+    {
+      "shortcut": "One loop, one context, no fan-out",
+      "from": "one loop, one context, no fan-out",
+      "question": "When does a harness spawn another harness?",
+      "threads": ["F"]
+    },
+    {
+      "shortcut": "Loses everything on exit",
+      "from": "losing everything on exit",
+      "question": "What must be saved to resume a conversation?",
+      "threads": ["I"]
+    },
+    {
+      "shortcut": "No plugins, no extension points",
+      "from": "no plugins, no extension points",
+      "question": "Where should the extension boundary sit?",
+      "threads": ["E", "H"]
+    },
+    {
+      "shortcut": "Prints to stdout",
+      "from": "printing to stdout",
+      "question": "Where does the harness end and the interface begin?",
+      "threads": ["K"]
+    },
+    {
+      "shortcut": "Hard-codes one provider's wire format",
+      "from": "hard-coding one provider's wire format",
+      "question": "What does model-agnosticism cost, and where does it leak?",
+      "threads": ["L"]
+    },
+    {
+      "shortcut": "No way to observe or interrupt it",
+      "from": "no way to observe or interrupt it",
+      "question": "How does anyone outside the loop see in?",
+      "threads": ["J"]
+    },
+    {
+      "shortcut": "Model can't track its own plan",
+      "from": "the model being unable to track its own plan",
+      "question": "What tools manage the model's own process?",
+      "threads": ["O"]
+    }
+  ]
+}

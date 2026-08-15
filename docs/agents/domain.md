@@ -22,10 +22,13 @@ This repo is multi-context, and its contexts are **campaigns** — one per subje
 │   └── agents/
 ├── tools/                             ← shared instruments, e.g. the capture proxy
 └── campaigns/
-    ├── index.html                     ← the campaign board
+    ├── board.json                     ← board data: standfirst, empty state, ownership, Shared language
+    ├── index.html                     ← generated; do not hand-edit
     └── agent-harnesses/
         ├── CONTEXT.md                 ← this campaign's vocabulary
-        ├── roadmap.html
+        ├── campaign.json              ← source of truth for the pages below
+        ├── roadmap.html               ← generated; do not hand-edit
+        ├── worklog.html               ← generated; do not hand-edit
         ├── plan.md
         ├── docs/adr/                  ← campaign-scoped decisions (created lazily)
         └── notes/ captures/ experiments/

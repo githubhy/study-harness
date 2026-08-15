@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-15
 **Scope:** repo-wide. Governs the campaign board and every campaign's roadmap and worklog.
-**Status:** approved in brainstorm, not yet implemented.
+**Status:** implemented on `feat/campaign-frontend-generator`. Amended during implementation where the design met the code — see "Fields added during implementation" and the Deferred section.
 
 Filed in `docs/superpowers/specs/` rather than inside a campaign because it governs all campaigns.
 Campaign-scoped documents live at `campaigns/<name>/`; see `CONTEXT-MAP.md`.
@@ -93,7 +93,9 @@ One file. Two halves: a registry that changes rarely, and a log that grows.
     "standfirst": "Build a transferable model of …",
     "claims":         [ { "title": "You can't read what you can't name", "body": "…" } ],
     "standingOrders": [ { "title": "The surprise budget", "body": "…" } ],
-    "sections":       { "s1": "…", "s2": "…", "s4": "…", "s5": "…", "s6": "…" }
+    "sections":       { "s1": "…", "s4": "…", "s5": "…", "s6": "…" },
+    "map":            { "lede": "…", "chain": [], "links": [], "outputs": [], "caption": "…" },
+    "transferPull":   "…"
   },
 
   "loopSteps": [
@@ -112,12 +114,19 @@ One file. Two halves: a registry that changes rarely, and a log that grows.
       "name": "Context & compaction",
       "loop": "assemble",
       "question": "What should be dropped when the context fills, and is the decision positional, semantic, or size-based?",
-      "raisedBy": { "kind": "toy", "text": ".slice(0, 4000) on every tool result" },
+      "raisedBy": { "kind": "toy" },
       "packages": ["compaction/*", "context", "spill", "core/session"],
       "needs": "capture",
       "gates": null,
       "entry": "jq -r 'select(.dir==\"request\") …' captures/session-dsh-long.jsonl",
       "detail": ["A monotonic rise followed by a <b>drop in message count</b> is a compaction event. …"] }
+  ],
+
+  "questionIndex": [
+    { "shortcut": "Hard-coded <code>MAX_STEPS = 10</code>",
+      "from": "hard-coded MAX_STEPS = 10",
+      "question": "What legitimately terminates a loop?",
+      "threads": ["B"] }
   ],
 
   "infrastructurePackages": ["util", "typert", "test-support", "bundle"],
@@ -140,12 +149,105 @@ One file. Two halves: a registry that changes rarely, and a log that grows.
 ```
 
 `raisedBy.kind` is `"toy"` or `"census"` — the two threads the toy could not have suggested (M and N)
-use `"census"`, which is how §5's closing row is emitted. `needs` is `"source"`, `"capture"`, or
-`"note-2.0"`. `gates` names a phase or is null.
+use `"census"`, which is how §5's closing row is emitted. Only a census-raised thread carries
+`raisedBy.text`; a toy-raised one derives its `FROM` line from `questionIndex`, so the string has one
+home. `needs` is `"source"`, `"capture"`, or `"note-2.0"`. `gates` names a phase or is null.
+
+`questionIndex` is §5, written once in the order the section lists its rows. The relation it models
+is **many-to-many in both directions** — a shortcut can raise several threads (`two tools in an array
+literal` raises D and A) and a thread can be raised by several shortcuts (D again, plus `running
+every tool unchecked`). Each entry emits one row, refs joined with ` · `, and each thread card's
+`FROM` line is every entry naming its letter, in index order. Modelling it as one field on the thread
+could express only one direction, which is why it is its own list.
+
+An entry carries the wording for **both** surfaces, because the source sets them differently on
+purpose: `shortcut` is §5's first column — sentence case with inline `<code>`, since that table
+indexes code constructs and `MAX_STEPS = 10` set as prose reads as a different claim — and `from` is
+the cards' lowercase running prose, inside a line that is already monospaced. `shortcut` renders
+through `rich`, `from` plain. Two fields rather than one is not duplication: they are different
+strings, they sit adjacent in the same object, and nothing else holds either.
 
 `copy` holds page prose so a different subject can supply its own words without touching templates.
 All `copy`, `question`, and `detail` strings may contain a restricted inline HTML subset —
 `<b> <i> <em> <strong> <code>` — which the renderer passes through; everything else is escaped.
+Those strings store **literal characters**, never pre-escaped entities: `&`, not `&amp;`.
+
+### Fields added during implementation
+
+Building the roadmap renderer surfaced content on the source page that the schema above had nowhere
+to put. Each of these exists because omitting it would have silently dropped content during the
+migration:
+
+| Field | Shape | Why |
+|---|---|---|
+| `specimen.repo` | `"owner/name"` | §8's `gh api` package re-check command is rendered from it |
+| `threads[].comparison` | boolean | Renders the `t-cc` "CC comparison" marker several thread cards carry |
+| `detail[]` entries | string **or** `{ "bullets": ["…"] }` | A string is a paragraph; the object form is the `<ul>` list thread O uses |
+| `phases[].halt` | `null` or `{ title, pre, body }` | The halt block on Task 0.2's card — its heading, code block, and warning |
+| `copy.map` | `{ lede, chain[], links[], outputs[], caption }` | §2's schematic prose. `chain` is the vertical box sequence, `links` the arrow labels between them, `outputs` the two gated boxes. **Supersedes `copy.sections.s2`, which no longer exists** |
+| `copy.transferPull` | string | §6's closing pull paragraph, which carries campaign-specific reasoning |
+| `specimen.short` | string | The terse moniker the masthead kicker uses (`dsh`), distinct from the full name in the facts strip |
+
+### Fields added during the migration
+
+Transcribing the real roadmap surfaced four more places where the source page held content the
+schema could not. Each was found by the migration acceptance check, and nine of its sixty-one required
+phrases live in the first of them:
+
+| Field | Shape | Why |
+|---|---|---|
+| `phases[].detail` | array of string \| `{ bullets: [] }` \| `{ pre: "…" }` | Five of six board cards carry prose, a list, or a second code block *after* their command — Phase 1's "Then break it deliberately" list and deliverables, Task 0.2's deliverables, Task 2.0's two closing paragraphs, Phase 3's proof prose, Phase 4's three buckets. Same shape as `threads[].detail` plus a `{ pre }` entry, because Phase 3 interleaves prose, a `<pre>`, and more prose — an order `phases[].pre` alone cannot express |
+| `phases[].note` | string or null | The rich clause trailing the "blocked by" line (`· uses the DeepSeek key`, `— it does <em>not</em> wait for the other fourteen`). It carries its own leading separator because the source uses different ones |
+| `phases[].consumes` | string or null | Phase 3's fourth `c-blocks` line, `consumes <b>D's "what a new tool must provide" checklist</b>` — the payload of the D → Phase 3 gate |
+| `threads[].entry` | now nullable | Five thread cards (K, L, M, N, O) open on reading rather than on a command. A null entry emits nothing rather than an empty `<pre>` box |
+| `questionIndex` | `[{ shortcut, from, question, threads[] }]` | §5 is many-to-many in both directions and `raisedBy` could hold only one of each. Modelling it as one field cost two rows and two `FROM` entries in the first migration pass; this restores them. **Supersedes the merge-by-`raisedBy.text` rule below**, and `raisedBy.text` with it — that field now exists only on census-raised threads, which have no index entry by definition |
+| `specimen.packageCount` | number | The masthead strip and §8's heading assert how many packages the **specimen** has — the checkable claim §8's `gh api` command re-verifies. Counting the tokens the threads list instead asserts "everything we listed is listed", which is circular, and diverges anyway because the lists use globs (`compaction/*`) and sub-paths (`core/agent`). Omit it and the derived count is used |
+
+`rich()` also stopped escaping `'`. Its output is only ever text content, never an attribute value,
+so an apostrophe needs no escaping there — and prose is full of them. `esc()` still escapes it,
+because `esc()` output does reach quoted contexts. Without this two acceptance phrases
+("You can't read what you can't name", "Analyse, don't dump") could not appear on the page at all.
+
+Two structural rules the renderer follows that are not fields:
+
+- ~~**§5 merges rows by identical `raisedBy.text`.**~~ **Superseded by `questionIndex`.** The
+  original rule assumed one shortcut could raise two threads but not the reverse. Both happen: D is
+  raised by "running every tool unchecked" *and* "two tools in an array literal", and A by "two tools
+  in an array literal" *and* "one hard-coded system prompt string". Merging one field on the thread
+  could express only the first direction, so it silently dropped two of the source's thirteen rows
+  and one shortcut from each of two `FROM` lines. `questionIndex` models the relation directly, and
+  §5's row order is the order its entries are written rather than an artefact of `threads[]` order —
+  which frees `threads[]` to be plain alphabetical.
+- **§8 groups by loop step**, using the same ordering as the contents rail, §2, and §4, rather than
+  sorting all fifteen threads alphabetically. The "Loop step" column is meaningless otherwise.
+
+**`{{canonicalTask}}` is substituted inside `copy.standingOrders[].body`.** The source page quotes the
+canonical task *inside* the prose of its "The canonical task" rule rather than in a field of its own,
+so a dedicated slot could not position it. The token keeps one source of truth — `data.canonicalTask` —
+while letting the prose place it. A misspelled token renders literally, so the page must assert no
+`{{` survives rendering.
+
+**`{{pinnedFull}}` is substituted inside the code fields**, for the same reason and by the same rule.
+Phase 0.1's command pins the checkout by the specimen's full SHA, which `specimen.pinnedFull` already
+holds; writing it into the command as well gave the same forty characters two homes, and
+`pinnedFull` had no reader at all. A token that cannot be resolved is left in place rather than
+replaced with an empty string — a visibly broken command that fails the no-`{{` assertion beats a
+plausible-looking wrong commit. These two are the only tokens the renderer substitutes.
+
+Code fields — `threads[].entry`, `phases[].pre`, and `phases[].halt.pre` — pass through `code()`
+rather than `esc()`. `code()` re-permits exactly `<span class="c">`, `<span class="k">`, and `</span>`,
+which is what the source uses for comment and keyword highlighting inside `<pre>` blocks and what the
+verbatim stylesheet still styles. `checkHtml` counts `span` as a paired tag, so an unbalanced span in
+a code field fails the property checks rather than shipping.
+
+`copy.map` exists rather than hardcoding §2's narrative in the renderer because that narrative is
+campaign-specific: a different subject has a different dependency story, and prose baked into a
+shared template is exactly the drift this design exists to prevent.
+
+The stylesheet keeps its now-unused `.c-state` rule. `theme.mjs` is a byte-verbatim copy of the
+source stylesheet, guarded by a test that derives the expected text from the fixture — that invariant
+is what proves no styling was lost, and it outweighs deleting one inert rule. The requirement is that
+the renderer emit no state chips, not that the stylesheet forget they existed.
 
 ---
 
@@ -169,8 +271,22 @@ written exactly once, in the entry that raised it.
 
 **Strip totals, board resume line, findings counts** — counted from the log.
 
-**Graph edges.** One edge per `opened` entry, `thread → ask`, labelled with the question. Plus one
+**Band ordering.** One list: each loop step with its thread letters, in `loopSteps` order,
+alphabetical within. Six surfaces have to agree — §2's stagerow, §4's bands, §8's census rows, the
+contents rail, the coverage strip, and the graph's node layout — and "same order as the roadmap's
+§4 bands" is a requirement of the strip below, not a coincidence to be re-derived per renderer. A
+band carries letters rather than threads, so it is an ordering and not a second copy of the
+content: each renderer maps the letters onto what it draws.
+
+**Graph edges.** One edge per `opened` entry, `thread → ask`, labelled with the question, plus one
 `thread → phase` edge per non-null `gates`.
+
+The worklog's drawn graph renders **only the `opened` edges**. A `gates` edge points at a phase, which
+has no node in a thread graph, so drawing it would leave a dangling half-edge; the roadmap's §2
+dependency map already shows Phase 3 gated on Thread D, which is where that relationship belongs. The
+graph is therefore omitted entirely when no `opened` edge exists — as is the case before the first
+finding is logged. A node grid with no edges is not a graph, and it duplicates the coverage strip
+directly above it.
 
 **Package census (§8) and the uncovered-package check.** Both from `threads[].packages` plus
 `infrastructurePackages` — which kills the double-hardcoding defect: §4 and §8 read the same array.
@@ -205,13 +321,37 @@ node tools/build-campaign.mjs --all --check       # regenerate to memory, diff, 
 - a `log[].note` path does not exist on disk
 - a `thread.loop` names an unknown loop step
 - a date is unparseable
+- `surpriseBudget` is absent or is not a positive integer. It sizes every pip string and decides
+  when a thread goes dry, and its absence fails *silently* rather than loudly: `Math.min(run,
+  undefined)` is `NaN`, so pips render empty, and `run >= undefined` is never true, so nothing ever
+  goes dry. The campaign's central mechanic can disappear with the build still exiting 0
+- a `log[]` entry has no `opened` or `resolved` array. Appending a log entry is the only hand edit
+  in the update loop, which makes this the likeliest hand-edit error in the system
+- a thread has no `raisedBy`, or is census-raised with no `raisedBy.text`
+- `campaign.json` is missing or is not valid JSON. `JSON.parse` reports a byte offset and no
+  filename, so under `--all` the failure could not say which campaign it came from
+- `campaigns/board.json` is missing or malformed. It is read outside the per-campaign error
+  isolation, so it was the one failure that escaped as an uncaught exception
+
+Paths are resolved against the **module**, not the cwd, so the tool runs from any directory rather
+than throwing `ENOENT` on `campaigns` — and never writes its pages into whatever directory the
+shell was sitting in.
 
 Package names are deliberately **not** required to be unique across threads: `sdk` genuinely appears
 in both H and N, and `bundle` in both E and the infrastructure list.
 
 **Guaranteed by construction, not by review:** `<meta charset="utf-8">` first; the three-state theme
 blocks; no `<script>`, `<link>`, `@import`, or webfont; no `<details>`; `body` background from a
-token; every `href="#…"` matching an emitted `id`.
+token; every `href="#…"` matching an emitted `id`; every `id` unique.
+
+`checkHtml` runs on every rendered page in **both** the write and the `--check` path, and a page
+that fails a property is reported problem-by-problem and not written. Without that the properties
+held only for campaigns that happened to have a test — "by construction" has to mean the build
+enforces it, or it means by review after all.
+
+Each page also carries an HTML comment after the charset meta saying it is generated and naming the
+command that rebuilds it. The pages are committed HTML that opens from disk, so the first thing
+anyone does with one is open it.
 
 ---
 
@@ -243,9 +383,14 @@ not a budget one.
 **Frontier** — the open-questions queue, one line each: question, raising thread, answering thread.
 
 **Trail** — append-only, newest first. Thread, pips at that point, date, the finding, the questions it
-opened, the note path. Dry entries additionally show the abandonment and issue number, and dim.
+opened, the note path. Dry entries additionally show the abandonment and issue number, and dim. With
+an empty log it carries an empty state, as the frontier does — before the first finding that is the
+whole page's state, and a bare heading says it in silence.
 
-Anchors `#tA`–`#tO`, matching the roadmap, linked both ways.
+Anchors `#tA`–`#tO`, matching the roadmap, linked both ways. `#tX` sits on that thread's **newest
+trail entry**; a thread with no entries keeps a bare fallback anchor so the roadmap's link cannot
+dangle. Entry ids carry the entry's index within its thread's history, because thread + date is not
+unique — two findings on one thread on one day collide.
 
 ### `roadmap.html`
 
@@ -295,7 +440,7 @@ threads were dropped during transcription. So the first task copies the current 
 `tools/campaign/fixtures/roadmap-premigration.html`, and the acceptance check is:
 
 - every content phrase in `tools/campaign/fixtures/acceptance-phrases.txt` appears in the regenerated
-  page. That list is committed, not ad-hoc: the 60 phrases used during earlier verification are
+  page. That list is committed, not ad-hoc: the 61 phrases used during earlier verification are
   written to the fixture in the same task, so the criterion is reproducible rather than remembered.
 - every package named in the snapshot appears in the regenerated page
 - zero `<details>`, zero external references

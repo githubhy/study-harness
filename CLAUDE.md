@@ -25,3 +25,34 @@ start a new campaign; changing the subject does.
 instruments. Start at `CONTEXT-MAP.md` or `campaigns/index.html`.
 
 Nothing under any `captures/` is ever committed, and this repo is public.
+
+## Generated pages
+
+`campaigns/index.html`, `campaigns/agent-harnesses/roadmap.html`, and `campaigns/agent-harnesses/worklog.html`
+are **generated**. Never hand-edit them — edit `campaigns/<name>/campaign.json` and rebuild:
+
+    node tools/build-campaign.mjs --all
+    node tools/build-campaign.mjs --all --check   # exits 1 if a page has drifted from its data
+    node --test tools/campaign/*.test.mjs         # the generator's own tests
+
+`campaigns/board.json` holds repo-level board data: the standfirst, the "No second campaign yet"
+empty state, the ownership table, and Shared language terms. It is not campaign-scoped and must be
+edited directly, then rebuilt.
+
+Logging a finding is: write `notes/<LETTER>-<slug>.md`, append one entry to `campaign.json`'s `log`,
+rebuild, and commit all of it together. Surprise pips, dry detection, the frontier, totals, the
+thread graph, and the package census are all derived — never write them by hand.
+
+### Frozen baselines
+
+`tools/campaign/fixtures/roadmap-premigration.html` and `board-premigration.html` are frozen records
+of the hand-written pages the generator replaced — they are never edited. Similarly,
+`tools/campaign/fixtures/acceptance-phrases.txt` and the board's phrase fixture are the content
+contracts the generated pages are checked against, and are never edited to make a failing check pass.
+
+Repo-wide sweeps for stale references must exclude `tools/campaign/fixtures/**` (along with
+`.superpowers` and `docs/superpowers/**`, which contain prose describing changes rather than links
+to them). Use this form so the exclusions and their reason travel together:
+
+    rg -l '<pattern>' \
+      --glob '!.superpowers' --glob '!docs/superpowers/**' --glob '!tools/campaign/fixtures/**' .
