@@ -1,5 +1,6 @@
 import { CSS } from './theme.mjs'
 import { esc, rich, attr } from './html.mjs'
+import { renderGraph } from './graph.mjs'
 
 const strip = (data, derived) => {
   const bands = data.loopSteps.map((step) => {
@@ -48,6 +49,7 @@ export function renderWorklog({ data, derived }) {
     `<header class="mast"><p class="kick">Worklog · ${esc(data.campaign)}</p>`,
     `<h1>${esc(data.title)} · what has happened</h1></header>`,
     strip(data, derived),
+    renderGraph({ data, derived }),
     '<section><h2 class="sec">Open questions</h2>', frontier(derived), '</section>',
     '<section><h2 class="sec">Trail</h2>', anchors(data), trail(data, derived), '</section>',
     `<footer><span><a href="roadmap.html">← roadmap</a></span>`,
