@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { loadCampaign } from './model.mjs'
+import { loadCampaign, readCampaign, derive } from './model.mjs'
 import { renderWorklog } from './render-worklog.mjs'
 import { checkHtml } from './checks.mjs'
 
@@ -32,10 +32,14 @@ test('letters are in fixed alphabetical order within a band', () => {
 })
 
 test('bands use the loop step label, not its id', () => {
-  // The "around" step's label was deliberately set to "Around the loop" (diverging from its id)
-  // in an earlier task, to catch a renderer that derives display text from s.id instead of s.label.
+  // The "around" step's label was deliberately set to "Around the loop" (diverging from its
+  // lowercase id "around") in an earlier task, to catch a renderer that derives display text
+  // from s.id instead of s.label. A renderer reading s.id would emit the bare, lowercase id as
+  // the band's text content — ">around<" — which this checks for directly; the earlier version
+  // of this assertion checked for ">Around<" (capitalized), a string a buggy renderer would
+  // never emit either way, so it passed regardless of which field the renderer read.
   assert.match(html, /Around the loop/)
-  assert.doesNotMatch(html, />Around</)
+  assert.doesNotMatch(html, />around</)
 })
 
 test('thread state drives the pip attribute', () => {
@@ -61,6 +65,42 @@ test('entries link to their note and back to the roadmap', () => {
 test('anchors exist for every thread', () => {
   assert.match(html, /id="tA"/)
   assert.match(html, /id="tB"/)
+})
+
+test("each trail entry shows its own stamped pips, not the thread's current pips", () => {
+  // model.mjs stamps e.pips at write time, capturing the run as it stood when that entry was
+  // logged: A's 2026-01-02 entry (surprising) resets to ○○, then 2026-01-03 (unsurprising)
+  // advances to ●○. If the renderer read t.pips (the thread's final pips) instead of e.pips for
+  // every row, both entries would show the same ●○ and this test would catch it — the other
+  // tests in this file don't, since they never look at a specific pip glyph.
+  const newest = html.match(/<span class="mono">([^<]+) 2026-01-03<\/span>/)
+  const oldest = html.match(/<span class="mono">([^<]+) 2026-01-02<\/span>/)
+  assert.ok(newest && oldest, 'expected both dated entries to render their pips span')
+  assert.equal(newest[1], '●○')
+  assert.equal(oldest[1], '○○')
+})
+
+test('only the tipping entry carries the dry state; earlier entries on the same thread stay live', () => {
+  // Nothing in the mini fixture ever goes dry (A's run only reaches 1 against a budget of 2), so
+  // this builds a synthetic log the same way derive.test.mjs does: append a third entry to A that
+  // pushes its run to the budget. The render-worklog `state` branch is
+  // `t.state === 'dry' && e === t.entries.at(-1)` — only the last entry should read data-state
+  // "dry"; the two earlier ones on the same now-dry thread must still read "live".
+  const base = readCampaign('tools/campaign/fixtures/mini')
+  const data = { ...base, log: [...base.log, {
+    thread: 'A', date: '2026-01-04', finding: 'Also dull.', surprising: false,
+    note: 'notes/A-alpha.md', opened: [], resolved: [], issue: 9,
+  }] }
+  const dryHtml = renderWorklog({ data, derived: derive(data) })
+  assert.deepEqual(checkHtml(dryHtml), [])
+
+  const byDate = Object.fromEntries(
+    [...dryHtml.matchAll(/<div class="entry" data-state="([^"]+)" id="e-A([^"]+)">/g)]
+      .map((m) => [m[2], m[1]]))
+  assert.equal(byDate['2026-01-02'], 'live')
+  assert.equal(byDate['2026-01-03'], 'live')
+  assert.equal(byDate['2026-01-04'], 'dry')
+  assert.match(dryHtml, /filed #9/)
 })
 
 test('an empty log renders as "nothing has happened yet", not broken', () => {
