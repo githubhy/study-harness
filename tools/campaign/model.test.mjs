@@ -65,3 +65,22 @@ test('accepts a package shared by two threads', () => {
   const shared = d.threads.filter((t) => t.packages.includes('shared'))
   assert.equal(shared.length, 2)
 })
+
+test('rejects gates pointing to unknown phase', () => {
+  const d = clone()
+  d.threads[1].gates = 'Unknown Phase'
+  assert.throws(() => readCampaign(MINI, d), /thread B gates Unknown Phase is not a known phase/)
+})
+
+test('accepts gates: null', () => {
+  const d = clone()
+  d.threads[0].gates = null
+  const result = readCampaign(MINI, d)
+  assert.equal(result.threads[0].gates, null)
+})
+
+test('rejects missing loopSteps array', () => {
+  const d = clone()
+  d.loopSteps = null
+  assert.throws(() => readCampaign(MINI, d), /loopSteps is not an array/)
+})

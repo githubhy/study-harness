@@ -11,7 +11,10 @@
     { "id": "assemble", "label": "Assemble", "step": "Step 1", "question": "What goes in?" },
     { "id": "around", "label": "Around", "step": "Outside", "question": "What frames it?" }
   ],
-  "phases": [],
+  "phases": [
+    { "id": "Phase 3", "lane": "gate", "title": "The exam", "body": "Sample phase.",
+      "pre": null, "blocks": "Thread D", "unblocks": null, "produces": [], "halt": null }
+  ],
   "threads": [
     { "letter": "A", "name": "Alpha", "loop": "assemble", "question": "A?",
       "raisedBy": { "kind": "toy", "text": "shortcut a" }, "packages": ["pkg-a", "shared"],
