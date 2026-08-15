@@ -1,5 +1,5 @@
 import { CSS } from './theme.mjs'
-import { esc, rich, attr } from './html.mjs'
+import { esc, rich, attr, GENERATED_MARKER } from './html.mjs'
 import { renderGraph } from './graph.mjs'
 
 const strip = (data, derived) => {
@@ -27,22 +27,31 @@ const frontier = (derived) => derived.frontier.length === 0
   : `<ul class="frontier">${derived.frontier.map((q) =>
       `<li>${rich(q.q)} <span class="mono">from ${esc(q.from)} → ask ${esc(q.ask)}</span></li>`).join('')}</ul>`
 
-const trail = (data, derived) => derived.trail.map((e) => {
-  const t = derived.threads.get(e.thread)
-  const newest = e === t.entries.at(-1)
-  const state = t.state === 'dry' && newest ? 'dry' : 'live'
-  // Where #tX lands. Every letter in the coverage strip and every roadmap.html#tX link points at
-  // the thread's newest trail entry — the spec's "every letter anchors to its trail entries".
-  // The anchor rides inside the entry rather than on it because an element carries one id and the
-  // entry keeps its own, which the id-uniqueness check below relies on.
-  const anchor = newest ? `<span id="t${attr(e.thread)}"></span>` : ''
-  const opened = e.opened.map((o) => `→ opened: ${rich(o.q)} (${esc(o.ask)})`).join('<br>')
-  const issue = e.issue != null ? ` · filed #${esc(String(e.issue))}` : ''
-  return `<div class="entry" data-state="${attr(state)}" id="e-${attr(e.thread + e.date)}">${anchor}`
-       + `<b><a href="roadmap.html#t${esc(e.thread)}">${esc(e.thread)} · ${esc(t.name)}</a></b> `
-       + `<span class="mono">${esc(e.pips)} ${esc(e.date)}</span><br>${rich(e.finding)}<br>`
-       + `<span class="mono">${opened}${opened ? ' · ' : ''}${esc(e.note)}${issue}</span></div>`
-}).join('\n')
+// An empty log left the Trail as a bare heading with nothing under it, while the frontier directly
+// above it said so in words. Before the first finding lands that is the whole page's state, so it
+// is worth a sentence rather than a silence.
+const trail = (data, derived) => derived.trail.length === 0
+  ? '<p class="lede">Nothing logged yet. The first finding starts the trail.</p>'
+  : derived.trail.map((e) => {
+    const t = derived.threads.get(e.thread)
+    const newest = e === t.entries.at(-1)
+    const state = t.state === 'dry' && newest ? 'dry' : 'live'
+    // Where #tX lands. Every letter in the coverage strip and every roadmap.html#tX link points at
+    // the thread's newest trail entry — the spec's "every letter anchors to its trail entries".
+    // The anchor rides inside the entry rather than on it because an element carries one id and the
+    // entry keeps its own, which the id-uniqueness check below relies on.
+    const anchor = newest ? `<span id="t${attr(e.thread)}"></span>` : ''
+    const opened = e.opened.map((o) => `→ opened: ${rich(o.q)} (${esc(o.ask)})`).join('<br>')
+    const issue = e.issue != null ? ` · filed #${esc(String(e.issue))}` : ''
+    // Thread plus date is not unique: two findings on one thread on one day collide. The index is
+    // the entry's position in its own thread's history, so appending a finding never renumbers the
+    // entries already published.
+    const n = t.entries.indexOf(e)
+    return `<div class="entry" data-state="${attr(state)}" id="e-${attr(`${e.thread}${e.date}-${n}`)}">${anchor}`
+         + `<b><a href="roadmap.html#t${esc(e.thread)}">${esc(e.thread)} · ${esc(t.name)}</a></b> `
+         + `<span class="mono">${esc(e.pips)} ${esc(e.date)}</span><br>${rich(e.finding)}<br>`
+         + `<span class="mono">${opened}${opened ? ' · ' : ''}${esc(e.note)}${issue}</span></div>`
+    }).join('\n')
 
 // Only threads with no trail entry: those have nowhere in the trail to anchor, and without a
 // fallback the strip's own pip link and the roadmap's → worklog link would both dangle. A thread
@@ -55,6 +64,7 @@ const anchors = (data, derived) => data.threads
 export function renderWorklog({ data, derived }) {
   return [
     '<meta charset="utf-8">',
+    GENERATED_MARKER,
     `<title>${esc(data.title)} · Worklog</title>`,
     CSS,
     '<div class="page"><main>',

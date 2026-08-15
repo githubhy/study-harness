@@ -1,5 +1,5 @@
 import { CSS } from './theme.mjs'
-import { esc, rich, attr, code } from './html.mjs'
+import { esc, rich, attr, code, GENERATED_MARKER } from './html.mjs'
 
 // ---------- small shared helpers ----------
 
@@ -570,6 +570,7 @@ const footer = (data) => `<footer>
 export function renderRoadmap({ data, derived }) {
   return [
     '<meta charset="utf-8">',
+    GENERATED_MARKER,
     `<title>${esc(data.title)}</title>`,
     CSS,
     '<div class="page"><div class="cols">',

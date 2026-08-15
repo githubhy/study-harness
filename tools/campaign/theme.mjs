@@ -226,4 +226,8 @@ export const CSS = `<style>
   .frontier li { margin: 4px 0; }
   .entry { border-left: 3px solid var(--rule); padding: 6px 0 6px 12px; margin-bottom: 12px; }
   .entry[data-state="dry"] { opacity: .6; }
+  /* The copied stylesheet above defines the accent bar for go/next/gate but not for "last", which
+     the generator derives from the fourth lane — so Phase 4's card was the only one on the board
+     with no bar. Faint rather than coloured: "last by design" is not a state to draw the eye. */
+  .card[data-s="last"] { box-shadow:inset 0 2px 0 var(--ink-faint); }
 </style>`

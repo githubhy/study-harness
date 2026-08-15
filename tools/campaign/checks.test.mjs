@@ -40,6 +40,18 @@ test('a token used but not defined in bare :root is reported', () => {
   assert.ok(checkHtml(bad).some((p) => /--nope/.test(p)))
 })
 
+test('a duplicate id is reported, once, however many times it repeats', () => {
+  // Worth more than any one id fix: a generated page produces this from one template line whose
+  // id comes from data that is not as unique as it looks, and every #anchor to it goes ambiguous.
+  const bad = GOOD.replace('<div id="x">here</div>', '<div id="x">here</div><p id="x">again</p><p id="x">thrice</p>')
+  assert.deepEqual(checkHtml(bad).filter((p) => /duplicate/.test(p)), ['duplicate id x'])
+})
+
+test('unique ids are not reported', () => {
+  const fine = GOOD.replace('<div id="x">here</div>', '<div id="x">here</div><p id="y">other</p>')
+  assert.deepEqual(checkHtml(fine), [])
+})
+
 test('a dangling anchor is reported', () => {
   const bad = GOOD.replace('<div id="x">here</div>', '<div>here</div>')
   assert.ok(checkHtml(bad).some((p) => /#x/.test(p)))

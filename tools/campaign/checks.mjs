@@ -50,10 +50,21 @@ export function checkHtml(html, { anchors = true } = {}) {
   if (!/body\s*\{[^}]*background\s*:\s*var\(--/.test(html))
     problems.push('body does not set background from a token')
 
+  // Ids must be unique: a repeated one makes every #anchor to it ambiguous, and it is the failure
+  // a generated page produces most easily — one template line emitting an id from data that is not
+  // as unique as it looks. Reported once per repeated id, not once per repeat.
+  const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map((m) => m[1])
+  const seen = new Set()
+  const duplicated = new Set()
+  for (const id of ids) {
+    if (seen.has(id)) duplicated.add(id)
+    seen.add(id)
+  }
+  for (const id of duplicated) problems.push(`duplicate id ${id}`)
+
   if (anchors) {
-    const ids = new Set([...html.matchAll(/\bid="([^"]+)"/g)].map((m) => m[1]))
     for (const m of html.matchAll(/href="#([^"]+)"/g))
-      if (!ids.has(m[1])) problems.push(`dangling anchor #${m[1]}`)
+      if (!seen.has(m[1])) problems.push(`dangling anchor #${m[1]}`)
   }
 
   for (const tag of PAIRED) {

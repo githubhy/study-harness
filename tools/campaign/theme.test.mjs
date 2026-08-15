@@ -3,6 +3,8 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { CSS } from './theme.mjs'
 import { checkHtml } from './checks.mjs'
+import { loadCampaign } from './model.mjs'
+import { renderRoadmap } from './render-roadmap.mjs'
 
 const PAGE = `<meta charset="utf-8">\n${CSS}\n<div id="x"></div>`
 
@@ -21,6 +23,18 @@ test('every token redefined in a dark block also exists in the bare :root', () =
   const after = CSS.slice(CSS.indexOf('@media'))
   for (const m of after.matchAll(/(--[a-z0-9-]+)\s*:/g))
     assert.ok(bare.has(m[1]), `${m[1]} is redefined in a theme block but missing from the bare :root`)
+})
+
+test('every card state the generator emits has an accent-bar rule', () => {
+  // The copied stylesheet defines .card[data-s] for go/next/gate, but the generator also derives
+  // "last" from the fourth lane — so Phase 4's card shipped with no bar at all. Read off the real
+  // page rather than from a list here: a lane added later is covered by this test on the day it
+  // is added, without anyone remembering to extend it.
+  const page = renderRoadmap(loadCampaign('campaigns/agent-harnesses'))
+  const states = new Set([...page.matchAll(/<article class="card" data-s="([^"]+)"/g)].map((m) => m[1]))
+  assert.ok(states.size >= 4, `expected several card states, saw ${[...states]}`)
+  for (const s of states)
+    assert.match(CSS, new RegExp(`\\.card\\[data-s="${s}"\\]`), `no accent-bar rule for data-s="${s}"`)
 })
 
 test('the copied stylesheet body is present in full, verbatim, from the fixture', () => {

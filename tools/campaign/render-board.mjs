@@ -1,5 +1,5 @@
 import { CSS } from './theme.mjs'
-import { esc, rich, attr } from './html.mjs'
+import { esc, rich, attr, GENERATED_MARKER } from './html.mjs'
 
 // ---------- one card per campaign ----------
 
@@ -116,6 +116,7 @@ const footer = () => `<footer>
 export function renderBoard(models, board) {
   return [
     '<meta charset="utf-8">',
+    GENERATED_MARKER,
     '<title>Campaign Board</title>',
     CSS,
     '<div class="page"><main>',
