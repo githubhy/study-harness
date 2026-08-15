@@ -11,7 +11,7 @@ Campaign-scoped documents live at `campaigns/<name>/`; see `CONTEXT-MAP.md`.
 
 ## Problem
 
-`roadmap.html` currently makes claims that will become false. Four cards carry a `not started` chip
+`roadmap.html` currently makes claims that will become false. Six cards carry a `not started` chip
 and the campaign board says `phase 0 · not started`. The moment Phase 0 runs, those are stale, and
 nothing in the repo forces them to be corrected.
 
@@ -147,8 +147,9 @@ Non-negotiable properties, carried from the roadmap:
 
 ### `campaigns/<n>/roadmap.html`
 
-1. Remove the four `c-state` chips from §3's board cards. Keep every `c-blocks` line — blocking is
-   structural, not temporal.
+1. Remove all **six** `c-state` chips from §3's board cards — one per card across the four lanes
+   (0.1, 0.2, Phase 1, Task 2.0, Phase 3, Phase 4) — and the `.c-state` rule from the stylesheet.
+   Keep every `c-blocks` line: blocking is structural, not temporal.
 2. Add a `→ worklog` link to each §4 thread card, anchored to `worklog.html#tX`.
 3. Add the worklog to the footer.
 4. Add the note/trail parity check to §8, next to the package census.
