@@ -1,0 +1,32 @@
+{
+  "campaign": "mini",
+  "title": "Mini",
+  "subject": "test subject",
+  "specimen": { "name": "spec", "pinned": "abc1234", "pinnedFull": "abc1234", "date": "2026-01-01" },
+  "transferSpecimen": { "name": "other", "via": "transcripts" },
+  "surpriseBudget": 2,
+  "canonicalTask": "Do the thing.",
+  "copy": { "standfirst": "A <b>mini</b> campaign.", "claims": [], "standingOrders": [], "sections": {} },
+  "loopSteps": [
+    { "id": "assemble", "label": "Assemble", "step": "Step 1", "question": "What goes in?" },
+    { "id": "around", "label": "Around", "step": "Outside", "question": "What frames it?" }
+  ],
+  "phases": [],
+  "threads": [
+    { "letter": "A", "name": "Alpha", "loop": "assemble", "question": "A?",
+      "raisedBy": { "kind": "toy", "text": "shortcut a" }, "packages": ["pkg-a", "shared"],
+      "needs": "source", "gates": null, "entry": "rg -n 'a' .", "detail": ["Detail a."] },
+    { "letter": "B", "name": "Beta", "loop": "around", "question": "B?",
+      "raisedBy": { "kind": "census", "text": "the census" }, "packages": ["pkg-b", "shared"],
+      "needs": "capture", "gates": "Phase 3", "entry": "rg -n 'b' .", "detail": ["Detail b."] }
+  ],
+  "infrastructurePackages": ["util"],
+  "transferLedger": [{ "q": "Does it log?", "available": true, "source": "logs" }],
+  "log": [
+    { "thread": "A", "date": "2026-01-02", "finding": "Found a.", "surprising": true,
+      "note": "notes/A-alpha.md", "opened": [{ "id": "q1", "q": "Why b?", "ask": "B" }],
+      "resolved": [], "issue": null },
+    { "thread": "A", "date": "2026-01-03", "finding": "Dull.", "surprising": false,
+      "note": "notes/A-alpha.md", "opened": [], "resolved": [], "issue": null }
+  ]
+}
