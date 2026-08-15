@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-15
 **Scope:** repo-wide. Governs the campaign board and every campaign's roadmap and worklog.
-**Status:** approved in brainstorm, not yet implemented.
+**Status:** implemented on `feat/campaign-frontend-generator`. Amended during implementation where the design met the code — see "Fields added during implementation" and the Deferred section.
 
 Filed in `docs/superpowers/specs/` rather than inside a campaign because it governs all campaigns.
 Campaign-scoped documents live at `campaigns/<name>/`; see `CONTEXT-MAP.md`.
