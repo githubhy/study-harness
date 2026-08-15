@@ -39,3 +39,61 @@ export function readCampaign(dir, override) {
 
   return { ...data, dir }
 }
+
+const pipsFor = (run, budget) => '●'.repeat(Math.min(run, budget)) + '○'.repeat(Math.max(budget - run, 0))
+
+export function derive(data) {
+  const budget = data.surpriseBudget
+  const byDate = [...data.log].sort((a, b) => Date.parse(a.date) - Date.parse(b.date))
+
+  const threads = new Map()
+  for (const t of data.threads)
+    threads.set(t.letter, { ...t, state: 'not-started', run: 0, pips: pipsFor(0, budget), entries: [], issue: null, lastDate: null })
+
+  const trail = []
+  for (const e of byDate) {
+    const t = threads.get(e.thread)
+    t.run = e.surprising ? 0 : t.run + 1
+    t.lastDate = e.date
+    if (e.issue != null) t.issue = e.issue
+    const stamped = { ...e, pips: pipsFor(t.run, budget) }
+    t.entries.push(stamped)
+    trail.push(stamped)
+  }
+
+  for (const t of threads.values()) {
+    if (t.entries.length === 0) continue
+    t.state = t.run >= budget ? 'dry' : 'live'
+    t.pips = pipsFor(t.run, budget)
+  }
+
+  const resolved = new Set(byDate.flatMap((e) => e.resolved))
+  const frontier = byDate.flatMap((e) => e.opened.map((o) => ({ ...o, from: e.thread, date: e.date })))
+    .filter((o) => !resolved.has(o.id))
+
+  const edges = [
+    ...byDate.flatMap((e) => e.opened.map((o) => ({ from: e.thread, to: o.ask, label: o.q, kind: 'opened' }))),
+    ...data.threads.filter((t) => t.gates).map((t) => ({ from: t.letter, to: t.gates, label: 'gates', kind: 'gates' })),
+  ]
+
+  const list = [...threads.values()]
+  return {
+    threads,
+    totals: {
+      touched: list.filter((t) => t.state !== 'not-started').length,
+      dry: list.filter((t) => t.state === 'dry').length,
+      notStarted: list.filter((t) => t.state === 'not-started').length,
+    },
+    live: list.filter((t) => t.state === 'live')
+      .sort((a, b) => Date.parse(b.lastDate) - Date.parse(a.lastDate)).map((t) => t.letter),
+    frontier,
+    trail: trail.reverse(),
+    edges,
+    census: data.threads.map(({ letter, name, loop, needs, packages }) => ({ letter, name, loop, needs, packages })),
+  }
+}
+
+export function loadCampaign(dir) {
+  const data = readCampaign(dir)
+  return { data, derived: derive(data) }
+}
