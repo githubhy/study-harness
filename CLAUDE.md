@@ -25,3 +25,20 @@ start a new campaign; changing the subject does.
 instruments. Start at `CONTEXT-MAP.md` or `campaigns/index.html`.
 
 Nothing under any `captures/` is ever committed, and this repo is public.
+
+## Generated pages
+
+`campaigns/index.html`, `campaigns/agent-harnesses/roadmap.html`, and `campaigns/agent-harnesses/worklog.html`
+are **generated**. Never hand-edit them — edit `campaigns/<name>/campaign.json` and rebuild:
+
+    node tools/build-campaign.mjs --all
+    node tools/build-campaign.mjs --all --check   # exits 1 if a page has drifted from its data
+    node --test tools/campaign/*.test.mjs         # the generator's own tests
+
+`campaigns/board.json` holds repo-level board data: the standfirst, the "No second campaign yet"
+empty state, the ownership table, and Shared language terms. It is not campaign-scoped and must be
+edited directly, then rebuilt.
+
+Logging a finding is: write `notes/<LETTER>-<slug>.md`, append one entry to `campaign.json`'s `log`,
+rebuild, and commit all of it together. Surprise pips, dry detection, the frontier, totals, the
+thread graph, and the package census are all derived — never write them by hand.
