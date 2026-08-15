@@ -12,3 +12,6 @@ captures/
 # OS / editor noise
 .DS_Store
 *.swp
+
+# Visual brainstorming companion (mockups + server state)
+.superpowers/
