@@ -5,6 +5,19 @@ import { loadCampaign, fromRoot } from './campaign/model.mjs'
 import { renderRoadmap } from './campaign/render-roadmap.mjs'
 import { renderWorklog } from './campaign/render-worklog.mjs'
 import { renderBoard } from './campaign/render-board.mjs'
+import { checkHtml } from './campaign/checks.mjs'
+
+// The property checks — charset placement, no external references, no <details>, every var(--token)
+// defined in the bare :root, every href="#…" resolving, balanced tags — are what the spec calls
+// "guaranteed by construction". They were guaranteed only for pages that happened to have a test:
+// nothing ran them on the way to disk. Running them here makes them a build gate for every page,
+// and a page that fails one is not written at all rather than written and reported.
+const gate = (path, html) => {
+  const problems = checkHtml(html)
+  if (problems.length === 0) return true
+  for (const p of problems) console.error(`${path}: ${p}`)
+  return false
+}
 
 const args = process.argv.slice(2)
 const check = args.includes('--check')
@@ -38,6 +51,7 @@ for (const name of campaigns) {
       ['worklog.html', renderWorklog(model)],
     ]) {
       const path = join(dir, file)
+      if (!gate(path, html)) { failed++; continue }
       if (check) {
         const current = existsSync(fromRoot(path)) ? readFileSync(fromRoot(path), 'utf8') : ''
         if (current !== html) { console.error(`drift: ${path} does not match its data`); drifted++ }
@@ -65,7 +79,8 @@ if (all) {
   }
   if (board) {
     const html = renderBoard(models, board)
-    if (check) {
+    if (!gate('campaigns/index.html', html)) failed++
+    else if (check) {
       const current = existsSync(fromRoot('campaigns/index.html'))
         ? readFileSync(fromRoot('campaigns/index.html'), 'utf8') : ''
       if (current !== html) { console.error('drift: campaigns/index.html does not match its data'); drifted++ }

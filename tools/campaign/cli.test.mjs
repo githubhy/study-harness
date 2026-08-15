@@ -90,6 +90,49 @@ test('runs from a directory other than the repo root', () => {
   assert.deepEqual(readdirSync(elsewhere), [])
 })
 
+// An unbalanced <span> in a code field is the property failure the data can actually produce:
+// `threads[].entry` goes through code(), which re-permits the two-tone highlighting spans, so an
+// opening one with no close ships an unbalanced tag. Everything else checkHtml guards is fixed by
+// the templates and the theme.
+const withUnbalancedSpan = (cwd) => {
+  const p = join(cwd, 'campaigns/mini/campaign.json')
+  const d = JSON.parse(readFileSync(p, 'utf8'))
+  d.threads[0].entry = 'echo hi <span class="c"># unclosed'
+  writeFileSync(p, JSON.stringify(d))
+}
+
+test('a page failing an HTML property check is reported and not written', () => {
+  const cwd = sandbox()
+  withUnbalancedSpan(cwd)
+  assert.throws(() => run(['mini'], { cwd }), /campaigns\/mini\/roadmap\.html: unbalanced <span>/)
+  // Not written: the gate runs before the write, so a page that fails a property check never
+  // reaches disk to be committed.
+  assert.throws(() => readFileSync(join(cwd, 'campaigns/mini/roadmap.html'), 'utf8'), /ENOENT/)
+  // The worklog, which does not render thread entries, is unaffected — one bad page, not a
+  // whole campaign lost.
+  assert.match(readFileSync(join(cwd, 'campaigns/mini/worklog.html'), 'utf8'), /<meta charset="utf-8">/)
+})
+
+test('--check also runs the property checks, not only the diff', () => {
+  const cwd = sandbox()
+  run(['mini'], { cwd })
+  withUnbalancedSpan(cwd)
+  assert.throws(() => run(['mini', '--check'], { cwd }), /campaigns\/mini\/roadmap\.html: unbalanced <span>/)
+})
+
+test('the board is gated on the property checks too', () => {
+  const cwd = sandbox()
+  const p = join(cwd, 'campaigns/board.json')
+  const d = JSON.parse(readFileSync(p, 'utf8'))
+  // rich() escapes anything outside <b i em strong code>, so board copy cannot emit broken markup
+  // — that is the escaping working. What it can still do is carry a literal `@import`, which the
+  // external-reference rule matches as a string wherever it appears. That makes it the one
+  // property the board's own data can fail, and enough to prove index.html goes through the gate.
+  d.standfirst = 'A study workspace, not a product. The stylesheet is inlined: no @import anywhere.'
+  writeFileSync(p, JSON.stringify(d))
+  assert.throws(() => run(['--all'], { cwd }), /campaigns\/index\.html: external reference found/)
+})
+
 test('--all processes good campaigns and reports bad ones', () => {
   const cwd = sandbox()
   cpSync('tools/campaign/fixtures/mini', join(cwd, 'campaigns/zzz-broken'), { recursive: true })
