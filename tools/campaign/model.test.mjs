@@ -100,6 +100,60 @@ test('a census-raised thread needs no questionIndex entry', () => {
   assert.ok(!d.questionIndex.some((e) => e.threads.includes('B')))
 })
 
+test('rejects a missing surprise budget', () => {
+  // The budget sizes every pip string and decides when a thread goes dry. Removing it used to
+  // exit 0: Math.min(run, undefined) is NaN so pips render empty, and run >= undefined is never
+  // true so nothing goes dry. The whole mechanic disappears without one failing check.
+  const d = clone()
+  delete d.surpriseBudget
+  assert.throws(() => readCampaign(MINI, d), /surpriseBudget undefined is not a positive integer/)
+})
+
+test('rejects a non-integer or non-positive surprise budget', () => {
+  for (const bad of [0, -1, 1.5, '2', null]) {
+    const d = clone()
+    d.surpriseBudget = bad
+    assert.throws(() => readCampaign(MINI, d), /surpriseBudget .* is not a positive integer/,
+      `expected surpriseBudget ${JSON.stringify(bad)} to be rejected`)
+  }
+})
+
+test('rejects a log entry with no opened array', () => {
+  // Appending a log entry is the only hand edit in the update loop, so this is the likeliest
+  // hand-edit error there is. Before the check it surfaced as "e.opened is not iterable" — no
+  // entry index, no file path, and under --all no way to tell which campaign.
+  const d = clone()
+  delete d.log[0].opened
+  assert.throws(() => readCampaign(MINI, d), /log\[0\]\.opened is not an array/)
+})
+
+test('rejects a log entry with no resolved array', () => {
+  const d = clone()
+  delete d.log[1].resolved
+  assert.throws(() => readCampaign(MINI, d), /log\[1\]\.resolved is not an array/)
+})
+
+test('the log-shape failure names the campaign.json it came from', () => {
+  // Under --all the entry index alone is ambiguous; the path is what disambiguates.
+  const d = clone()
+  delete d.log[0].opened
+  assert.throws(() => readCampaign(MINI, d), new RegExp(`${MINI}/campaign\\.json`))
+})
+
+test('rejects a thread with no raisedBy', () => {
+  const d = clone()
+  delete d.threads[0].raisedBy
+  assert.throws(() => readCampaign(MINI, d), /thread A raisedBy\.kind is undefined/)
+})
+
+test('rejects a census-raised thread with no raisedBy.text', () => {
+  // B is the fixture's census-raised thread; its FROM line is raisedBy.text and nothing else can
+  // supply one, since a census thread has no questionIndex entry by definition.
+  const d = clone()
+  delete d.threads[1].raisedBy.text
+  assert.throws(() => readCampaign(MINI, d), /thread B is census-raised but carries no raisedBy\.text/)
+})
+
 test('rejects missing loopSteps array', () => {
   const d = clone()
   d.loopSteps = null
