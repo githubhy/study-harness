@@ -752,19 +752,19 @@ rg -n &#39;ctx\.(plugin|on|set|inject)&#39; packages/core --type ts</pre>
       <table>
         <thead><tr><th>What the toy does</th><th>The question it raises</th><th>Thread</th></tr></thead>
         <tbody>
-          <tr><td>.slice(0, 4000) on every tool result</td><td>What should be dropped when context fills, and how is that decided?</td><td class="ref">C</td></tr>
-          <tr><td>running every tool unchecked, including rm</td><td>Where does a permission boundary belong, and what does it gate?</td><td class="ref">D</td></tr>
-          <tr><td>hard-coded MAX_STEPS = 10</td><td>What legitimately terminates a loop?</td><td class="ref">B</td></tr>
-          <tr><td>two tools in an array literal</td><td>How does a tool get registered and described at scale?</td><td class="ref">D · A</td></tr>
-          <tr><td>one hard-coded system prompt string</td><td>What actually belongs in a system prompt?</td><td class="ref">A</td></tr>
-          <tr><td>bare execSync on the host</td><td>Where should model-authored code run, and what contains it?</td><td class="ref">G</td></tr>
-          <tr><td>one loop, one context, no fan-out</td><td>When does a harness spawn another harness?</td><td class="ref">F</td></tr>
-          <tr><td>losing everything on exit</td><td>What must be saved to resume a conversation?</td><td class="ref">I</td></tr>
-          <tr><td>no plugins, no extension points</td><td>Where should the extension boundary sit?</td><td class="ref">E · H</td></tr>
-          <tr><td>printing to stdout</td><td>Where does the harness end and the interface begin?</td><td class="ref">K</td></tr>
-          <tr><td>hard-coding one provider's wire format</td><td>What does model-agnosticism cost, and where does it leak?</td><td class="ref">L</td></tr>
-          <tr><td>no way to observe or interrupt it</td><td>How does anyone outside the loop see in?</td><td class="ref">J</td></tr>
-          <tr><td>the model being unable to track its own plan</td><td>What tools manage the model's own process?</td><td class="ref">O</td></tr>
+          <tr><td><code>.slice(0, 4000)</code> on every tool result</td><td>What should be dropped when context fills, and how is that decided?</td><td class="ref">C</td></tr>
+          <tr><td>Runs every tool unchecked, including <code>rm</code></td><td>Where does a permission boundary belong, and what does it gate?</td><td class="ref">D</td></tr>
+          <tr><td>Hard-coded <code>MAX_STEPS = 10</code></td><td>What legitimately terminates a loop?</td><td class="ref">B</td></tr>
+          <tr><td>Two tools in an array literal</td><td>How does a tool get registered and described at scale?</td><td class="ref">D · A</td></tr>
+          <tr><td>One hard-coded system prompt string</td><td>What actually belongs in a system prompt?</td><td class="ref">A</td></tr>
+          <tr><td>Bare <code>execSync</code> on the host</td><td>Where should model-authored code run, and what contains it?</td><td class="ref">G</td></tr>
+          <tr><td>One loop, one context, no fan-out</td><td>When does a harness spawn another harness?</td><td class="ref">F</td></tr>
+          <tr><td>Loses everything on exit</td><td>What must be saved to resume a conversation?</td><td class="ref">I</td></tr>
+          <tr><td>No plugins, no extension points</td><td>Where should the extension boundary sit?</td><td class="ref">E · H</td></tr>
+          <tr><td>Prints to stdout</td><td>Where does the harness end and the interface begin?</td><td class="ref">K</td></tr>
+          <tr><td>Hard-codes one provider's wire format</td><td>What does model-agnosticism cost, and where does it leak?</td><td class="ref">L</td></tr>
+          <tr><td>No way to observe or interrupt it</td><td>How does anyone outside the loop see in?</td><td class="ref">J</td></tr>
+          <tr><td>Model can't track its own plan</td><td>What tools manage the model's own process?</td><td class="ref">O</td></tr>
           <tr><td colspan="2" style="color:var(--ink-faint)">Threads M and N came from the package census in §8 instead — the toy could not have suggested them.</td><td class="ref" style="color:var(--ink-faint)">M · N</td></tr>
         </tbody>
       </table>

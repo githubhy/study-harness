@@ -263,8 +263,13 @@ const renderDetail = (d) => {
 // shortcut — D and A each appear in two rows of the source's question index. questionIndex models
 // that many-to-many relation directly; a card's FROM line is every entry naming its letter, in
 // index order, so the two directions cannot drift apart.
-const shortcutsFor = (data, letter) =>
-  (data.questionIndex ?? []).filter((e) => e.threads.includes(letter)).map((e) => e.shortcut)
+//
+// An entry carries the wording for both surfaces because the source deliberately sets them
+// differently: §5's table is sentence case with inline <code> (it indexes code constructs), the
+// cards run it as lowercase prose inside an already-monospaced line. The two strings sit adjacent
+// in one object, so neither can drift from the other the way two separate homes would.
+const fromWordingFor = (data, letter) =>
+  (data.questionIndex ?? []).filter((e) => e.threads.includes(letter)).map((e) => e.from)
 
 const renderThreadCard = (t, data) => {
   const tags = [
@@ -284,7 +289,7 @@ const renderThreadCard = (t, data) => {
   // raisedBy.text is absent on those: one string, one home.
   const from = t.raisedBy.kind === 'census'
     ? `<b>${rich(t.raisedBy.text)}</b>`
-    : shortcutsFor(data, t.letter).map((s) => `<b>${rich(s)}</b>`).join(' · ')
+    : fromWordingFor(data, t.letter).map((s) => `<b>${rich(s)}</b>`).join(' · ')
 
   return `<article class="thread" data-need="${attr(dataNeed(t.needs))}" id="t${attr(t.letter)}">
           <div class="t-top"><span class="letter">${esc(t.letter)}</span><span class="t-name">${esc(t.name)}</span></div>
@@ -341,6 +346,9 @@ const sWhy = (data) => {
   // literal" raises D and A) and a thread can be raised by several shortcuts (D again, plus
   // "running every tool unchecked") — so it is modelled as its own list rather than inferred by
   // grouping one field on the threads, which could only ever express one direction.
+  //
+  // `shortcut` goes through rich() so the column keeps its inline <code>: this is the table that
+  // indexes code constructs, and MAX_STEPS = 10 set as prose reads as a different claim.
   const toyRows = (data.questionIndex ?? []).map((e) =>
     `<tr><td>${rich(e.shortcut)}</td><td>${rich(e.question)}</td><td class="ref">${esc(e.threads.join(' · '))}</td></tr>`
   ).join('\n          ')

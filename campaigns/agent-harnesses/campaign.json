@@ -518,51 +518,80 @@
   "log": [],
   "questionIndex": [
     {
-      "shortcut": ".slice(0, 4000) on every tool result",
+      "shortcut": "<code>.slice(0, 4000)</code> on every tool result",
+      "from": ".slice(0, 4000) on every tool result",
       "question": "What should be dropped when context fills, and how is that decided?",
       "threads": ["C"]
     },
     {
-      "shortcut": "running every tool unchecked, including rm",
+      "shortcut": "Runs every tool unchecked, including <code>rm</code>",
+      "from": "running every tool unchecked, including rm",
       "question": "Where does a permission boundary belong, and what does it gate?",
       "threads": ["D"]
     },
-    { "shortcut": "hard-coded MAX_STEPS = 10", "question": "What legitimately terminates a loop?", "threads": ["B"] },
     {
-      "shortcut": "two tools in an array literal",
+      "shortcut": "Hard-coded <code>MAX_STEPS = 10</code>",
+      "from": "hard-coded MAX_STEPS = 10",
+      "question": "What legitimately terminates a loop?",
+      "threads": ["B"]
+    },
+    {
+      "shortcut": "Two tools in an array literal",
+      "from": "two tools in an array literal",
       "question": "How does a tool get registered and described at scale?",
       "threads": ["D", "A"]
     },
     {
-      "shortcut": "one hard-coded system prompt string",
+      "shortcut": "One hard-coded system prompt string",
+      "from": "one hard-coded system prompt string",
       "question": "What actually belongs in a system prompt?",
       "threads": ["A"]
     },
     {
-      "shortcut": "bare execSync on the host",
+      "shortcut": "Bare <code>execSync</code> on the host",
+      "from": "bare execSync on the host",
       "question": "Where should model-authored code run, and what contains it?",
       "threads": ["G"]
     },
     {
-      "shortcut": "one loop, one context, no fan-out",
+      "shortcut": "One loop, one context, no fan-out",
+      "from": "one loop, one context, no fan-out",
       "question": "When does a harness spawn another harness?",
       "threads": ["F"]
     },
-    { "shortcut": "losing everything on exit", "question": "What must be saved to resume a conversation?", "threads": ["I"] },
     {
-      "shortcut": "no plugins, no extension points",
+      "shortcut": "Loses everything on exit",
+      "from": "losing everything on exit",
+      "question": "What must be saved to resume a conversation?",
+      "threads": ["I"]
+    },
+    {
+      "shortcut": "No plugins, no extension points",
+      "from": "no plugins, no extension points",
       "question": "Where should the extension boundary sit?",
       "threads": ["E", "H"]
     },
-    { "shortcut": "printing to stdout", "question": "Where does the harness end and the interface begin?", "threads": ["K"] },
     {
-      "shortcut": "hard-coding one provider's wire format",
+      "shortcut": "Prints to stdout",
+      "from": "printing to stdout",
+      "question": "Where does the harness end and the interface begin?",
+      "threads": ["K"]
+    },
+    {
+      "shortcut": "Hard-codes one provider's wire format",
+      "from": "hard-coding one provider's wire format",
       "question": "What does model-agnosticism cost, and where does it leak?",
       "threads": ["L"]
     },
-    { "shortcut": "no way to observe or interrupt it", "question": "How does anyone outside the loop see in?", "threads": ["J"] },
     {
-      "shortcut": "the model being unable to track its own plan",
+      "shortcut": "No way to observe or interrupt it",
+      "from": "no way to observe or interrupt it",
+      "question": "How does anyone outside the loop see in?",
+      "threads": ["J"]
+    },
+    {
+      "shortcut": "Model can't track its own plan",
+      "from": "the model being unable to track its own plan",
       "question": "What tools manage the model's own process?",
       "threads": ["O"]
     }

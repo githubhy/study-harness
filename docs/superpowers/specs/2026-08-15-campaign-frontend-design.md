@@ -123,9 +123,10 @@ One file. Two halves: a registry that changes rarely, and a log that grows.
   ],
 
   "questionIndex": [
-    { "shortcut": "two tools in an array literal",
-      "question": "How does a tool get registered and described at scale?",
-      "threads": ["D", "A"] }
+    { "shortcut": "Hard-coded <code>MAX_STEPS = 10</code>",
+      "from": "hard-coded MAX_STEPS = 10",
+      "question": "What legitimately terminates a loop?",
+      "threads": ["B"] }
   ],
 
   "infrastructurePackages": ["util", "typert", "test-support", "bundle"],
@@ -158,6 +159,13 @@ literal` raises D and A) and a thread can be raised by several shortcuts (D agai
 every tool unchecked`). Each entry emits one row, refs joined with ` · `, and each thread card's
 `FROM` line is every entry naming its letter, in index order. Modelling it as one field on the thread
 could express only one direction, which is why it is its own list.
+
+An entry carries the wording for **both** surfaces, because the source sets them differently on
+purpose: `shortcut` is §5's first column — sentence case with inline `<code>`, since that table
+indexes code constructs and `MAX_STEPS = 10` set as prose reads as a different claim — and `from` is
+the cards' lowercase running prose, inside a line that is already monospaced. `shortcut` renders
+through `rich`, `from` plain. Two fields rather than one is not duplication: they are different
+strings, they sit adjacent in the same object, and nothing else holds either.
 
 `copy` holds page prose so a different subject can supply its own words without touching templates.
 All `copy`, `question`, and `detail` strings may contain a restricted inline HTML subset —
@@ -192,7 +200,7 @@ phrases live in the first of them:
 | `phases[].note` | string or null | The rich clause trailing the "blocked by" line (`· uses the DeepSeek key`, `— it does <em>not</em> wait for the other fourteen`). It carries its own leading separator because the source uses different ones |
 | `phases[].consumes` | string or null | Phase 3's fourth `c-blocks` line, `consumes <b>D's "what a new tool must provide" checklist</b>` — the payload of the D → Phase 3 gate |
 | `threads[].entry` | now nullable | Five thread cards (K, L, M, N, O) open on reading rather than on a command. A null entry emits nothing rather than an empty `<pre>` box |
-| `questionIndex` | `[{ shortcut, question, threads[] }]` | §5 is many-to-many in both directions and `raisedBy` could hold only one of each. Modelling it as one field cost two rows and two `FROM` entries in the first migration pass; this restores them. **Supersedes the merge-by-`raisedBy.text` rule below**, and `raisedBy.text` with it — that field now exists only on census-raised threads, which have no index entry by definition |
+| `questionIndex` | `[{ shortcut, from, question, threads[] }]` | §5 is many-to-many in both directions and `raisedBy` could hold only one of each. Modelling it as one field cost two rows and two `FROM` entries in the first migration pass; this restores them. **Supersedes the merge-by-`raisedBy.text` rule below**, and `raisedBy.text` with it — that field now exists only on census-raised threads, which have no index entry by definition |
 | `specimen.packageCount` | number | The masthead strip and §8's heading assert how many packages the **specimen** has — the checkable claim §8's `gh api` command re-verifies. Counting the tokens the threads list instead asserts "everything we listed is listed", which is circular, and diverges anyway because the lists use globs (`compaction/*`) and sub-paths (`core/agent`). Omit it and the derived count is used |
 
 `rich()` also stopped escaping `'`. Its output is only ever text content, never an attribute value,

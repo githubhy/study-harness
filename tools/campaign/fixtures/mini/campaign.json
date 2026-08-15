@@ -130,7 +130,7 @@
     }
   ],
   "questionIndex": [
-    { "shortcut": "shortcut a", "question": "What does a do?", "threads": ["A", "C"] },
-    { "shortcut": "shortcut b", "question": "What does b do?", "threads": ["A"] }
+    { "shortcut": "Shortcut <code>a()</code>", "from": "shortcut a", "question": "What does a do?", "threads": ["A", "C"] },
+    { "shortcut": "Shortcut b", "from": "shortcut b", "question": "What does b do?", "threads": ["A"] }
   ]
 }

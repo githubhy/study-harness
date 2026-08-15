@@ -89,11 +89,24 @@ test('census groups rows by loop step rather than sorting all threads alphabetic
 test('§5 emits one row per questionIndex entry, with its own question wording', () => {
   const s5 = html.match(/<section id="s5">[\s\S]*?<\/section>/)[0]
   // One row per entry — not one per thread, and not one per distinct shortcut.
-  const rows = [...s5.matchAll(/<tr><td>([^<]*)<\/td><td>([^<]*)<\/td><td class="ref">([^<]*)<\/td><\/tr>/g)]
+  const rows = [...s5.matchAll(/<tr><td>((?:(?!<\/td>).)*)<\/td><td>((?:(?!<\/td>).)*)<\/td><td class="ref">([^<]*)<\/td><\/tr>/g)]
   assert.deepEqual(rows.map((m) => [m[1], m[2], m[3]]), [
-    ['shortcut a', 'What does a do?', 'A · C'],
-    ['shortcut b', 'What does b do?', 'A'],
+    ['Shortcut <code>a()</code>', 'What does a do?', 'A · C'],
+    ['Shortcut b', 'What does b do?', 'A'],
   ])
+})
+
+test('§5 keeps the inline <code> that the same entry’s FROM line does not carry', () => {
+  // The source sets these two surfaces differently on purpose: §5 indexes code constructs in
+  // sentence case with <code>, the cards run the same shortcut as lowercase prose inside an
+  // already-monospaced line. One string for both would have to lose one of them.
+  const s5 = html.match(/<section id="s5">[\s\S]*?<\/section>/)[0]
+  assert.match(s5, /<tr><td>Shortcut <code>a\(\)<\/code><\/td>/)
+
+  const cardA = html.match(/<article class="thread"[^>]*id="tA">[\s\S]*?<\/article>/)[0]
+  const fromLine = cardA.match(/<p class="t-from[^"]*">FROM .*?<\/p>/)[0]
+  assert.match(fromLine, /<b>shortcut a<\/b>/)
+  assert.doesNotMatch(fromLine, /<code>/)
 })
 
 test('a thread named by two questionIndex entries shows both shortcuts in its FROM line', () => {
