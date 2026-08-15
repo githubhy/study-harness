@@ -91,7 +91,15 @@ test('threads sharing raisedBy.text merge into one §5 row', () => {
 })
 
 test('the transfer pull quote comes from copy.transferPull', () => {
-  assert.match(html, /<p class="pull">Pull quote text\.<\/p>/)
+  const s6 = html.match(/<section id="s6">[\s\S]*?<\/section>/)[0]
+  assert.match(s6, /<p class="pull">Pull quote text\.<\/p>/)
+})
+
+test('no unreplaced {{token}} survives rendering', () => {
+  // General rather than canonicalTask-specific, so it also catches a misspelled token
+  // (e.g. {{canonicalTasks}}) added later — an exact-literal match means a typo would
+  // otherwise render the literal braces onto the page instead of failing loudly.
+  assert.doesNotMatch(html, /\{\{/)
 })
 
 test('the masthead kicker uses specimen.short while .facts keeps the full name', () => {

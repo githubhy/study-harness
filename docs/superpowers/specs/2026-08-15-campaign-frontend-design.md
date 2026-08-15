@@ -175,6 +175,12 @@ Two structural rules the renderer follows that are not fields:
 - **§8 groups by loop step**, using the same ordering as the contents rail, §2, and §4, rather than
   sorting all fifteen threads alphabetically. The "Loop step" column is meaningless otherwise.
 
+**`{{canonicalTask}}` is substituted inside `copy.standingOrders[].body`.** The source page quotes the
+canonical task *inside* the prose of its "The canonical task" rule rather than in a field of its own,
+so a dedicated slot could not position it. The token keeps one source of truth — `data.canonicalTask` —
+while letting the prose place it. It is the only token the renderer substitutes; a misspelled one
+would render literally, so the page must assert no `{{` survives rendering.
+
 Code fields — `threads[].entry`, `phases[].pre`, and `phases[].halt.pre` — pass through `code()`
 rather than `esc()`. `code()` re-permits exactly `<span class="c">`, `<span class="k">`, and `</span>`,
 which is what the source uses for comment and keyword highlighting inside `<pre>` blocks and what the
