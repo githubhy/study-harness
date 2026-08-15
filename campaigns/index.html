@@ -255,7 +255,7 @@
     </article></div>
 <div class="cell">
       <h3>No second campaign yet</h3>
-      <p>A new one starts by creating <code>campaigns/&lt;subject-slug&gt;/</code> with a <code>CONTEXT.md</code> and a <code>roadmap.html</code>, then adding a row to <code>CONTEXT-MAP.md</code>. Copy the roadmap's structure, not its content — the thread menu is filed under the agent loop's five steps, and a different subject needs a different spine.</p>
+      <p>A new one starts by creating <code>campaigns/&lt;subject-slug&gt;/</code> with a <code>CONTEXT.md</code> and a <code>campaign.json</code>, then adding a row to <code>CONTEXT-MAP.md</code> and running <code>node tools/build-campaign.mjs --all</code>. That command writes the campaign's <code>roadmap.html</code> and <code>worklog.html</code>: both are generated and never hand-edited, and <code>--all --check</code> rejects a page that has drifted from its data. Copy this campaign's <code>campaign.json</code> structure, not its content — the thread menu is filed under the agent loop's five steps, and a different subject needs a different spine.</p>
     </div>
 </section>
 <section>
@@ -266,13 +266,16 @@
         <thead><tr><th>Path</th><th>Scope</th></tr></thead>
         <tbody>
           <tr><td class="ref">campaigns/&lt;name&gt;/CONTEXT.md</td><td>That campaign's vocabulary — its output, not its input</td></tr>
-          <tr><td class="ref">campaigns/&lt;name&gt;/roadmap.html</td><td>Its map, board, and thread menu</td></tr>
+          <tr><td class="ref">campaigns/&lt;name&gt;/campaign.json</td><td>The source of truth for the generated pages — registry, copy, and the log of findings. Hand-edited; everything the two pages show derives from it</td></tr>
+          <tr><td class="ref">campaigns/&lt;name&gt;/roadmap.html</td><td>Its map, board, and thread menu — <strong>generated</strong> from <code>campaign.json</code>, never hand-edited</td></tr>
+          <tr><td class="ref">campaigns/&lt;name&gt;/worklog.html</td><td>What has actually happened — <strong>generated</strong> from the same file's <code>log</code></td></tr>
           <tr><td class="ref">campaigns/&lt;name&gt;/plan.md</td><td>Its executable plan</td></tr>
           <tr><td class="ref">campaigns/&lt;name&gt;/docs/adr/</td><td>Decisions scoped to that campaign (created lazily)</td></tr>
           <tr><td class="ref">campaigns/&lt;name&gt;/notes · captures · experiments</td><td>Its working material. <code>captures/</code> is gitignored</td></tr>
           <tr><td class="ref">docs/adr/</td><td>The <strong>method</strong> — decisions that outlive any one campaign</td></tr>
           <tr><td class="ref">docs/agents/</td><td>Issue tracker, triage labels, domain-doc rules</td></tr>
-          <tr><td class="ref">tools/</td><td>Shared instruments, e.g. the capture proxy</td></tr>
+          <tr><td class="ref">tools/</td><td>Shared instruments, e.g. the capture proxy and the page generator</td></tr>
+          <tr><td class="ref">campaigns/board.json</td><td>This page's own copy — the standfirst, this table, and the terms below. <code>campaigns/index.html</code> is <strong>generated</strong> from it and every campaign's data</td></tr>
           <tr><td class="ref">CONTEXT-MAP.md</td><td>This map, plus the four shared method terms below</td></tr>
         </tbody>
       </table>

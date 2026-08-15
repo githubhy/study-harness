@@ -18,7 +18,8 @@ Start at [`campaigns/index.html`](campaigns/index.html) for the board, or open a
 | Path | Scope |
 |---|---|
 | `campaigns/<name>/CONTEXT.md` | That campaign's vocabulary — its output |
-| `campaigns/<name>/roadmap.html` | Its map, board, and thread menu |
+| `campaigns/<name>/campaign.json` | The source of truth for that campaign's generated pages |
+| `campaigns/<name>/roadmap.html`, `worklog.html` | **Generated** from `campaign.json` — never hand-edited |
 | `campaigns/<name>/plan.md` | Its executable plan |
 | `campaigns/<name>/docs/adr/` | Decisions scoped to that campaign (created lazily) |
 | `campaigns/<name>/notes/`, `captures/`, `experiments/` | Its working material |

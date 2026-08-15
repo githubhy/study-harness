@@ -2,19 +2,22 @@
   "standfirst": "A study workspace, not a product. Each <strong>campaign</strong> is one investigation scoped to <strong>one subject</strong>, and owns its glossary, plan, roadmap, and working material. Adding a second specimen doesn't start a new campaign — changing the subject does.",
   "emptyState": {
     "title": "No second campaign yet",
-    "body": "A new one starts by creating <code>campaigns/<subject-slug>/</code> with a <code>CONTEXT.md</code> and a <code>roadmap.html</code>, then adding a row to <code>CONTEXT-MAP.md</code>. Copy the roadmap's structure, not its content — the thread menu is filed under the agent loop's five steps, and a different subject needs a different spine."
+    "body": "A new one starts by creating <code>campaigns/<subject-slug>/</code> with a <code>CONTEXT.md</code> and a <code>campaign.json</code>, then adding a row to <code>CONTEXT-MAP.md</code> and running <code>node tools/build-campaign.mjs --all</code>. That command writes the campaign's <code>roadmap.html</code> and <code>worklog.html</code>: both are generated and never hand-edited, and <code>--all --check</code> rejects a page that has drifted from its data. Copy this campaign's <code>campaign.json</code> structure, not its content — the thread menu is filed under the agent loop's five steps, and a different subject needs a different spine."
   },
   "ownership": {
     "lede": "The method outlives any one campaign, so it lives at the repo root. Anything that would be re-derived for a different subject lives inside the campaign.",
     "rows": [
       { "path": "campaigns/<name>/CONTEXT.md", "scope": "That campaign's vocabulary — its output, not its input", "shared": false },
-      { "path": "campaigns/<name>/roadmap.html", "scope": "Its map, board, and thread menu", "shared": false },
+      { "path": "campaigns/<name>/campaign.json", "scope": "The source of truth for the generated pages — registry, copy, and the log of findings. Hand-edited; everything the two pages show derives from it", "shared": false },
+      { "path": "campaigns/<name>/roadmap.html", "scope": "Its map, board, and thread menu — <strong>generated</strong> from <code>campaign.json</code>, never hand-edited", "shared": false },
+      { "path": "campaigns/<name>/worklog.html", "scope": "What has actually happened — <strong>generated</strong> from the same file's <code>log</code>", "shared": false },
       { "path": "campaigns/<name>/plan.md", "scope": "Its executable plan", "shared": false },
       { "path": "campaigns/<name>/docs/adr/", "scope": "Decisions scoped to that campaign (created lazily)", "shared": false },
       { "path": "campaigns/<name>/notes · captures · experiments", "scope": "Its working material. <code>captures/</code> is gitignored", "shared": false },
       { "path": "docs/adr/", "scope": "The <strong>method</strong> — decisions that outlive any one campaign", "shared": true },
       { "path": "docs/agents/", "scope": "Issue tracker, triage labels, domain-doc rules", "shared": true },
-      { "path": "tools/", "scope": "Shared instruments, e.g. the capture proxy", "shared": true },
+      { "path": "tools/", "scope": "Shared instruments, e.g. the capture proxy and the page generator", "shared": true },
+      { "path": "campaigns/board.json", "scope": "This page's own copy — the standfirst, this table, and the terms below. <code>campaigns/index.html</code> is <strong>generated</strong> from it and every campaign's data", "shared": true },
       { "path": "CONTEXT-MAP.md", "scope": "This map, plus the four shared method terms below", "shared": true }
     ]
   },

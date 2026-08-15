@@ -1,7 +1,11 @@
 No second campaign yet
-Copy the roadmap's structure, not its content
+node tools/build-campaign.mjs --all
+both are generated and never hand-edited
+Copy this campaign's <code>campaign.json</code> structure, not its content
 the thread menu is filed under the agent loop's five steps
 What a campaign owns, and what it borrows
+The source of truth for the generated pages
+What has actually happened
 Its executable plan
 is gitignored
 This map, plus the four shared method terms below
