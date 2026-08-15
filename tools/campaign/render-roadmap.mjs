@@ -175,22 +175,38 @@ const renderBlocks = (phase) => {
   const lines = []
   if (phase.blocks) {
     const cls = phase.blocks.toLowerCase() === 'nothing' ? 'no' : 'yes'
-    lines.push(`blocked by <b class="${cls}">${esc(phase.blocks)}</b>`)
+    // `note` carries its own leading separator because the source uses different ones
+    // (" · uses the DeepSeek key" vs " — it does not wait for the other fourteen").
+    const note = phase.note ? ` ${rich(phase.note)}` : ''
+    lines.push(`blocked by <b class="${cls}">${esc(phase.blocks)}</b>${note}`)
   }
   if (phase.produces?.length) lines.push(`produces ${phase.produces.map((p) => `<b>${esc(p)}</b>`).join(' · ')}`)
   if (phase.unblocks) lines.push(`unblocks <b>${esc(phase.unblocks)}</b>`)
+  if (phase.consumes) lines.push(`consumes <b>${esc(phase.consumes)}</b>`)
   return lines.join('<br>')
+}
+
+// A phase detail entry is a prose string (a card paragraph), { bullets: [...] } (a <ul>), or
+// { pre: "..." } (a code block). The third shape exists because Phase 3's card interleaves
+// prose, a <pre>, and more prose — an order `phases[].pre` alone cannot express.
+const renderPhaseDetail = (d) => {
+  if (typeof d === 'string') return `<p>${rich(d)}</p>`
+  if (d && Array.isArray(d.bullets)) return `<ul>${d.bullets.map((b) => `<li>${rich(b)}</li>`).join('')}</ul>`
+  if (d && typeof d.pre === 'string') return `<pre>${code(d.pre)}</pre>`
+  return ''
 }
 
 const renderCard = (phase) => {
   const dataS = LANES[phase.lane]?.dataS ?? 'go'
   const pre = phase.pre ? `<pre>${code(phase.pre)}</pre>` : ''
+  const details = (phase.detail ?? []).map(renderPhaseDetail).join('\n          ')
   return `<article class="card" data-s="${attr(dataS)}">
           <div class="c-top"><span class="c-id">${esc(phase.id)}</span></div>
           <div class="c-t">${esc(phase.title)}</div>
           <p>${rich(phase.body)}</p>
           ${pre}
           ${renderHalt(phase.halt)}
+          ${details}
           <div class="c-blocks">${renderBlocks(phase)}</div>
         </article>`
 }
@@ -247,13 +263,16 @@ const renderThreadCard = (t) => {
 
   const details = (t.detail ?? []).map(renderDetail).join('\n          ')
   const fromCls = t.raisedBy.kind === 'census' ? ' census' : ''
+  // Five thread cards open on reading rather than on a command, so `entry` is nullable and an
+  // absent one emits nothing rather than an empty <pre> box.
+  const entry = t.entry ? `<pre>${code(t.entry)}</pre>` : ''
 
   return `<article class="thread" data-need="${attr(dataNeed(t.needs))}" id="t${attr(t.letter)}">
           <div class="t-top"><span class="letter">${esc(t.letter)}</span><span class="t-name">${esc(t.name)}</span></div>
           <p class="t-q">${rich(t.question)}</p>
           <p class="t-from${fromCls}">FROM <b>${rich(t.raisedBy.text)}</b></p>
           <div class="tags">${tags}</div>
-          <pre>${code(t.entry)}</pre>
+          ${entry}
           ${details}
           <p class="t-from">→ <a href="worklog.html#t${attr(t.letter)}">worklog</a></p>
         </article>`
@@ -275,7 +294,7 @@ const sMenu = (data, derived) => {
       <div class="band-head">
         <span class="band-step">${esc(s.step)} · ${esc(s.label)}</span>
         <span class="band-q">${rich(s.question)}</span>
-        <span class="band-n">${members.length} threads · ${sumPackages(members)} packages</span>
+        <span class="band-n">${members.length} thread${members.length === 1 ? '' : 's'} · ${sumPackages(members)} packages</span>
       </div>
       <div class="band-body${bodyCls}">
         ${members.map(renderThreadCard).join('\n\n        ')}

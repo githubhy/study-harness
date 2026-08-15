@@ -24,6 +24,11 @@ export function rich(s) {
   return escaped
     .replace(new RegExp(`&lt;(${tags})&gt;`, 'gi'), (_, t) => `<${t.toLowerCase()}>`)
     .replace(new RegExp(`&lt;/(${tags})&gt;`, 'gi'), (_, t) => `</${t.toLowerCase()}>`)
+    // rich() output is only ever text content, never an attribute value, so an apostrophe needs
+    // no escaping there — and prose is full of them. esc() keeps escaping ' because its output
+    // does reach quoted contexts; only the prose path relaxes it. A literal "&#39;" written into
+    // the data is escaped to "&amp;#39;" by esc() first, so it cannot be un-escaped here.
+    .replaceAll('&#39;', "'")
 }
 
 // Escape everything, then re-permit exactly the two-tone <pre> syntax-highlighting spans the

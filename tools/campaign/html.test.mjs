@@ -105,3 +105,11 @@ test('code still escapes shell metacharacters outside spans', () => {
     `rg -n &#39;a&#39; . &amp;&amp; echo &quot;ok&quot; &gt; out`,
   )
 })
+
+test('rich leaves apostrophes literal while esc still escapes them', () => {
+  // Prose is full of apostrophes and rich() output is never an attribute value, so escaping
+  // them would only make the page diff noisily against its hand-written predecessor.
+  assert.equal(rich("You can't read what you can't name"), "You can't read what you can't name")
+  assert.equal(esc("You can't"), "You can&#39;t")
+  assert.equal(rich("a &#39; b"), "a &amp;#39; b")
+})

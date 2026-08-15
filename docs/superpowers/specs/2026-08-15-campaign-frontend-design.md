@@ -166,6 +166,24 @@ migration:
 | `copy.transferPull` | string | §6's closing pull paragraph, which carries campaign-specific reasoning |
 | `specimen.short` | string | The terse moniker the masthead kicker uses (`dsh`), distinct from the full name in the facts strip |
 
+### Fields added during the migration
+
+Transcribing the real roadmap surfaced four more places where the source page held content the
+schema could not. Each was found by the migration acceptance check, and nine of its sixty required
+phrases live in the first of them:
+
+| Field | Shape | Why |
+|---|---|---|
+| `phases[].detail` | array of string \| `{ bullets: [] }` \| `{ pre: "…" }` | Five of six board cards carry prose, a list, or a second code block *after* their command — Phase 1's "Then break it deliberately" list and deliverables, Task 0.2's deliverables, Task 2.0's two closing paragraphs, Phase 3's proof prose, Phase 4's three buckets. Same shape as `threads[].detail` plus a `{ pre }` entry, because Phase 3 interleaves prose, a `<pre>`, and more prose — an order `phases[].pre` alone cannot express |
+| `phases[].note` | string or null | The rich clause trailing the "blocked by" line (`· uses the DeepSeek key`, `— it does <em>not</em> wait for the other fourteen`). It carries its own leading separator because the source uses different ones |
+| `phases[].consumes` | string or null | Phase 3's fourth `c-blocks` line, `consumes <b>D's "what a new tool must provide" checklist</b>` — the payload of the D → Phase 3 gate |
+| `threads[].entry` | now nullable | Five thread cards (K, L, M, N, O) open on reading rather than on a command. A null entry emits nothing rather than an empty `<pre>` box |
+
+`rich()` also stopped escaping `'`. Its output is only ever text content, never an attribute value,
+so an apostrophe needs no escaping there — and prose is full of them. `esc()` still escapes it,
+because `esc()` output does reach quoted contexts. Without this two acceptance phrases
+("You can't read what you can't name", "Analyse, don't dump") could not appear on the page at all.
+
 Two structural rules the renderer follows that are not fields:
 
 - **§5 merges rows by identical `raisedBy.text`.** One toy shortcut may be credited to two threads —
