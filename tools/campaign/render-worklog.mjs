@@ -55,5 +55,5 @@ export function renderWorklog({ data, derived }) {
     `<footer><span><a href="roadmap.html">← roadmap</a></span>`,
     `<span><a href="../index.html">all campaigns</a></span></footer>`,
     '</main></div>',
-  ].join('\n')
+  ].filter(Boolean).join('\n')
 }

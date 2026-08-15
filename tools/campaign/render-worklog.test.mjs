@@ -119,3 +119,23 @@ test('an empty log renders as "nothing has happened yet", not broken', () => {
   assert.equal(dashed.length, 15)
   for (const l of 'ABCDEFGHIJKLMNO') assert.match(empty, new RegExp(`id="t${l}"`))
 })
+
+test('an omitted optional section leaves no blank-line trace', () => {
+  // renderWorklog builds the page as an array of fragments joined with '\n'. An optional
+  // fragment that renders as '' -- e.g. renderGraph(), which returns '' for the real campaign
+  // (its log is empty, so it has no 'opened' edges to draw) -- used to survive the join as a
+  // stray blank line: the array held an empty-string entry, and '\n' + '' + '\n' is a blank
+  // line. That is exactly what shipped in campaigns/agent-harnesses/worklog.html once: the
+  // committed page disagreed with what the renderer actually produces, purely because of one
+  // extra blank line `--check` exists to catch drift like that, but nothing in this suite
+  // checked the property directly, so a section left out could silently reshape the page again
+  // without any test noticing. This pins the property: omitting an optional region must leave
+  // no trace, not even whitespace.
+  //
+  // The <style> block (theme.mjs's CSS, always present, never optional) is excluded because it
+  // carries its own deliberate blank lines for human readability -- collapsing it back to a
+  // single line boundary avoids a false positive from stripping it out, not from a bug.
+  const real = renderWorklog(loadCampaign('campaigns/agent-harnesses'))
+  const body = real.replace(/\n<style>[\s\S]*?<\/style>\n/, '\n')
+  assert.doesNotMatch(body, /\n\s*\n/)
+})
