@@ -26,10 +26,20 @@ export function readCampaign(dir, override) {
 
   // questionIndex drives §5's rows and every toy thread's FROM line, so a letter that names no
   // thread would silently emit a row pointing at nothing.
+  const raisedLetters = new Set()
   ;(data.questionIndex ?? []).forEach((e, i) => {
-    for (const l of e.threads)
+    for (const l of e.threads) {
       if (!seen.has(l)) fail(`questionIndex[${i}] names unknown thread ${l}`)
+      raisedLetters.add(l)
+    }
   })
+
+  // And the reverse: a toy-raised thread named by no entry has nothing to derive its FROM line
+  // from, so it would render "FROM " — an empty line, silently. Census-raised threads are exempt
+  // by definition; they carry raisedBy.text instead.
+  for (const t of data.threads)
+    if (t.raisedBy?.kind === 'toy' && !raisedLetters.has(t.letter))
+      fail(`thread ${t.letter} is toy-raised but no questionIndex entry names it`)
 
   const openedIds = new Set()
   for (const e of data.log) for (const o of e.opened) openedIds.add(o.id)

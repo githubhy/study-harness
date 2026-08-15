@@ -54,8 +54,10 @@
       "body": "Sample phase.",
       "pre": null,
       "blocks": "Thread D",
+      "note": "— and <em>not</em> on anything else",
       "unblocks": null,
       "produces": [],
+      "consumes": "D's checklist",
       "halt": null
     }
   ],

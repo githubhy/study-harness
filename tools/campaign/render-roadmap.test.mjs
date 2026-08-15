@@ -57,6 +57,14 @@ test('a bullets detail entry renders as a <ul> inside the thread card', () => {
   assert.match(html, /<ul><li>Bullet one\.<\/li><li>Bullet two\.<\/li><\/ul>/)
 })
 
+test('a phase note and consumes line render on the blocks footer', () => {
+  // Both fields were added by the migration and neither appears in acceptance-phrases.txt, so
+  // without this the branches could be dropped and nothing would fail. `note` goes through rich()
+  // and keeps its markup; `consumes` is escaped and bolded like `unblocks`.
+  assert.match(html, /blocked by <b class="yes">Thread D<\/b> — and <em>not<\/em> on anything else/)
+  assert.match(html, /consumes <b>D&#39;s checklist<\/b>/)
+})
+
 test('a non-null phase halt renders its block', () => {
   assert.match(html, /<div class="h-t">Do not skip<\/div>/)
   assert.match(html, /Halt body <b>bold<\/b>\./)
