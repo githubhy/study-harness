@@ -1,0 +1,482 @@
+import { CSS } from './theme.mjs'
+import { esc, rich, attr } from './html.mjs'
+
+// theme.mjs is a verbatim, landed copy of the pre-migration stylesheet and still carries the
+// `.c-state` rule for the six chips this page no longer emits (controller ruling: no state chips).
+// The rule is dead weight once nothing on the page uses the class, so strip it here rather than
+// editing the shared, already-landed theme module.
+const PAGE_CSS = CSS.replace(/\s*\.c-state\s*\{[^}]*\}/, '')
+
+// ---------- small shared helpers ----------
+
+const NUM_WORDS = [
+  'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten',
+  'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty',
+]
+const spell = (n) => NUM_WORDS[n] ?? String(n)
+const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1)
+const byLetter = (a, b) => (a.letter < b.letter ? -1 : a.letter > b.letter ? 1 : 0)
+
+const joinAnd = (arr) => {
+  if (arr.length <= 1) return arr.join('')
+  return `${arr.slice(0, -1).join(', ')} and ${arr.at(-1)}`
+}
+
+const threadsByLoop = (threads, loopId) => threads.filter((t) => t.loop === loopId).sort(byLetter)
+const sumPackages = (threads) => threads.reduce((s, t) => s + t.packages.length, 0)
+
+const needsLabel = (needs) => (needs === 'capture' ? 'capture' : needs === 'note-2.0' ? 'note 2.0' : 'source')
+const needsColor = (needs) => (needs === 'source' ? 'var(--go)' : 'var(--control)')
+const needsBadge = (needs) => (needs === 'capture' ? 'needs a dsh capture' : needs === 'note-2.0' ? 'needs note 2.0' : '')
+const dataNeed = (needs) => (needs === 'source' ? 'source' : 'capture')
+
+const splitByNeeds = (threads) => ({
+  source: threads.filter((t) => t.needs === 'source'),
+  evidence: threads.filter((t) => t.needs !== 'source'),
+})
+
+const evidenceClause = (evidence) => {
+  const groups = {}
+  for (const t of evidence) (groups[t.needs] ??= []).push(t.letter)
+  const parts = []
+  if (groups.capture) parts.push(`${joinAnd(groups.capture)} need${groups.capture.length === 1 ? 's' : ''} a dsh capture`)
+  if (groups['note-2.0']) parts.push(`${joinAnd(groups['note-2.0'])} need${groups['note-2.0'].length === 1 ? 's' : ''} note 2.0`)
+  return parts.join(', ')
+}
+
+const packageTotal = (census, infra) => new Set([...census.flatMap((c) => c.packages), ...infra]).size
+
+// ---------- §1 the loop: fixed SVG diagram ----------
+
+const LOOP_SVG = `<figure class="loop">
+      <svg viewBox="0 0 900 168" role="img" aria-label="The agent loop: assemble context, call model, parse tool calls, execute tools, append results, then repeat until a stop condition fires.">
+        <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+        <g style="color:var(--ink-faint)">
+          <g font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12.5" text-anchor="middle">
+            <g style="color:var(--ink)" fill="currentColor">
+              <rect x="8" y="34" width="150" height="46" fill="none" stroke="currentColor"/><text x="83" y="62">assemble</text>
+              <rect x="196" y="34" width="130" height="46" fill="none" stroke="currentColor"/><text x="261" y="62">call model</text>
+              <rect x="364" y="34" width="130" height="46" fill="none" stroke="currentColor"/><text x="429" y="62">parse calls</text>
+              <rect x="532" y="34" width="140" height="46" fill="none" stroke="currentColor"/><text x="602" y="62">execute</text>
+              <rect x="710" y="34" width="140" height="46" fill="none" stroke="currentColor"/><text x="780" y="62">append</text>
+            </g>
+            <g stroke="currentColor" stroke-width="1.25" fill="none" marker-end="url(#ar)">
+              <path d="M158,57 L190,57"/><path d="M326,57 L358,57"/><path d="M494,57 L526,57"/><path d="M672,57 L704,57"/>
+            </g>
+            <path d="M780,80 L780,124 L83,124 L83,86" stroke="currentColor" stroke-width="1.25" fill="none" stroke-dasharray="4 4" marker-end="url(#ar)"/>
+            <text x="431" y="142" fill="currentColor">repeat until a stop condition fires</text>
+          </g>
+        </g>
+      </svg>
+      <figcaption>Five phases. Every harness has all of them; they differ in what they do at each.</figcaption>
+    </figure>`
+
+const sLoop = (data) => {
+  const lede = data.copy.sections.s1 ? `<p class="lede">${rich(data.copy.sections.s1)}</p>` : ''
+  const claims = data.copy.claims ?? []
+  const claimsBlock = claims.length
+    ? `<h4>${cap(spell(claims.length))} claims the whole plan rests on</h4>
+    <div class="grid3">
+      ${claims.map((c) => `<div class="cell"><h3>${rich(c.title)}</h3><p>${rich(c.body)}</p></div>`).join('\n      ')}
+    </div>`
+    : ''
+  return `<section id="s1">
+    <span class="snum">§ 1</span>
+    <h2 class="sec">The loop everything else is filed under</h2>
+    ${lede}
+    ${LOOP_SVG}
+
+    ${claimsBlock}
+  </section>`
+}
+
+// ---------- §2 the map: fixed schematic, data-driven stagerow ----------
+
+const sMap = (data) => {
+  const lede = data.copy.sections.s2 ? `<p class="lede">${rich(data.copy.sections.s2)}</p>` : ''
+  const stagecells = data.loopSteps
+    .map((s) => {
+      const members = threadsByLoop(data.threads, s.id)
+      return `<a class="stagecell" href="#${attr(s.id)}"><span class="st-n">${esc(cap(s.id))}</span><span class="st-c">${members.length}</span><span class="st-l">${esc(members.map((t) => t.letter).join(' · '))}</span></a>`
+    })
+    .join('\n          ')
+
+  return `<section id="s2">
+    <span class="snum">§ 2</span>
+    <h2 class="sec">The map · what blocks what</h2>
+    ${lede}
+
+    <figure class="schema">
+      <div class="nodebox">
+        <div class="n-id">Phase 0 · no blockers · no API key</div>
+        <div class="n-t">Scaffold &amp; instrument</div>
+        <div class="n-s">Clone at the pinned SHA, build, write the capture proxy.</div>
+      </div>
+      <div class="link"><i></i><span>produces the instrument</span><i></i><u></u></div>
+
+      <div class="nodebox ctl">
+        <div class="n-id">Phase 1 · the experimental control</div>
+        <div class="n-t">Write a harness from scratch</div>
+        <div class="n-s">~45 lines. The only harness whose every byte you can account for.</div>
+      </div>
+      <div class="link"><i></i><span>produces the question list</span><i></i><u></u></div>
+
+      <div class="nodebox obs">
+        <div class="n-id">Task 2.0 · observation only</div>
+        <div class="n-t">Baseline capture of the specimen</div>
+        <div class="n-s">Write down what you saw before reading any source.</div>
+      </div>
+      <div class="link"><i></i><span>opens the menu — ${data.threads.length} threads, no order</span><i></i><u></u></div>
+
+      <div class="fan">
+        <div class="fan-bar"></div>
+        <div class="stagerow">
+          ${stagecells}
+        </div>
+      </div>
+
+      <div class="link"><i></i><u></u></div>
+      <div class="outs">
+        <div class="out">
+          <div class="n-id">Exam phase</div>
+          <div class="n-t">One tool, two harnesses</div>
+          <div class="n-s">Runnable as soon as its gating thread lands — it does not wait for the rest of the menu.</div>
+        </div>
+        <div class="out">
+          <div class="n-id">Transfer phase</div>
+          <div class="n-t">Transfer test</div>
+          <div class="n-s">Last by design. Reading the transfer material earlier makes the test circular.</div>
+        </div>
+      </div>
+
+      <figcaption>Solid = required. Dashed = must be written blind.</figcaption>
+    </figure>
+  </section>`
+}
+
+// ---------- §3 the board: 4 lanes of phase cards, NO state chips ----------
+
+const LANES = {
+  ready: { dataS: 'go', title: 'Ready now', sub: 'Nothing blocks these. No API key required.' },
+  next: { dataS: 'next', title: 'Unlocked by Phase 0', sub: 'The control, then the blind baseline. In that order.' },
+  gate: { dataS: 'gate', title: 'Gated on a finding', sub: 'Not gated on a phase — gated on one specific thread landing.' },
+  last: { dataS: 'last', title: 'Last by design', sub: "Doing this early doesn't speed the study up — it invalidates it." },
+}
+const LANE_ORDER = ['ready', 'next', 'gate', 'last']
+
+const renderHalt = (halt) => {
+  if (!halt) return ''
+  const pre = halt.pre ? `<pre>${esc(halt.pre)}</pre>` : ''
+  const body = halt.body ? `<p>${rich(halt.body)}</p>` : ''
+  return `<div class="halt">
+            <div class="h-t">${esc(halt.title ?? 'The one check you must not skip')}</div>
+            ${pre}
+            ${body}
+          </div>`
+}
+
+const renderBlocks = (phase) => {
+  const lines = []
+  if (phase.blocks) {
+    const cls = phase.blocks.toLowerCase() === 'nothing' ? 'no' : 'yes'
+    lines.push(`blocked by <b class="${cls}">${esc(phase.blocks)}</b>`)
+  }
+  if (phase.produces?.length) lines.push(`produces ${phase.produces.map((p) => `<b>${esc(p)}</b>`).join(' · ')}`)
+  if (phase.unblocks) lines.push(`unblocks <b>${esc(phase.unblocks)}</b>`)
+  return lines.join('<br>')
+}
+
+const renderCard = (phase) => {
+  const dataS = LANES[phase.lane]?.dataS ?? 'go'
+  const pre = phase.pre ? `<pre>${esc(phase.pre)}</pre>` : ''
+  return `<article class="card" data-s="${attr(dataS)}">
+          <div class="c-top"><span class="c-id">${esc(phase.id)}</span></div>
+          <div class="c-t">${esc(phase.title)}</div>
+          <p>${rich(phase.body)}</p>
+          ${pre}
+          ${renderHalt(phase.halt)}
+          <div class="c-blocks">${renderBlocks(phase)}</div>
+        </article>`
+}
+
+const sBoard = (data) => {
+  const lede = `<p class="lede">
+      The same five phases as the map, sorted by <strong>what is blocking each card</strong> rather than by phase number.
+      The left lane needs nothing but a terminal; the right lane must stay last or the study invalidates itself.
+    </p>`
+  const lanes = LANE_ORDER.map((key) => {
+    const phases = data.phases.filter((p) => p.lane === key)
+    if (!phases.length) return ''
+    const meta = LANES[key]
+    return `<div class="lane" data-s="${attr(meta.dataS)}">
+        <div class="lane-h">
+          <div class="lane-t"><span>${esc(meta.title)}</span><span>${phases.length}</span></div>
+          <div class="lane-s">${esc(meta.sub)}</div>
+        </div>
+
+        ${phases.map(renderCard).join('\n\n        ')}
+      </div>`
+  }).join('\n\n      ')
+
+  return `<section id="s3">
+    <span class="snum">§ 3</span>
+    <h2 class="sec">The board · what you can start now</h2>
+    ${lede}
+
+    <div class="board">
+
+      ${lanes}
+
+    </div>
+  </section>`
+}
+
+// ---------- §4 the menu: five loop bands, thread cards ----------
+
+const renderThreadCard = (t) => {
+  const tags = [
+    ...t.packages.map((p) => `<span class="pkg">${esc(p)}</span>`),
+    needsBadge(t.needs) ? `<span class="tag t-cap">${esc(needsBadge(t.needs))}</span>` : '',
+    t.gates ? `<span class="tag t-gate">gates ${esc(t.gates)}</span>` : '',
+  ].filter(Boolean).join('')
+
+  const details = (t.detail ?? []).map((d) => `<p class="d">${rich(d)}</p>`).join('\n          ')
+  const fromCls = t.raisedBy.kind === 'census' ? ' census' : ''
+
+  return `<article class="thread" data-need="${attr(dataNeed(t.needs))}" id="t${attr(t.letter)}">
+          <div class="t-top"><span class="letter">${esc(t.letter)}</span><span class="t-name">${esc(t.name)}</span></div>
+          <p class="t-q">${rich(t.question)}</p>
+          <p class="t-from${fromCls}">FROM <b>${rich(t.raisedBy.text)}</b></p>
+          <div class="tags">${tags}</div>
+          <pre>${esc(t.entry)}</pre>
+          ${details}
+          <p class="t-from">→ <a href="worklog.html#t${attr(t.letter)}">worklog</a></p>
+        </article>`
+}
+
+const sMenu = (data, derived) => {
+  void derived
+  const lede = data.copy.sections.s4 ? `<p class="lede">${rich(data.copy.sections.s4)}</p>` : ''
+  const { source, evidence } = splitByNeeds(data.threads)
+  const legend = `<div class="legend">
+      <span><b class="k1">■</b> open the moment Phase 1 lands · source only · <b>${source.length}</b></span>
+      <span><b class="k2">■</b> waits on evidence · <b>${evidence.length}</b>${evidence.length ? ` — ${esc(evidenceClause(evidence))}` : ''}</span>
+    </div>`
+
+  const bands = data.loopSteps.map((s) => {
+    const members = threadsByLoop(data.threads, s.id)
+    const bodyCls = members.length > 1 ? ' two' : ''
+    return `<div class="band" id="${attr(s.id)}">
+      <div class="band-head">
+        <span class="band-step">${esc(s.step)} · ${esc(s.label)}</span>
+        <span class="band-q">${rich(s.question)}</span>
+        <span class="band-n">${members.length} threads · ${sumPackages(members)} packages</span>
+      </div>
+      <div class="band-body${bodyCls}">
+        ${members.map(renderThreadCard).join('\n\n        ')}
+      </div>
+    </div>`
+  }).join('\n\n    ')
+
+  return `<section id="s4">
+    <span class="snum">§ 4</span>
+    <h2 class="sec">The menu · ${spell(data.threads.length)} threads</h2>
+    ${lede}
+    ${legend}
+
+    ${bands}
+  </section>`
+}
+
+// ---------- §5 the question index: from threads[].raisedBy ----------
+
+const sWhy = (data) => {
+  const lede = data.copy.sections.s5 ? `<p class="lede">${rich(data.copy.sections.s5)}</p>` : ''
+  const toy = data.threads.filter((t) => t.raisedBy.kind === 'toy').sort(byLetter)
+  const census = data.threads.filter((t) => t.raisedBy.kind === 'census').sort(byLetter)
+
+  const toyRows = toy.map((t) =>
+    `<tr><td>${rich(t.raisedBy.text)}</td><td>${rich(t.question)}</td><td class="ref">${esc(t.letter)}</td></tr>`
+  ).join('\n          ')
+
+  let censusRow = ''
+  if (census.length) {
+    const letters = census.map((t) => t.letter)
+    const label = letters.length === 1 ? `Thread ${letters[0]}` : `Threads ${joinAnd(letters)}`
+    const pronoun = letters.length === 1 ? 'it' : 'them'
+    censusRow = `<tr><td colspan="2" style="color:var(--ink-faint)">${esc(label)} came from the package census in §8 instead — the toy could not have suggested ${pronoun}.</td><td class="ref" style="color:var(--ink-faint)">${esc(letters.join(' · '))}</td></tr>`
+  }
+
+  return `<section id="s5">
+    <span class="snum">§ 5</span>
+    <h2 class="sec">Why these ${spell(data.threads.length)}</h2>
+    ${lede}
+    <div class="tw">
+      <table>
+        <thead><tr><th>What the toy does</th><th>The question it raises</th><th>Thread</th></tr></thead>
+        <tbody>
+          ${toyRows}
+          ${censusRow}
+        </tbody>
+      </table>
+    </div>
+  </section>`
+}
+
+// ---------- §6 the transfer ledger ----------
+
+const sTransfer = (data) => {
+  const lede = data.copy.sections.s6 ? `<p class="lede">${rich(data.copy.sections.s6)}</p>` : ''
+  const rows = (data.transferLedger ?? []).map((r) =>
+    `<tr><td>${rich(r.q)}</td><td class="${r.available ? 'y' : 'n'}">${r.available ? 'yes' : 'no'}</td><td>${rich(r.source)}</td></tr>`
+  ).join('\n          ')
+
+  return `<section id="s6">
+    <span class="snum">§ 6</span>
+    <h2 class="sec">What the transfer test can and can't see</h2>
+    ${lede}
+    <div class="tw">
+      <table>
+        <thead><tr><th>Question</th><th>In transcripts?</th><th>Where it comes from</th></tr></thead>
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>
+    </div>
+    <p class="pull">The transfer test tests the model of the loop, tools, and permissions — and stays silent on whatever the ledger marks unavailable. That gap is a known cost of the transfer specimen, not an oversight.</p>
+  </section>`
+}
+
+// ---------- §7 standing orders ----------
+
+const sOrders = (data) => {
+  const orders = data.copy.standingOrders ?? []
+  const lede = orders.length
+    ? `<p class="lede">${cap(spell(orders.length))} rules that hold in every phase and every thread. Read them once; they are assumed everywhere above.</p>`
+    : ''
+  const grid = orders.length
+    ? `<div class="grid2">
+      ${orders.map((o) => `<div class="cell"><h3>${rich(o.title)}</h3><p>${rich(o.body)}</p></div>`).join('\n      ')}
+    </div>`
+    : ''
+
+  return `<section id="s7">
+    <span class="snum">§ 7</span>
+    <h2 class="sec">Standing orders</h2>
+    ${lede}
+    ${grid}
+  </section>`
+}
+
+// ---------- §8 the package census ----------
+
+const sCensus = (derived, data) => {
+  const total = packageTotal(derived.census, data.infrastructurePackages ?? [])
+  const rows = [...derived.census].sort(byLetter).map((c) =>
+    `<tr><td class="mono">${esc(c.loop)}</td><td class="ref">${esc(c.letter)} · ${esc(c.name)}</td><td class="mono" style="color:${needsColor(c.needs)}">${esc(needsLabel(c.needs))}</td><td class="mono">${esc(c.packages.join(' · '))}</td></tr>`
+  ).join('\n          ')
+
+  const infra = data.infrastructurePackages ?? []
+  const infraRow = infra.length
+    ? `<tr><td class="mono" style="color:var(--ink-faint)">—</td><td class="ref" style="color:var(--ink-faint)">infrastructure</td><td class="mono" style="color:var(--ink-faint)">—</td><td class="mono">${esc(infra.join(' · '))}</td></tr>`
+    : ''
+
+  return `<section id="s8">
+    <span class="snum">§ 8</span>
+    <h2 class="sec">Package census · all ${total} accounted for</h2>
+    <p class="lede">Breadth is checkable, not claimed. If a package isn't listed, that's a gap in the plan — add a thread rather than skipping it.</p>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Loop step</th><th>Thread</th><th>Needs</th><th>Packages</th></tr></thead>
+        <tbody>
+          ${rows}
+          ${infraRow}
+        </tbody>
+      </table>
+    </div>
+  </section>`
+}
+
+// ---------- nav, masthead, footer ----------
+
+const NAV_SECTIONS = [
+  ['s1', '1', 'The loop'],
+  ['s2', '2', 'The map'],
+  ['s3', '3', 'The board'],
+  ['s4', '4', 'The menu'],
+  ['s6', '6', 'Transfer test'],
+  ['s7', '7', 'Standing orders'],
+  ['s8', '8', 'Census'],
+]
+
+const nav = (data) => {
+  const sectionItems = [
+    ...NAV_SECTIONS.slice(0, 4).map(([id, n, label]) => `<li><a href="#${id}"><b>${n}</b><span>${esc(label)}</span></a></li>`),
+    `<li><a href="#s5"><b>5</b><span>Why these ${data.threads.length}</span></a></li>`,
+    ...NAV_SECTIONS.slice(4).map(([id, n, label]) => `<li><a href="#${id}"><b>${n}</b><span>${esc(label)}</span></a></li>`),
+  ].join('\n    ')
+
+  const groups = data.loopSteps.map((s) => {
+    const members = threadsByLoop(data.threads, s.id)
+    if (!members.length) return ''
+    const items = members.map((t) => {
+      const capCls = t.needs !== 'source' ? ' class="cap"' : ''
+      return `<li><a href="#t${attr(t.letter)}"${capCls}><b>${esc(t.letter)}</b><span>${esc(t.name)}</span></a></li>`
+    }).join('\n      ')
+    return `<h2>${esc(cap(s.id))}</h2>
+    <ol>
+      ${items}
+    </ol>`
+  }).filter(Boolean).join('\n    ')
+
+  return `<nav aria-label="Contents">
+  <h2>Sections</h2>
+  <ol>
+    ${sectionItems}
+  </ol>
+  ${groups}
+</nav>`
+}
+
+const masthead = (data, derived) => {
+  const { source, evidence } = splitByNeeds(data.threads)
+  const packages = packageTotal(derived.census, data.infrastructurePackages ?? [])
+
+  return `<header class="mast">
+    <p class="kick">Campaign <b style="color:var(--ink-soft);font-weight:500">${esc(data.campaign)}</b> · ${esc(data.specimen.name)} @ ${esc(data.specimen.pinned)} · nothing on this page is hidden</p>
+    <h1>${esc(data.title)}</h1>
+    <p class="sf">${rich(data.copy.standfirst)}</p>
+    <div class="facts">
+      <span>specimen <b>${esc(data.specimen.name)}</b></span>
+      <span>pinned <b>${esc(data.specimen.pinned)}</b> · ${esc(data.specimen.date)}</span>
+      <span>packages <b>${packages}</b>, all covered</span>
+      <span>threads <b>${data.threads.length}</b> — ${source.length} open, ${evidence.length} need evidence</span>
+      <span>transfer test <b>${esc(data.transferSpecimen.name)} ${esc(data.transferSpecimen.via)}</b></span>
+      <span>completion <b>none — surprise budget</b></span>
+    </div>
+  </header>`
+}
+
+const footer = (data) => `<footer>
+    <span><a href="../index.html">← all campaigns</a></span>
+    <span>campaign · ${esc(data.campaign)}</span>
+    <span>plan · plan.md</span>
+    <span>glossary · CONTEXT.md</span>
+    <span>method · docs/adr/0001 (repo-wide)</span>
+    <span><a href="worklog.html">→ worklog</a></span>
+  </footer>`
+
+export function renderRoadmap({ data, derived }) {
+  return [
+    '<meta charset="utf-8">',
+    `<title>${esc(data.title)}</title>`,
+    PAGE_CSS,
+    '<div class="page"><div class="cols">',
+    nav(data), '<main>',
+    masthead(data, derived),
+    sLoop(data), sMap(data), sBoard(data), sMenu(data, derived),
+    sWhy(data), sTransfer(data), sOrders(data), sCensus(derived, data),
+    footer(data),
+    '</main></div></div>',
+  ].join('\n')
+}
