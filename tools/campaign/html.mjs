@@ -25,3 +25,13 @@ export function rich(s) {
     .replace(new RegExp(`&lt;(${tags})&gt;`, 'gi'), (_, t) => `<${t.toLowerCase()}>`)
     .replace(new RegExp(`&lt;/(${tags})&gt;`, 'gi'), (_, t) => `</${t.toLowerCase()}>`)
 }
+
+// Escape everything, then re-permit exactly the two-tone <pre> syntax-highlighting spans the
+// theme's `pre .c` / `pre .k` rules style: <span class="c">, <span class="k">, </span>. No general
+// attribute parsing — three literal substrings, same escape-first-then-re-permit shape as rich().
+export function code(s) {
+  return esc(s)
+    .replaceAll('&lt;span class=&quot;c&quot;&gt;', '<span class="c">')
+    .replaceAll('&lt;span class=&quot;k&quot;&gt;', '<span class="k">')
+    .replaceAll('&lt;/span&gt;', '</span>')
+}

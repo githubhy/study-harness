@@ -8,7 +8,7 @@ const clone = () => structuredClone(readCampaign(MINI))
 test('reads the mini campaign', () => {
   const d = readCampaign(MINI)
   assert.equal(d.campaign, 'mini')
-  assert.equal(d.threads.length, 2)
+  assert.equal(d.threads.length, 3)
   assert.equal(d.dir, MINI)
 })
 

@@ -93,7 +93,9 @@ One file. Two halves: a registry that changes rarely, and a log that grows.
     "standfirst": "Build a transferable model of …",
     "claims":         [ { "title": "You can't read what you can't name", "body": "…" } ],
     "standingOrders": [ { "title": "The surprise budget", "body": "…" } ],
-    "sections":       { "s1": "…", "s2": "…", "s4": "…", "s5": "…", "s6": "…" }
+    "sections":       { "s1": "…", "s4": "…", "s5": "…", "s6": "…" },
+    "map":            { "lede": "…", "chain": [], "links": [], "outputs": [], "caption": "…" },
+    "transferPull":   "…"
   },
 
   "loopSteps": [
@@ -160,7 +162,24 @@ migration:
 | `threads[].comparison` | boolean | Renders the `t-cc` "CC comparison" marker several thread cards carry |
 | `detail[]` entries | string **or** `{ "bullets": ["…"] }` | A string is a paragraph; the object form is the `<ul>` list thread O uses |
 | `phases[].halt` | `null` or `{ title, pre, body }` | The halt block on Task 0.2's card — its heading, code block, and warning |
-| `copy.map` | `{ lede, chain[], links[], outputs[], caption }` | §2's schematic prose. `chain` is the vertical box sequence, `links` the arrow labels between them, `outputs` the two gated boxes |
+| `copy.map` | `{ lede, chain[], links[], outputs[], caption }` | §2's schematic prose. `chain` is the vertical box sequence, `links` the arrow labels between them, `outputs` the two gated boxes. **Supersedes `copy.sections.s2`, which no longer exists** |
+| `copy.transferPull` | string | §6's closing pull paragraph, which carries campaign-specific reasoning |
+| `specimen.short` | string | The terse moniker the masthead kicker uses (`dsh`), distinct from the full name in the facts strip |
+
+Two structural rules the renderer follows that are not fields:
+
+- **§5 merges rows by identical `raisedBy.text`.** One toy shortcut may be credited to two threads —
+  "Two tools in an array literal" belongs to both D and A — so rows are grouped by exact text, ordered
+  by first appearance in `threads[]`, with thread refs joined by ` · `. Modelling `raisedBy` per
+  thread and merging at render time avoids a many-to-many relation in the data.
+- **§8 groups by loop step**, using the same ordering as the contents rail, §2, and §4, rather than
+  sorting all fifteen threads alphabetically. The "Loop step" column is meaningless otherwise.
+
+Code fields — `threads[].entry`, `phases[].pre`, and `phases[].halt.pre` — pass through `code()`
+rather than `esc()`. `code()` re-permits exactly `<span class="c">`, `<span class="k">`, and `</span>`,
+which is what the source uses for comment and keyword highlighting inside `<pre>` blocks and what the
+verbatim stylesheet still styles. `checkHtml` counts `span` as a paired tag, so an unbalanced span in
+a code field fails the property checks rather than shipping.
 
 `copy.map` exists rather than hardcoding §2's narrative in the renderer because that narrative is
 campaign-specific: a different subject has a different dependency story, and prose baked into a

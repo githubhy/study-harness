@@ -49,7 +49,7 @@ test('entries are replayed in date order regardless of array order', () => {
 })
 
 test('totals count touched, dry, and not-started', () => {
-  assert.deepEqual(derive(readCampaign(MINI)).totals, { touched: 1, dry: 0, notStarted: 1 })
+  assert.deepEqual(derive(readCampaign(MINI)).totals, { touched: 1, dry: 0, notStarted: 2 })
 })
 
 test('an open question appears in the frontier', () => {
@@ -84,12 +84,12 @@ test('edges come from opened questions and from gates', () => {
 
 test('census carries every thread with its packages', () => {
   const c = derive(readCampaign(MINI)).census
-  assert.equal(c.length, 2)
+  assert.equal(c.length, 3)
   assert.deepEqual(c[0].packages, ['pkg-a', 'shared'])
 })
 
 test('loadCampaign returns data and derived together', () => {
   const { data, derived } = loadCampaign(MINI)
   assert.equal(data.campaign, 'mini')
-  assert.equal(derived.threads.size, 2)
+  assert.equal(derived.threads.size, 3)
 })

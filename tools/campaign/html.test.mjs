@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { esc, rich, attr } from './html.mjs'
+import { esc, rich, attr, code } from './html.mjs'
 
 test('esc escapes all five significant characters', () => {
   assert.equal(esc(`<&>"'`), '&lt;&amp;&gt;&quot;&#39;')
@@ -77,4 +77,31 @@ test('attr escapes quotes and angle brackets', () => {
 
 test('non-string input throws rather than emitting undefined', () => {
   assert.throws(() => esc(undefined), /expected a string/)
+})
+
+test('code permits the "c" (comment) span', () => {
+  assert.equal(code('<span class="c"># note</span>'), '<span class="c"># note</span>')
+})
+
+test('code permits the "k" (keyword) span', () => {
+  assert.equal(code('<span class="k">const</span>'), '<span class="k">const</span>')
+})
+
+test('code permits the closer independent of which opener preceded it', () => {
+  assert.equal(
+    code('before <span class="c">x</span> mid <span class="k">y</span> after'),
+    'before <span class="c">x</span> mid <span class="k">y</span> after',
+  )
+})
+
+test('code escapes any other span form, opener and all', () => {
+  assert.equal(code('<span class="x">no</span>'), '&lt;span class=&quot;x&quot;&gt;no</span>')
+  assert.equal(code('<span>bare</span>'), '&lt;span&gt;bare</span>')
+})
+
+test('code still escapes shell metacharacters outside spans', () => {
+  assert.equal(
+    code(`rg -n 'a' . && echo "ok" > out`),
+    `rg -n &#39;a&#39; . &amp;&amp; echo &quot;ok&quot; &gt; out`,
+  )
 })

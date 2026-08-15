@@ -65,3 +65,36 @@ test('a non-null phase halt renders its block', () => {
 test("the map's caption is rendered from copy.map", () => {
   assert.match(html, /<figcaption>Map caption text\.<\/figcaption>/)
 })
+
+test('canonicalTask is interpolated into the standing-order body, not hand-duplicated', () => {
+  const s7 = html.match(/<section id="s7">[\s\S]*?<\/section>/)[0]
+  assert.match(s7, /<em>"Do the thing\."<\/em>/)
+})
+
+test('code() spans survive in a <pre> entry field', () => {
+  assert.match(html, /<span class="c"># note<\/span>/)
+})
+
+test('nav and §2 use the loop-step label, not a capitalized id', () => {
+  assert.match(html, /<h2>Around the loop<\/h2>/)
+  assert.match(html, /<span class="st-n">Around the loop<\/span>/)
+})
+
+test('census groups rows by loop step rather than sorting all threads alphabetically', () => {
+  const s8 = html.match(/<section id="s8">[\s\S]*?<\/section>/)[0]
+  const order = [...s8.matchAll(/<td class="ref">([A-Z]) · /g)].map((m) => m[1])
+  assert.deepEqual(order, ['A', 'C', 'B'])
+})
+
+test('threads sharing raisedBy.text merge into one §5 row', () => {
+  assert.match(html, /<tr><td>shortcut a<\/td><td>A\?<\/td><td class="ref">A · C<\/td><\/tr>/)
+})
+
+test('the transfer pull quote comes from copy.transferPull', () => {
+  assert.match(html, /<p class="pull">Pull quote text\.<\/p>/)
+})
+
+test('the masthead kicker uses specimen.short while .facts keeps the full name', () => {
+  assert.match(html, /· sp @ abc1234 ·/)
+  assert.match(html, /specimen <b>spec<\/b>/)
+})

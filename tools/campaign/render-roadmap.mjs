@@ -1,5 +1,5 @@
 import { CSS } from './theme.mjs'
-import { esc, rich, attr } from './html.mjs'
+import { esc, rich, attr, code } from './html.mjs'
 
 // ---------- small shared helpers ----------
 
@@ -115,7 +115,7 @@ const sMap = (data) => {
   const stagecells = data.loopSteps
     .map((s) => {
       const members = threadsByLoop(data.threads, s.id)
-      return `<a class="stagecell" href="#${attr(s.id)}"><span class="st-n">${esc(cap(s.id))}</span><span class="st-c">${members.length}</span><span class="st-l">${esc(members.map((t) => t.letter).join(' · '))}</span></a>`
+      return `<a class="stagecell" href="#${attr(s.id)}"><span class="st-n">${esc(s.label)}</span><span class="st-c">${members.length}</span><span class="st-l">${esc(members.map((t) => t.letter).join(' · '))}</span></a>`
     })
     .join('\n          ')
 
@@ -162,7 +162,7 @@ const LANE_ORDER = ['ready', 'next', 'gate', 'last']
 
 const renderHalt = (halt) => {
   if (!halt) return ''
-  const pre = halt.pre ? `<pre>${esc(halt.pre)}</pre>` : ''
+  const pre = halt.pre ? `<pre>${code(halt.pre)}</pre>` : ''
   const body = halt.body ? `<p>${rich(halt.body)}</p>` : ''
   return `<div class="halt">
             <div class="h-t">${esc(halt.title ?? 'The one check you must not skip')}</div>
@@ -184,7 +184,7 @@ const renderBlocks = (phase) => {
 
 const renderCard = (phase) => {
   const dataS = LANES[phase.lane]?.dataS ?? 'go'
-  const pre = phase.pre ? `<pre>${esc(phase.pre)}</pre>` : ''
+  const pre = phase.pre ? `<pre>${code(phase.pre)}</pre>` : ''
   return `<article class="card" data-s="${attr(dataS)}">
           <div class="c-top"><span class="c-id">${esc(phase.id)}</span></div>
           <div class="c-t">${esc(phase.title)}</div>
@@ -253,7 +253,7 @@ const renderThreadCard = (t) => {
           <p class="t-q">${rich(t.question)}</p>
           <p class="t-from${fromCls}">FROM <b>${rich(t.raisedBy.text)}</b></p>
           <div class="tags">${tags}</div>
-          <pre>${esc(t.entry)}</pre>
+          <pre>${code(t.entry)}</pre>
           ${details}
           <p class="t-from">→ <a href="worklog.html#t${attr(t.letter)}">worklog</a></p>
         </article>`
@@ -297,12 +297,27 @@ const sMenu = (data, derived) => {
 
 const sWhy = (data) => {
   const lede = data.copy.sections.s5 ? `<p class="lede">${rich(data.copy.sections.s5)}</p>` : ''
-  const toy = data.threads.filter((t) => t.raisedBy.kind === 'toy').sort(byLetter)
-  const census = data.threads.filter((t) => t.raisedBy.kind === 'census').sort(byLetter)
 
-  const toyRows = toy.map((t) =>
-    `<tr><td>${rich(t.raisedBy.text)}</td><td>${rich(t.question)}</td><td class="ref">${esc(t.letter)}</td></tr>`
+  // A single shortcut can raise more than one thread (e.g. "two tools in an array literal" reads
+  // as both A and D's from-line in the source), so rows merge on identical raisedBy.text rather
+  // than emitting one row per thread — grouped in first-appearance order, letters joined with ' · '.
+  const groups = []
+  const byText = new Map()
+  for (const t of data.threads) {
+    if (t.raisedBy.kind !== 'toy') continue
+    let g = byText.get(t.raisedBy.text)
+    if (!g) {
+      g = { text: t.raisedBy.text, question: t.question, letters: [] }
+      byText.set(t.raisedBy.text, g)
+      groups.push(g)
+    }
+    g.letters.push(t.letter)
+  }
+  const toyRows = groups.map((g) =>
+    `<tr><td>${rich(g.text)}</td><td>${rich(g.question)}</td><td class="ref">${esc(g.letters.join(' · '))}</td></tr>`
   ).join('\n          ')
+
+  const census = data.threads.filter((t) => t.raisedBy.kind === 'census')
 
   let censusRow = ''
   if (census.length) {
@@ -348,20 +363,31 @@ const sTransfer = (data) => {
         </tbody>
       </table>
     </div>
-    <p class="pull">The transfer test tests the model of the loop, tools, and permissions — and stays silent on whatever the ledger marks unavailable. That gap is a known cost of the transfer specimen, not an oversight.</p>
+    ${data.copy.transferPull ? `<p class="pull">${rich(data.copy.transferPull)}</p>` : ''}
   </section>`
 }
 
 // ---------- §7 standing orders ----------
+
+// A standing order's body may carry this literal token where the canonical task quote belongs
+// (matching the source's <em>"…"</em> quoting), so the task text lives once — in canonicalTask —
+// rather than being hand-duplicated into the order's authored prose.
+const CANONICAL_TASK_TOKEN = '{{canonicalTask}}'
 
 const sOrders = (data) => {
   const orders = data.copy.standingOrders ?? []
   const lede = orders.length
     ? `<p class="lede">${cap(spell(orders.length))} rules that hold in every phase and every thread. Read them once; they are assumed everywhere above.</p>`
     : ''
+  const cellBody = (o) => {
+    const body = rich(o.body)
+    return body.includes(CANONICAL_TASK_TOKEN)
+      ? body.replaceAll(CANONICAL_TASK_TOKEN, `<em>"${rich(data.canonicalTask)}"</em>`)
+      : body
+  }
   const grid = orders.length
     ? `<div class="grid2">
-      ${orders.map((o) => `<div class="cell"><h3>${rich(o.title)}</h3><p>${rich(o.body)}</p></div>`).join('\n      ')}
+      ${orders.map((o) => `<div class="cell"><h3>${rich(o.title)}</h3><p>${cellBody(o)}</p></div>`).join('\n      ')}
     </div>`
     : ''
 
@@ -377,7 +403,9 @@ const sOrders = (data) => {
 
 const sCensus = (derived, data) => {
   const total = packageTotal(derived.census, data.infrastructurePackages ?? [])
-  const rows = [...derived.census].sort(byLetter).map((c) =>
+  // Grouped by loop step (same ordering nav, §2, and §4 use), not sorted flat by letter — that's
+  // what makes the "Loop step" column mean anything instead of just repeating per row.
+  const rows = data.loopSteps.flatMap((s) => threadsByLoop(derived.census, s.id)).map((c) =>
     `<tr><td class="mono">${esc(c.loop)}</td><td class="ref">${esc(c.letter)} · ${esc(c.name)}</td><td class="mono" style="color:${needsColor(c.needs)}">${esc(needsLabel(c.needs))}</td><td class="mono">${esc(c.packages.join(' · '))}</td></tr>`
   ).join('\n          ')
 
@@ -437,7 +465,7 @@ const nav = (data) => {
       const capCls = t.needs !== 'source' ? ' class="cap"' : ''
       return `<li><a href="#t${attr(t.letter)}"${capCls}><b>${esc(t.letter)}</b><span>${esc(t.name)}</span></a></li>`
     }).join('\n      ')
-    return `<h2>${esc(cap(s.id))}</h2>
+    return `<h2>${esc(s.label)}</h2>
     <ol>
       ${items}
     </ol>`
@@ -457,7 +485,7 @@ const masthead = (data, derived) => {
   const packages = packageTotal(derived.census, data.infrastructurePackages ?? [])
 
   return `<header class="mast">
-    <p class="kick">Campaign <b style="color:var(--ink-soft);font-weight:500">${esc(data.campaign)}</b> · ${esc(data.specimen.name)} @ ${esc(data.specimen.pinned)} · nothing on this page is hidden</p>
+    <p class="kick">Campaign <b style="color:var(--ink-soft);font-weight:500">${esc(data.campaign)}</b> · ${esc(data.specimen.short ?? data.specimen.name)} @ ${esc(data.specimen.pinned)} · nothing on this page is hidden</p>
     <h1>${esc(data.title)}</h1>
     <p class="sf">${rich(data.copy.standfirst)}</p>
     <div class="facts">
