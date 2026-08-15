@@ -84,3 +84,9 @@ test('rejects missing loopSteps array', () => {
   d.loopSteps = null
   assert.throws(() => readCampaign(MINI, d), /loopSteps is not an array/)
 })
+
+test('rejects missing phases array', () => {
+  const d = clone()
+  d.phases = null
+  assert.throws(() => readCampaign(MINI, d), /phases is not an array/)
+})

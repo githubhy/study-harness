@@ -11,6 +11,7 @@ export function readCampaign(dir, override) {
   if (!Array.isArray(data.loopSteps)) fail('loopSteps is not an array')
   if (!Array.isArray(data.threads)) fail('threads is not an array')
   if (!Array.isArray(data.log)) fail('log is not an array')
+  if (!Array.isArray(data.phases)) fail('phases is not an array')
 
   const loops = new Set(data.loopSteps.map((s) => s.id))
   const phases = new Set(data.phases.map((p) => p.id))
