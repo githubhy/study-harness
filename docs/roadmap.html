@@ -1,299 +1,306 @@
 <title>Harness Dissection</title>
 <style>
   :root {
-    --paper:      #F2F3F1;
-    --raised:     #FBFBFA;
-    --sunk:       #EBEDE9;
-    --ink:        #16181C;
-    --ink-soft:   #4E5359;
-    --ink-faint:  #7C8289;
-    --rule:       #D6D8D3;
-    --rule-soft:  #E4E6E1;
-    --specimen:   #A85D0B;
-    --specimen-bg:#F6ECE0;
-    --control:    #1F6F6B;
-    --control-bg: #E3EFEE;
-    --ready:      #2F6B34;
-    --ready-bg:   #E6EFE5;
-
+    --paper:#F1F2F0; --raised:#FBFCFA; --sunk:#E8EAE6; --head:#E2E5E0;
+    --ink:#14161A; --ink-soft:#4E545A; --ink-faint:#7D848A;
+    --rule:#D5D8D2; --hair:#E3E6E0;
+    --specimen:#A05708; --specimen-bg:#F5EADC;
+    --control:#17635F; --control-bg:#DFECEA;
+    --go:#2C6634; --go-bg:#E1ECE1;
+    --gate:#8B2E20; --gate-bg:#F2E0DC;
     --serif: ui-serif, Georgia, "Iowan Old Style", "Times New Roman", serif;
     --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
-    --w: 1120px;
   }
-
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --paper:      #131518;
-      --raised:     #1A1D21;
-      --sunk:       #0E1013;
-      --ink:        #E7E5DF;
-      --ink-soft:   #A9AEB4;
-      --ink-faint:  #767C83;
-      --rule:       #2B2F35;
-      --rule-soft:  #23272C;
-      --specimen:   #E0973F;
-      --specimen-bg:#2A2119;
-      --control:    #5EB5AE;
-      --control-bg: #162726;
-      --ready:      #7BB77F;
-      --ready-bg:   #1A2419;
+      --paper:#111316; --raised:#181B1F; --sunk:#0B0D10; --head:#1E2227;
+      --ink:#E6E7E3; --ink-soft:#A4AAB0; --ink-faint:#747B82;
+      --rule:#292E34; --hair:#21252A;
+      --specimen:#DE9740; --specimen-bg:#271E14;
+      --control:#4FB0A9; --control-bg:#122624;
+      --go:#75B47B; --go-bg:#142316;
+      --gate:#D97462; --gate-bg:#271513;
     }
   }
-
   :root[data-theme="dark"] {
-    --paper:      #131518;
-    --raised:     #1A1D21;
-    --sunk:       #0E1013;
-    --ink:        #E7E5DF;
-    --ink-soft:   #A9AEB4;
-    --ink-faint:  #767C83;
-    --rule:       #2B2F35;
-    --rule-soft:  #23272C;
-    --specimen:   #E0973F;
-    --specimen-bg:#2A2119;
-    --control:    #5EB5AE;
-    --control-bg: #162726;
-    --ready:      #7BB77F;
-    --ready-bg:   #1A2419;
+    --paper:#111316; --raised:#181B1F; --sunk:#0B0D10; --head:#1E2227;
+    --ink:#E6E7E3; --ink-soft:#A4AAB0; --ink-faint:#747B82;
+    --rule:#292E34; --hair:#21252A;
+    --specimen:#DE9740; --specimen-bg:#271E14;
+    --control:#4FB0A9; --control-bg:#122624;
+    --go:#75B47B; --go-bg:#142316;
+    --gate:#D97462; --gate-bg:#271513;
   }
 
-  * { box-sizing: border-box; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font-family:var(--serif); font-size:16.5px; line-height:1.6; -webkit-font-smoothing:antialiased; }
+  a { color:var(--specimen); text-underline-offset:2px; }
+  :focus-visible { outline:2px solid var(--control); outline-offset:3px; }
+  code { font-family:var(--mono); font-size:.84em; }
+  .mono { font-family:var(--mono); }
 
-  body {
-    margin: 0; background: var(--paper); color: var(--ink);
-    font-family: var(--serif); font-size: 17px; line-height: 1.62;
-    -webkit-font-smoothing: antialiased;
+  .page { max-width:1400px; margin:0 auto; padding:0 24px 90px; }
+  .cols { display:grid; gap:0 44px; }
+  @media (min-width:1120px) { .cols { grid-template-columns:186px minmax(0,1fr); } }
+
+  /* ---------- contents rail ---------- */
+  nav { display:none; }
+  @media (min-width:1120px) {
+    nav { display:block; position:sticky; top:0; align-self:start; max-height:100vh; overflow-y:auto; padding:32px 0 40px; }
   }
-  .wrap { max-width: var(--w); margin: 0 auto; padding: 0 28px 96px; }
-  a { color: var(--specimen); }
-  :focus-visible { outline: 2px solid var(--control); outline-offset: 3px; border-radius: 2px; }
-  code, .mono { font-family: var(--mono); font-size: .85em; }
+  nav h2 { font-family:var(--mono); font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-faint); margin:0 0 9px; font-weight:500; }
+  nav ol { list-style:none; margin:0 0 20px; padding:0; display:grid; gap:1px; }
+  nav a { display:grid; grid-template-columns:24px 1fr; gap:6px; font-family:var(--mono); font-size:11px; line-height:1.45; color:var(--ink-soft); text-decoration:none; padding:2px 0; }
+  nav a:hover { color:var(--specimen); }
+  nav a b { color:var(--ink-faint); font-weight:400; font-variant-numeric:tabular-nums; }
+  nav a:hover b { color:var(--specimen); }
+  nav a.cap b { color:var(--control); }
+
+  main { padding-top:32px; min-width:0; }
 
   /* ---------- masthead ---------- */
-  .mast { padding: 68px 0 36px; border-bottom: 1px solid var(--rule); }
-  .eyebrow {
-    font-family: var(--mono); font-size: 11px; letter-spacing: .16em;
-    text-transform: uppercase; color: var(--ink-faint); margin: 0 0 18px;
-  }
-  h1 {
-    font-weight: 600; font-size: clamp(38px, 6vw, 60px); line-height: 1.04;
-    letter-spacing: -.022em; margin: 0 0 20px; text-wrap: balance;
-  }
-  .standfirst { font-size: clamp(18px, 2.1vw, 21px); line-height: 1.55; color: var(--ink-soft); max-width: 62ch; margin: 0; }
-  .standfirst strong { color: var(--ink); font-weight: 600; }
-  .facts { display: flex; flex-wrap: wrap; gap: 10px 34px; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--rule-soft); }
-  .fact { display: flex; flex-direction: column; gap: 3px; }
-  .fact dt { font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-faint); }
-  .fact dd { margin: 0; font-family: var(--mono); font-size: 13px; font-variant-numeric: tabular-nums; }
+  header.mast { border-bottom:2px solid var(--ink); padding-bottom:20px; }
+  .kick { font-family:var(--mono); font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-faint); margin:0 0 15px; }
+  h1 { font-size:clamp(34px,5.4vw,54px); font-weight:600; letter-spacing:-.024em; line-height:1.04; margin:0 0 16px; text-wrap:balance; }
+  .sf { font-size:19px; line-height:1.5; color:var(--ink-soft); max-width:62ch; margin:0; }
+  .sf strong { color:var(--ink); font-weight:600; }
+  .facts { display:flex; flex-wrap:wrap; gap:5px 28px; margin-top:20px; font-family:var(--mono); font-size:11px; color:var(--ink-faint); font-variant-numeric:tabular-nums; }
+  .facts b { color:var(--ink-soft); font-weight:500; }
 
   /* ---------- sections ---------- */
-  section { padding-top: 58px; }
-  h2 {
-    font-size: 13px; font-family: var(--mono); font-weight: 500; letter-spacing: .15em;
-    text-transform: uppercase; color: var(--ink-faint); margin: 0 0 6px;
-    display: flex; align-items: baseline; gap: 12px;
+  section { padding-top:50px; }
+  .snum { font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; color:var(--specimen); display:block; margin-bottom:5px; }
+  h2.sec { font-size:25px; font-weight:600; letter-spacing:-.016em; margin:0 0 4px; padding-bottom:9px; border-bottom:1px solid var(--rule); }
+  .lede { font-size:16.5px; line-height:1.5; color:var(--ink-soft); max-width:70ch; margin:14px 0 20px; }
+  .lede strong { color:var(--ink); font-weight:600; }
+  .lede em { font-style:italic; }
+  h4 { margin:15px 0 0; font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-faint); font-weight:500; }
+
+  pre { background:var(--sunk); border:1px solid var(--hair); margin:10px 0 0; padding:11px 13px; overflow-x:auto; font-family:var(--mono); font-size:12.5px; line-height:1.6; }
+  pre .c { color:var(--ink-faint); }
+  pre .k { color:var(--specimen); }
+
+  /* ---------- loop figure ---------- */
+  figure.loop { margin:0; border:1px solid var(--rule); background:var(--raised); padding:24px 18px 12px; overflow-x:auto; }
+  figure.loop svg { display:block; margin:0 auto; max-width:100%; height:auto; }
+  figure.loop figcaption { font-family:var(--mono); font-size:10.5px; color:var(--ink-faint); text-align:center; margin-top:12px; }
+
+  /* ---------- claims / rules grid ---------- */
+  .grid3 { display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule); margin-top:18px; }
+  @media (min-width:820px) { .grid3 { grid-template-columns:repeat(3,1fr); } }
+  .grid2 { display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule); margin-top:18px; }
+  @media (min-width:780px) { .grid2 { grid-template-columns:repeat(2,1fr); } }
+  .cell { background:var(--raised); padding:17px 20px; }
+  .cell h3 { margin:0 0 5px; font-size:16px; font-weight:600; letter-spacing:-.008em; }
+  .cell p { margin:0; font-size:15px; line-height:1.55; color:var(--ink-soft); }
+  .cell p strong { color:var(--ink); font-weight:600; }
+
+  /* ---------- the map ---------- */
+  .schema {
+    border:1px solid var(--rule); background:var(--raised);
+    background-image:
+      repeating-linear-gradient(to right, var(--hair) 0 1px, transparent 1px 100%),
+      repeating-linear-gradient(to bottom, var(--hair) 0 1px, transparent 1px 100%);
+    background-size:26px 26px;
+    padding:26px 20px 18px; display:grid; justify-items:center;
   }
-  h2::after { content: ""; flex: 1; height: 1px; background: var(--rule); }
-  .lede { font-size: 19px; line-height: 1.5; margin: 0 0 28px; max-width: 64ch; }
-  .lede em { color: var(--ink-soft); font-style: italic; }
+  .nodebox { background:var(--paper); border:1.5px solid var(--ink); padding:11px 18px; max-width:540px; width:100%; text-align:center; }
+  .nodebox.ctl { border-color:var(--control); background:var(--control-bg); }
+  .nodebox.obs { border-style:dashed; }
+  .n-id { font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-faint); }
+  .n-t { font-family:var(--mono); font-size:14.5px; font-weight:600; letter-spacing:-.01em; margin-top:3px; }
+  .nodebox.ctl .n-t { color:var(--control); }
+  .n-s { font-size:13.5px; color:var(--ink-soft); margin-top:4px; line-height:1.4; }
+  .link { display:grid; justify-items:center; }
+  .link i { display:block; width:0; height:20px; border-left:1.5px solid var(--ink-faint); }
+  .link u { display:block; width:0; height:0; border-left:5px solid transparent; border-right:5px solid transparent; border-top:7px solid var(--ink-faint); }
+  .link span { font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-faint); background:var(--raised); padding:2px 7px; }
+  .fan { width:100%; max-width:900px; margin-top:6px; }
+  .fan-bar { height:14px; border:1.5px solid var(--ink-faint); border-bottom:none; }
+  .stagerow { display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule); border-top:none; }
+  @media (min-width:700px) { .stagerow { grid-template-columns:repeat(5,1fr); } }
+  .stagecell { background:var(--paper); padding:10px; text-align:center; display:flex; flex-direction:column; gap:4px; align-items:center; text-decoration:none; color:inherit; }
+  .stagecell:hover { background:var(--specimen-bg); }
+  .st-n { font-family:var(--mono); font-size:9.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink); }
+  .st-c { font-family:var(--mono); font-size:18px; color:var(--specimen); font-variant-numeric:tabular-nums; line-height:1; }
+  .st-l { font-family:var(--mono); font-size:9.5px; color:var(--ink-faint); }
+  .outs { display:grid; gap:13px; width:100%; max-width:900px; }
+  @media (min-width:700px) { .outs { grid-template-columns:1fr 1fr; } }
+  .out { background:var(--paper); border:1.5px solid var(--gate); padding:11px 16px; }
+  .out .n-t { color:var(--gate); }
+  .schema figcaption { font-family:var(--mono); font-size:10.5px; color:var(--ink-faint); margin-top:18px; text-align:center; }
 
-  /* ---------- code ---------- */
-  pre {
-    background: var(--sunk); border: 1px solid var(--rule); margin: 0;
-    padding: 14px 16px; overflow-x: auto; font-family: var(--mono);
-    font-size: 12.5px; line-height: 1.62; color: var(--ink);
-  }
-  pre .c { color: var(--ink-faint); }
-  pre .k { color: var(--specimen); }
+  /* ---------- the board ---------- */
+  .board { display:grid; gap:14px; align-items:start; margin-top:18px; }
+  @media (min-width:880px) { .board { grid-template-columns:repeat(2,1fr); } }
+  @media (min-width:1400px) { .board { grid-template-columns:repeat(4,1fr); } }
+  .lane { display:grid; gap:10px; align-content:start; min-width:0; }
+  .lane-h { display:grid; gap:3px; padding:9px 12px; background:var(--head); border:1px solid var(--rule); }
+  .lane-t { font-family:var(--mono); font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; font-weight:600; display:flex; justify-content:space-between; gap:8px; }
+  .lane-s { font-size:13.5px; color:var(--ink-soft); line-height:1.4; }
+  .lane[data-s="go"] .lane-t { color:var(--go); }
+  .lane[data-s="next"] .lane-t { color:var(--control); }
+  .lane[data-s="gate"] .lane-t { color:var(--gate); }
+  .lane[data-s="last"] .lane-t { color:var(--ink-faint); }
+  .card { background:var(--raised); border:1px solid var(--rule); padding:14px 15px; display:grid; gap:9px; min-width:0; }
+  .card[data-s="go"] { box-shadow:inset 0 2px 0 var(--go); }
+  .card[data-s="next"] { box-shadow:inset 0 2px 0 var(--control); }
+  .card[data-s="gate"] { box-shadow:inset 0 2px 0 var(--gate); }
+  .c-top { display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+  .c-id { font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-faint); }
+  .c-state { font-family:var(--mono); font-size:9px; letter-spacing:.11em; text-transform:uppercase; color:var(--ink-faint); border:1px solid var(--hair); padding:1px 6px; white-space:nowrap; }
+  .c-t { font-size:17px; font-weight:600; letter-spacing:-.012em; line-height:1.2; }
+  .card p { margin:0; font-size:14.5px; color:var(--ink-soft); line-height:1.5; }
+  .card p strong, .card li strong { color:var(--ink); font-weight:600; }
+  .card ul { margin:0; padding-left:17px; font-size:14.5px; color:var(--ink-soft); line-height:1.48; }
+  .card li + li { margin-top:4px; }
+  .c-blocks { font-family:var(--mono); font-size:10.5px; color:var(--ink-faint); line-height:1.55; border-top:1px solid var(--hair); padding-top:8px; }
+  .c-blocks b { color:var(--ink-soft); font-weight:500; }
+  .c-blocks .no { color:var(--go); }
+  .c-blocks .yes { color:var(--gate); }
+  .halt { border:1px solid var(--gate); background:var(--gate-bg); padding:11px 13px; display:grid; gap:6px; margin-top:14px; }
+  .halt .h-t { font-family:var(--mono); font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--gate); font-weight:600; }
+  .halt pre { background:var(--paper); border-color:var(--gate); margin:0; }
+  .halt p { font-size:13.5px; color:var(--ink-soft); margin:0; }
 
-  /* ---------- start-here ---------- */
-  .today { border: 1px solid var(--control); background: var(--control-bg); padding: 24px 26px; display: grid; gap: 16px; }
-  .today h3 { margin: 0; font-size: 19px; font-weight: 600; display: flex; align-items: center; gap: 12px; }
-  .today p { margin: 0; font-size: 15.5px; color: var(--ink-soft); max-width: 68ch; }
-  .today pre { background: var(--raised); border-color: var(--rule); }
+  /* ---------- the menu ---------- */
+  .legend { display:flex; flex-wrap:wrap; gap:8px 20px; align-items:center; padding:11px 14px; border:1px solid var(--rule); background:var(--raised); margin-bottom:18px; font-family:var(--mono); font-size:11px; color:var(--ink-faint); }
+  .legend b { font-weight:500; }
+  .legend .k1 { color:var(--go); }
+  .legend .k2 { color:var(--control); }
+  .band { border:1px solid var(--rule); background:var(--raised); margin-top:20px; }
+  .band-head { display:grid; gap:4px 18px; padding:15px 20px; background:var(--head); border-bottom:1px solid var(--rule); }
+  @media (min-width:760px) { .band-head { grid-template-columns:auto 1fr auto; align-items:baseline; } }
+  .band-step { font-family:var(--mono); font-size:11px; letter-spacing:.15em; text-transform:uppercase; color:var(--specimen); }
+  .band-q { font-size:16px; color:var(--ink-soft); line-height:1.4; }
+  .band-q b { color:var(--ink); font-weight:600; }
+  .band-n { font-family:var(--mono); font-size:10.5px; color:var(--ink-faint); white-space:nowrap; }
+  .band-body { display:grid; gap:1px; background:var(--rule); }
+  @media (min-width:980px) { .band-body.two { grid-template-columns:1fr 1fr; } }
+  .thread { background:var(--raised); padding:18px 20px; min-width:0; box-shadow:inset 0 2px 0 var(--go); }
+  .thread[data-need="capture"] { box-shadow:inset 0 2px 0 var(--control); }
+  .t-top { display:flex; align-items:baseline; gap:9px; flex-wrap:wrap; }
+  .letter { font-family:var(--mono); font-size:12.5px; font-weight:700; color:var(--go); background:var(--go-bg); padding:2px 8px; }
+  .thread[data-need="capture"] .letter { color:var(--control); background:var(--control-bg); }
+  .t-name { font-size:16.5px; font-weight:600; letter-spacing:-.012em; }
+  .t-q { margin:10px 0 0; font-size:16px; line-height:1.45; font-style:italic; max-width:58ch; }
+  .t-from { margin:8px 0 0; font-family:var(--mono); font-size:10.5px; color:var(--ink-faint); line-height:1.5; }
+  .t-from b { color:var(--specimen); font-weight:400; }
+  .t-from.census b { color:var(--ink-soft); }
+  .tags { display:flex; flex-wrap:wrap; gap:4px; margin-top:11px; }
+  .pkg { font-family:var(--mono); font-size:10.5px; color:var(--ink-soft); border:1px solid var(--hair); background:var(--paper); padding:1px 5px; white-space:nowrap; }
+  .tag { font-family:var(--mono); font-size:9px; letter-spacing:.09em; text-transform:uppercase; padding:2px 6px; border:1px solid currentColor; }
+  .t-cap { color:var(--control); background:var(--control-bg); }
+  .t-cc { color:var(--ink-faint); }
+  .t-gate { color:var(--gate); background:var(--gate-bg); }
+  .thread p.d { margin:11px 0 0; font-size:15.5px; line-height:1.55; color:var(--ink-soft); max-width:62ch; }
+  .thread p.d strong { color:var(--ink); font-weight:600; }
+  .thread ul { margin:11px 0 0; padding-left:19px; font-size:15.5px; line-height:1.55; color:var(--ink-soft); max-width:62ch; }
+  .thread li + li { margin-top:5px; }
+  .thread li strong { color:var(--ink); font-weight:600; }
 
-  /* ---------- diagram ---------- */
-  .loopbox { background: var(--raised); border: 1px solid var(--rule); padding: 28px 24px 18px; margin: 0 0 24px; overflow-x: auto; }
-  .loopbox figcaption { font-family: var(--mono); font-size: 11.5px; color: var(--ink-faint); letter-spacing: .04em; margin-top: 14px; text-align: center; }
-  svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
-
-  /* ---------- claims ---------- */
-  .claims { display: grid; gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
-  .claim { background: var(--raised); padding: 20px 22px; }
-  .claim h3 { margin: 0 0 6px; font-size: 17px; font-weight: 600; letter-spacing: -.01em; }
-  .claim p { margin: 0; font-size: 15px; line-height: 1.55; color: var(--ink-soft); }
-  @media (min-width: 800px) { .claims { grid-template-columns: repeat(3, 1fr); } }
-
-  /* ---------- generic layered block ---------- */
-  details { background: var(--raised); }
-  details > summary {
-    cursor: pointer; list-style: none; display: grid; align-items: start;
-    padding: 20px 22px; gap: 4px 20px;
-  }
-  details > summary::-webkit-details-marker { display: none; }
-  details > summary::after {
-    content: "+"; font-family: var(--mono); font-size: 17px; color: var(--ink-faint);
-    grid-column: 3; grid-row: 1; justify-self: end; line-height: 1.2;
-  }
-  details[open] > summary::after { content: "\2212"; }
-  details > summary:hover::after { color: var(--specimen); }
-  .layer { padding: 0 22px 22px; display: grid; gap: 16px; }
-  .layer h4 {
-    margin: 0 0 8px; font-family: var(--mono); font-size: 10.5px; letter-spacing: .13em;
-    text-transform: uppercase; color: var(--ink-faint); font-weight: 500;
-  }
-  .layer p { margin: 0; font-size: 15px; line-height: 1.58; color: var(--ink-soft); max-width: 72ch; }
-  .layer p strong { color: var(--ink); font-weight: 600; }
-  .layer ul { margin: 0; padding-left: 20px; font-size: 15px; line-height: 1.58; color: var(--ink-soft); }
-  .layer li + li { margin-top: 5px; }
-  .layer li strong { color: var(--ink); font-weight: 600; }
-  .divider { border-top: 1px solid var(--rule-soft); padding-top: 16px; }
-
-  /* ---------- phase spine ---------- */
-  .spine { display: flex; flex-direction: column; gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
-  .phase > summary { grid-template-columns: 54px 1fr auto; }
-  .phase[data-kind="control"] { background: var(--control-bg); }
-  .pnum {
-    font-family: var(--mono); font-size: 29px; font-weight: 500; color: var(--ink-faint);
-    line-height: 1; font-variant-numeric: tabular-nums; grid-row: 1 / span 3; padding-top: 3px;
-  }
-  .phase[data-kind="control"] .pnum { color: var(--control); }
-  .ptitle { font-size: 20px; font-weight: 600; letter-spacing: -.012em; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; grid-column: 2; }
-  .pbody { font-size: 15.5px; line-height: 1.55; color: var(--ink-soft); max-width: 70ch; grid-column: 2; margin: 0; }
-  .pmeta { font-family: var(--mono); font-size: 11.5px; color: var(--ink-faint); letter-spacing: .03em; grid-column: 2; }
-  .pmeta b { color: var(--ink-soft); font-weight: 500; }
-  .phase .layer { padding-left: 96px; }
-  @media (max-width: 640px) { .phase .layer { padding-left: 22px; } }
-
-  .chip {
-    font-family: var(--mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
-    padding: 3px 8px; border: 1px solid currentColor; white-space: nowrap; font-weight: 500;
-  }
-  .chip--ready { color: var(--ready); background: var(--ready-bg); }
-  .chip--wait  { color: var(--ink-faint); }
-  .chip--ctrl  { color: var(--control); }
-
-  /* ---------- logic table ---------- */
-  .tablewrap { overflow-x: auto; border: 1px solid var(--rule); background: var(--raised); }
-  table { border-collapse: collapse; width: 100%; min-width: 560px; }
-  th, td { text-align: left; padding: 11px 16px; border-bottom: 1px solid var(--rule-soft); font-size: 15px; vertical-align: top; }
-  th { font-family: var(--mono); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; border-bottom: 1px solid var(--rule); }
-  tr:last-child td { border-bottom: none; }
-  td.yes { color: var(--control); font-family: var(--mono); font-size: 13px; }
-  td.no  { color: var(--ink-faint); font-family: var(--mono); font-size: 13px; }
-  td.tref { font-family: var(--mono); font-size: 12.5px; color: var(--specimen); white-space: nowrap; }
-
-  /* ---------- thread grid ---------- */
-  .threads { display: grid; gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
-  @media (min-width: 760px) { .threads { grid-template-columns: repeat(2, 1fr); } }
-  @media (min-width: 1060px) { .threads { grid-template-columns: repeat(3, 1fr); } }
-  .thread > summary { grid-template-columns: 1fr auto; padding: 18px 18px 16px; gap: 9px 14px; }
-  .thead { display: flex; align-items: baseline; gap: 9px; grid-column: 1; }
-  .tletter { font-family: var(--mono); font-size: 12.5px; font-weight: 600; color: var(--specimen); background: var(--specimen-bg); padding: 2px 7px; letter-spacing: .04em; }
-  .tname { font-size: 16px; font-weight: 600; letter-spacing: -.01em; line-height: 1.25; }
-  .tq { margin: 0; font-size: 14.5px; line-height: 1.48; color: var(--ink-soft); font-style: italic; grid-column: 1 / -1; }
-  .pkgs { display: flex; flex-wrap: wrap; gap: 4px; grid-column: 1 / -1; }
-  .pkg { font-family: var(--mono); font-size: 10.5px; color: var(--ink-faint); border: 1px solid var(--rule); padding: 1px 5px; white-space: nowrap; }
-  .tflags { display: flex; flex-wrap: wrap; gap: 5px; grid-column: 1 / -1; }
-  .flag { font-family: var(--mono); font-size: 9.5px; letter-spacing: .09em; text-transform: uppercase; padding: 2px 6px; border: 1px solid currentColor; }
-  .flag--src { color: var(--ready); background: var(--ready-bg); }
-  .flag--cap { color: var(--specimen); background: var(--specimen-bg); }
-  .flag--cc  { color: var(--control); background: var(--control-bg); }
-  .thread > summary::after { grid-column: 2; grid-row: 1; }
-  .thread .layer { padding: 0 18px 18px; gap: 14px; }
-
-  /* ---------- rules ---------- */
-  .rules { display: grid; gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
-  @media (min-width: 780px) { .rules { grid-template-columns: repeat(2, 1fr); } }
-  .rule-item { background: var(--raised); padding: 19px 22px; }
-  .rule-item h3 { margin: 0 0 5px; font-size: 16px; font-weight: 600; }
-  .rule-item p { margin: 0; font-size: 15px; line-height: 1.55; color: var(--ink-soft); }
-
-  .pullquote { border-left: 3px solid var(--specimen); padding: 4px 0 4px 20px; margin: 24px 0 0; font-size: 18.5px; line-height: 1.5; max-width: 60ch; }
-
-  .coverage { display: grid; gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
-  @media (min-width: 700px) { .coverage { grid-template-columns: repeat(2, 1fr); } }
-  @media (min-width: 1000px) { .coverage { grid-template-columns: repeat(3, 1fr); } }
-  .cov { background: var(--raised); padding: 13px 16px; display: flex; flex-direction: column; gap: 6px; }
-  .cov-t { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--specimen); }
-  .cov-t.infra { color: var(--ink-faint); }
-
-  footer { margin-top: 66px; padding-top: 22px; border-top: 1px solid var(--rule); font-family: var(--mono); font-size: 12px; color: var(--ink-faint); display: flex; flex-wrap: wrap; gap: 8px 26px; }
-
-  @media (prefers-reduced-motion: no-preference) {
-    details > summary::after { transition: color .15s ease; }
-  }
+  /* ---------- tables ---------- */
+  .tw { overflow-x:auto; border:1px solid var(--rule); background:var(--raised); margin-top:16px; }
+  table { border-collapse:collapse; width:100%; min-width:540px; }
+  th,td { text-align:left; padding:10px 15px; border-bottom:1px solid var(--hair); font-size:15px; vertical-align:top; }
+  th { font-family:var(--mono); font-size:10px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-faint); font-weight:500; border-bottom:1px solid var(--rule); }
+  tr:last-child td { border-bottom:none; }
+  td.y { color:var(--go); font-family:var(--mono); font-size:12.5px; }
+  td.n { color:var(--gate); font-family:var(--mono); font-size:12.5px; }
+  td.ref { font-family:var(--mono); font-size:12.5px; color:var(--specimen); white-space:nowrap; }
+  td.mono { font-size:12.5px; }
+  .pull { border-left:3px solid var(--specimen); padding:2px 0 2px 18px; margin:20px 0 0; font-size:18px; line-height:1.48; max-width:60ch; }
+  footer { margin-top:60px; padding-top:18px; border-top:2px solid var(--ink); font-family:var(--mono); font-size:11px; color:var(--ink-faint); display:flex; flex-wrap:wrap; gap:6px 24px; }
 </style>
 
-<div class="wrap">
+<div class="page">
+<div class="cols">
+
+<nav aria-label="Contents">
+  <h2>Sections</h2>
+  <ol>
+    <li><a href="#s1"><b>1</b><span>The loop</span></a></li>
+    <li><a href="#s2"><b>2</b><span>The map</span></a></li>
+    <li><a href="#s3"><b>3</b><span>The board</span></a></li>
+    <li><a href="#s4"><b>4</b><span>The menu</span></a></li>
+    <li><a href="#s5"><b>5</b><span>Why these 15</span></a></li>
+    <li><a href="#s6"><b>6</b><span>Transfer test</span></a></li>
+    <li><a href="#s7"><b>7</b><span>Standing orders</span></a></li>
+    <li><a href="#s8"><b>8</b><span>Census</span></a></li>
+  </ol>
+  <h2>Assemble</h2>
+  <ol>
+    <li><a href="#tA" class="cap"><b>A</b><span>Prompt</span></a></li>
+    <li><a href="#tC" class="cap"><b>C</b><span>Compaction</span></a></li>
+    <li><a href="#tM"><b>M</b><span>Inputs</span></a></li>
+  </ol>
+  <h2>Call</h2>
+  <ol><li><a href="#tL"><b>L</b><span>Providers</span></a></li></ol>
+  <h2>Execute</h2>
+  <ol>
+    <li><a href="#tD"><b>D</b><span>Tools</span></a></li>
+    <li><a href="#tG"><b>G</b><span>Sandboxing</span></a></li>
+    <li><a href="#tF"><b>F</b><span>Delegation</span></a></li>
+    <li><a href="#tO"><b>O</b><span>Self-mgmt</span></a></li>
+  </ol>
+  <h2>Control</h2>
+  <ol>
+    <li><a href="#tB" class="cap"><b>B</b><span>Loop</span></a></li>
+    <li><a href="#tI"><b>I</b><span>Persistence</span></a></li>
+  </ol>
+  <h2>Around</h2>
+  <ol>
+    <li><a href="#tE"><b>E</b><span>Plugins</span></a></li>
+    <li><a href="#tH"><b>H</b><span>Interop</span></a></li>
+    <li><a href="#tJ"><b>J</b><span>Observability</span></a></li>
+    <li><a href="#tK"><b>K</b><span>Host</span></a></li>
+    <li><a href="#tN"><b>N</b><span>Embedding</span></a></li>
+  </ol>
+</nav>
+
+<main>
 
   <header class="mast">
-    <p class="eyebrow">Study roadmap · dsh @ 47f9438 · every panel below opens</p>
+    <p class="kick">Study roadmap · dsh @ 47f9438 · nothing on this page is hidden</p>
     <h1>Harness Dissection</h1>
-    <p class="standfirst">
+    <p class="sf">
       Build a transferable model of <strong>agent harnesses as a category</strong> by dissecting
       DeepSeek Harness — then test whether that model explains a harness it was never derived from.
     </p>
-    <dl class="facts">
-      <div class="fact"><dt>Specimen</dt><dd>deepseek-harness</dd></div>
-      <div class="fact"><dt>Pinned</dt><dd>47f9438 · 2026-08-13</dd></div>
-      <div class="fact"><dt>Packages</dt><dd>49 · all covered</dd></div>
-      <div class="fact"><dt>Threads</dt><dd>15 · 12 need no key</dd></div>
-      <div class="fact"><dt>Transfer test</dt><dd>Claude Code · transcripts</dd></div>
-      <div class="fact"><dt>Completion</dt><dd>none — surprise budget</dd></div>
-    </dl>
+    <div class="facts">
+      <span>specimen <b>deepseek-harness</b></span>
+      <span>pinned <b>47f9438</b> · 2026-08-13</span>
+      <span>packages <b>49</b>, all covered</span>
+      <span>threads <b>15</b> — 12 open, 3 need evidence</span>
+      <span>transfer test <b>Claude Code transcripts</b></span>
+      <span>completion <b>none — surprise budget</b></span>
+    </div>
   </header>
 
-  <section>
-    <h2>Start here</h2>
-    <div class="today">
-      <h3>Three commands, no API key <span class="chip chip--ready">runnable now</span></h3>
-      <p>Phase 0 is the long pole and needs nothing but a clone. Everything downstream depends on the instrument it builds.</p>
-      <pre><span class="c"># 1 · pin the specimen</span>
-git clone https://github.com/deepseek-ai/deepseek-harness.git ../deepseek-harness
-git -C ../deepseek-harness checkout <span class="k">47f943859bef60e4160492346772ded9b24f765a</span>
-
-<span class="c"># 2 · build it</span>
-cd ../deepseek-harness &amp;&amp; corepack enable &amp;&amp; pnpm install --frozen-lockfile &amp;&amp; pnpm build
-
-<span class="c"># 3 · find the base-URL override — this is what lets you capture later</span>
-rg -n 'baseURL|baseUrl|base_url|BASE_URL' packages/llm/ apps/ --type ts</pre>
-      <p>Then twelve of the fifteen threads are open to you immediately — they read source only. The DeepSeek key gates just Threads&nbsp;A and&nbsp;C.</p>
-    </div>
-  </section>
-
-  <section>
-    <h2>The thing being studied</h2>
+  <section id="s1">
+    <span class="snum">§ 1</span>
+    <h2 class="sec">The loop everything else is filed under</h2>
     <p class="lede">
       A language model is a function from text to text. It cannot read a file, run a command, or
       remember anything. A <strong>harness</strong> is the program wrapped around it that supplies all three.
-      <em>Everything else — compaction, permissions, plugins, sandboxing, delegation — is a refinement of one of these five steps.</em>
+      <em>Everything else — compaction, permissions, plugins, sandboxing, delegation — is a refinement of one of these five steps</em>,
+      which is why §4 files each of the fifteen threads under the step it explains.
     </p>
 
-    <figure class="loopbox">
+    <figure class="loop">
       <svg viewBox="0 0 900 168" role="img" aria-label="The agent loop: assemble context, call model, parse tool calls, execute tools, append results, then repeat until a stop condition fires.">
-        <defs>
-          <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-            <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
-          </marker>
-        </defs>
-        <g style="color: var(--ink-faint)">
+        <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+        <g style="color:var(--ink-faint)">
           <g font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12.5" text-anchor="middle">
-            <g style="color: var(--ink)" fill="currentColor">
-              <rect x="8"   y="34" width="150" height="46" fill="none" stroke="currentColor" stroke-width="1"/>
-              <text x="83"  y="62">assemble</text>
-              <rect x="196" y="34" width="130" height="46" fill="none" stroke="currentColor" stroke-width="1"/>
-              <text x="261" y="62">call model</text>
-              <rect x="364" y="34" width="130" height="46" fill="none" stroke="currentColor" stroke-width="1"/>
-              <text x="429" y="62">parse calls</text>
-              <rect x="532" y="34" width="140" height="46" fill="none" stroke="currentColor" stroke-width="1"/>
-              <text x="602" y="62">execute</text>
-              <rect x="710" y="34" width="140" height="46" fill="none" stroke="currentColor" stroke-width="1"/>
-              <text x="780" y="62">append</text>
+            <g style="color:var(--ink)" fill="currentColor">
+              <rect x="8" y="34" width="150" height="46" fill="none" stroke="currentColor"/><text x="83" y="62">assemble</text>
+              <rect x="196" y="34" width="130" height="46" fill="none" stroke="currentColor"/><text x="261" y="62">call model</text>
+              <rect x="364" y="34" width="130" height="46" fill="none" stroke="currentColor"/><text x="429" y="62">parse calls</text>
+              <rect x="532" y="34" width="140" height="46" fill="none" stroke="currentColor"/><text x="602" y="62">execute</text>
+              <rect x="710" y="34" width="140" height="46" fill="none" stroke="currentColor"/><text x="780" y="62">append</text>
             </g>
             <g stroke="currentColor" stroke-width="1.25" fill="none" marker-end="url(#ar)">
-              <path d="M158,57 L190,57"/><path d="M326,57 L358,57"/>
-              <path d="M494,57 L526,57"/><path d="M672,57 L704,57"/>
+              <path d="M158,57 L190,57"/><path d="M326,57 L358,57"/><path d="M494,57 L526,57"/><path d="M672,57 L704,57"/>
             </g>
             <path d="M780,80 L780,124 L83,124 L83,86" stroke="currentColor" stroke-width="1.25" fill="none" stroke-dasharray="4 4" marker-end="url(#ar)"/>
             <text x="431" y="142" fill="currentColor">repeat until a stop condition fires</text>
@@ -303,508 +310,535 @@ rg -n 'baseURL|baseUrl|base_url|BASE_URL' packages/llm/ apps/ --type ts</pre>
       <figcaption>Five phases. Every harness has all of them; they differ in what they do at each.</figcaption>
     </figure>
 
-    <div class="claims">
-      <article class="claim">
-        <h3>You can't read what you can't name</h3>
-        <p>Writing a harness first supplies the vocabulary that makes a real one legible. Reading <code>agent-loop</code> cold teaches nothing; reading it after writing a loop teaches everything.</p>
-      </article>
-      <article class="claim">
-        <h3>The wire beats the source</h3>
-        <p>Prompt assembly is scattered across dozens of files. The bytes sent to the API are single, literal ground truth. When a reading and a capture disagree, the capture wins.</p>
-      </article>
-      <article class="claim">
-        <h3>A vocabulary must transfer</h3>
-        <p>Concepts that only explain their own specimen are worthless. The study succeeds if ideas derived from dsh explain Claude Code — and fails if they don't.</p>
-      </article>
+    <h4>Three claims the whole plan rests on</h4>
+    <div class="grid3">
+      <div class="cell"><h3>You can't read what you can't name</h3><p>Writing a harness first supplies the vocabulary that makes a real one legible. Reading <code>agent-loop</code> cold teaches nothing; reading it after writing a loop teaches everything.</p></div>
+      <div class="cell"><h3>The wire beats the source</h3><p>Prompt assembly is scattered across dozens of files. The bytes sent to the API are single, literal ground truth. When a reading and a capture disagree, the capture wins.</p></div>
+      <div class="cell"><h3>A vocabulary must transfer</h3><p>Concepts that only explain their own specimen are worthless. The study succeeds if ideas derived from dsh explain Claude Code — and fails if they don't.</p></div>
     </div>
   </section>
 
-  <section>
-    <h2>The logic of the study</h2>
+  <section id="s2">
+    <span class="snum">§ 2</span>
+    <h2 class="sec">The map · what blocks what</h2>
     <p class="lede">
-      Phase 1's toy harness is not a warm-up — it is the <strong>question generator</strong>.
-      Every shortcut it takes is a question a real harness had to answer, and that mapping <em>is</em> the thread menu.
+      <strong>0 → 1 → 2.0 is a strict chain</strong>; everything after it fans out. The fifteen threads have no order among
+      themselves — but two things downstream are gated, and one of them is gated on a <em>finding</em>, not a phase.
+      The five columns are the five steps of the loop above; click one to jump to its band.
     </p>
-    <div class="tablewrap">
-      <table>
-        <thead><tr><th>What the toy does</th><th>The question it raises</th><th>Thread</th></tr></thead>
-        <tbody>
-          <tr><td><code>.slice(0, 4000)</code> on every tool result</td><td>What should be dropped when context fills, and how is that decided?</td><td class="tref">C</td></tr>
-          <tr><td>Runs every tool unchecked, including <code>rm</code></td><td>Where does a permission boundary belong, and what does it gate?</td><td class="tref">D</td></tr>
-          <tr><td>Hard-coded <code>MAX_STEPS = 10</code></td><td>What legitimately terminates a loop?</td><td class="tref">B</td></tr>
-          <tr><td>Two tools in an array literal</td><td>How does a tool get registered and described at scale?</td><td class="tref">D · A</td></tr>
-          <tr><td>One hard-coded system prompt string</td><td>What actually belongs in a system prompt?</td><td class="tref">A</td></tr>
-          <tr><td>Bare <code>execSync</code> on the host</td><td>Where should model-authored code run, and what contains it?</td><td class="tref">G</td></tr>
-          <tr><td>One loop, one context, no fan-out</td><td>When does a harness spawn another harness?</td><td class="tref">F</td></tr>
-          <tr><td>Loses everything on exit</td><td>What must be saved to resume a conversation?</td><td class="tref">I</td></tr>
-          <tr><td>No plugins, no extension points</td><td>Where should the extension boundary sit?</td><td class="tref">E · H</td></tr>
-          <tr><td>Prints to stdout</td><td>Where does the harness end and the interface begin?</td><td class="tref">K</td></tr>
-          <tr><td>Hard-codes one provider's wire format</td><td>What does model-agnosticism cost, and where does it leak?</td><td class="tref">L</td></tr>
-          <tr><td>No way to observe or interrupt it</td><td>How does anyone outside the loop see in?</td><td class="tref">J</td></tr>
-          <tr><td>Model can't track its own plan</td><td>What tools manage the model's own process?</td><td class="tref">O</td></tr>
-        </tbody>
-      </table>
-    </div>
+
+    <figure class="schema">
+      <div class="nodebox">
+        <div class="n-id">Phase 0 · no blockers · no API key</div>
+        <div class="n-t">Scaffold &amp; instrument</div>
+        <div class="n-s">Clone at the pinned SHA, build, write the capture proxy.</div>
+      </div>
+      <div class="link"><i></i><span>produces the instrument</span><i></i><u></u></div>
+
+      <div class="nodebox ctl">
+        <div class="n-id">Phase 1 · the experimental control</div>
+        <div class="n-t">Write a harness from scratch</div>
+        <div class="n-s">~45 lines. The only harness whose every byte you can account for.</div>
+      </div>
+      <div class="link"><i></i><span>produces the question list</span><i></i><u></u></div>
+
+      <div class="nodebox obs">
+        <div class="n-id">Task 2.0 · observation only</div>
+        <div class="n-t">Baseline capture of dsh</div>
+        <div class="n-s">Write down what you saw <em>before</em> reading any source. This is the control Thread B reconciles against.</div>
+      </div>
+      <div class="link"><i></i><span>opens the menu — 15 threads, no order</span><i></i><u></u></div>
+
+      <div class="fan">
+        <div class="fan-bar"></div>
+        <div class="stagerow">
+          <a class="stagecell" href="#assemble"><span class="st-n">Assemble</span><span class="st-c">3</span><span class="st-l">A · C · M</span></a>
+          <a class="stagecell" href="#call"><span class="st-n">Call</span><span class="st-c">1</span><span class="st-l">L</span></a>
+          <a class="stagecell" href="#execute"><span class="st-n">Execute</span><span class="st-c">4</span><span class="st-l">D · G · F · O</span></a>
+          <a class="stagecell" href="#control"><span class="st-n">Control</span><span class="st-c">2</span><span class="st-l">B · I</span></a>
+          <a class="stagecell" href="#around"><span class="st-n">Around</span><span class="st-c">5</span><span class="st-l">E·H·J·K·N</span></a>
+        </div>
+      </div>
+
+      <div class="link"><i></i><u></u></div>
+      <div class="outs">
+        <div class="out">
+          <div class="n-id">Phase 3 · gated on Thread D alone</div>
+          <div class="n-t">Exam · one tool, two harnesses</div>
+          <div class="n-s">Runnable as soon as D lands — it does not wait for the other fourteen.</div>
+        </div>
+        <div class="out">
+          <div class="n-id">Phase 4 · gated on all of Phase 2</div>
+          <div class="n-t">Transfer test</div>
+          <div class="n-s">Last by design. Reading the transcripts earlier makes the test circular.</div>
+        </div>
+      </div>
+
+      <figcaption>Solid = required. Dashed = must be written blind.</figcaption>
+    </figure>
   </section>
 
-  <section>
-    <h2>Phases</h2>
-    <p class="lede">These <em>are</em> sequential, so they're numbered. The threads inside Phase 2 are not, so they aren't. Open any phase for its tasks and deliverables.</p>
+  <section id="s3">
+    <span class="snum">§ 3</span>
+    <h2 class="sec">The board · what you can start now</h2>
+    <p class="lede">
+      The same five phases as the map, sorted by <strong>what is blocking each card</strong> rather than by phase number.
+      The left lane needs nothing but a terminal; the right lane must stay last or the study invalidates itself.
+      <em>Card state is plain text in the HTML — edit <code>c-state</code> as you go.</em>
+    </p>
 
-    <div class="spine">
-      <details class="phase" open>
-        <summary>
-          <div class="pnum">0</div>
-          <div class="ptitle">Scaffold &amp; instrument <span class="chip chip--ready">runnable now</span></div>
-          <p class="pbody">Clone dsh at the pinned SHA and build it. Write the streaming-safe capture proxy that tees every model request to disk with credentials redacted at write time.</p>
-          <div class="pmeta">blocked by <b>nothing</b> · needs no API key · produces <b>LLM_BASE_URL_ENV</b>, <b>DSH_CMD</b></div>
-        </summary>
-        <div class="layer">
-          <div>
-            <h4>Tasks</h4>
-            <ul>
-              <li><strong>0.1 · Pin the checkout.</strong> Clone, detach at <code>47f9438</code>, <code>pnpm install --frozen-lockfile</code>, build. Discover and record the base-URL override and the non-interactive run command.</li>
-              <li><strong>0.2 · Build the proxy.</strong> ~70 lines of dependency-free Node. Tees SSE to disk without buffering the client's view, and redacts <code>authorization</code>, <code>x-api-key</code>, <code>api-key</code>, <code>cookie</code> before any write.</li>
-            </ul>
-          </div>
-          <div class="divider">
-            <h4>The one check you must not skip</h4>
-            <pre>rg -n 'sk-|Bearer' captures/session-smoke.jsonl   <span class="c"># must print nothing</span></pre>
-            <p>A leaked key in a capture is the single unrecoverable mistake in this study. If that command prints anything, stop and fix <code>redact()</code> before going further.</p>
-          </div>
-          <div class="divider">
-            <h4>Deliverables</h4>
-            <p><code>.gitignore</code> · <code>tools/capture-proxy/server.mjs</code> · <code>notes/00-orientation.md</code> holding the pinned SHA, the package map, and the two discovered values every later task consumes by name.</p>
-          </div>
+    <div class="board">
+
+      <div class="lane" data-s="go">
+        <div class="lane-h">
+          <div class="lane-t"><span>Ready now</span><span>2</span></div>
+          <div class="lane-s">Nothing blocks these. No API key required.</div>
         </div>
-      </details>
 
-      <details class="phase" data-kind="control">
-        <summary>
-          <div class="pnum">1</div>
-          <div class="ptitle">Write a harness from scratch <span class="chip chip--ctrl">the control</span></div>
-          <p class="pbody">~45 lines against the DeepSeek API: a message list, two tools, a loop, a step cap. The only harness whose every byte you can account for — and therefore the reference against which dsh's captures are read.</p>
-          <div class="pmeta">blocked by <b>Phase 0</b> · about an hour · produces the question list driving Phase 2</div>
-        </summary>
-        <div class="layer">
-          <div>
-            <h4>The whole thing, in shape</h4>
-            <pre>messages = [system, user]
+        <article class="card" data-s="go">
+          <div class="c-top"><span class="c-id">Task 0.1</span><span class="c-state">not started</span></div>
+          <div class="c-t">Pin the checkout</div>
+          <p>Clone, detach at <code>47f9438</code>, install frozen, build. Then discover and record the base-URL override and the non-interactive run command.</p>
+          <pre><span class="c"># pin the specimen</span>
+git clone https://github.com/deepseek-ai/deepseek-harness.git \
+  ../deepseek-harness
+git -C ../deepseek-harness checkout <span class="k">47f943859bef60e4160492346772ded9b24f765a</span>
+
+<span class="c"># build it</span>
+cd ../deepseek-harness &amp;&amp; corepack enable
+pnpm install --frozen-lockfile &amp;&amp; pnpm build
+
+<span class="c"># find the base-URL override — this is what lets you capture later</span>
+rg -n 'baseURL|baseUrl|base_url|BASE_URL' packages/llm/ apps/ --type ts</pre>
+          <div class="c-blocks">blocked by <b class="no">nothing</b><br>produces <b>LLM_BASE_URL_ENV</b> · <b>DSH_CMD</b><br>unblocks <b>Task 0.2</b></div>
+        </article>
+
+        <article class="card" data-s="go">
+          <div class="c-top"><span class="c-id">Task 0.2</span><span class="c-state">not started</span></div>
+          <div class="c-t">Build the capture proxy</div>
+          <p>~70 lines of dependency-free Node. Tees SSE to disk without buffering the client's view, and redacts <code>authorization</code>, <code>x-api-key</code>, <code>api-key</code>, <code>cookie</code> before any write.</p>
+          <div class="halt">
+            <div class="h-t">The one check you must not skip</div>
+            <pre>rg -n 'sk-|Bearer' captures/session-smoke.jsonl
+<span class="c"># must print nothing</span></pre>
+            <p>A leaked key in a capture is the single unrecoverable mistake in this study. If that prints anything, stop and fix <code>redact()</code> before going further.</p>
+          </div>
+          <p><strong>Deliverables:</strong> <code>.gitignore</code>, <code>tools/capture-proxy/server.mjs</code>, and <code>notes/00-orientation.md</code> holding the pinned SHA, the package map, and the two discovered values every later task consumes by name.</p>
+          <div class="c-blocks">blocked by <b>Task 0.1</b><br>unblocks <b>everything downstream</b></div>
+        </article>
+      </div>
+
+      <div class="lane" data-s="next">
+        <div class="lane-h">
+          <div class="lane-t"><span>Unlocked by Phase 0</span><span>2</span></div>
+          <div class="lane-s">The control, then the blind baseline. In that order.</div>
+        </div>
+
+        <article class="card" data-s="next">
+          <div class="c-top"><span class="c-id">Phase 1 · the control</span><span class="c-state">not started</span></div>
+          <div class="c-t">Write a harness from scratch</div>
+          <p>~45 lines against the DeepSeek API: a message list, two tools, a loop, a step cap. <strong>The only harness whose every byte you can account for</strong> — and therefore the reference against which dsh's captures are read.</p>
+          <pre>messages = [system, user]
 <span class="k">for</span> step <span class="k">in</span> 1..10:
     msg = POST /chat/completions {model, messages, tools}
     messages.push(msg)
     <span class="k">if</span> not msg.tool_calls: print(msg.content); <span class="k">break</span>
     <span class="k">for</span> call <span class="k">in</span> msg.tool_calls:
         result = impls[call.name](call.args)
-        messages.push({role:'tool', tool_call_id, content: result<span class="k">.slice(0,4000)</span>})</pre>
-          </div>
-          <div class="divider">
-            <h4>Then break it deliberately</h4>
-            <ul>
-              <li><strong>Blow the truncation:</strong> ask it to read <code>package-lock.json</code> and list the dependencies.</li>
-              <li><strong>Blow the step cap:</strong> twelve sorting algorithms, each run and compared.</li>
-              <li><strong>Expose the missing permission layer:</strong> ask it to delete every <code>.tmp</code> under <code>/tmp</code>. The alarm you feel is <code>packages/guard</code>'s entire reason to exist.</li>
-            </ul>
-          </div>
-          <div class="divider">
-            <h4>Deliverables</h4>
-            <p><code>experiments/minimal-harness/harness.mjs</code>, a capture of your own harness through the proxy, and <code>notes/01-what-my-harness-lacks.md</code> — the table that becomes the thread menu. First real <code>CONTEXT.md</code> terms land here: loop, turn, step, tool call, tool result, context window.</p>
-          </div>
-        </div>
-      </details>
+        messages.push({role:'tool', tool_call_id,
+          content: result<span class="k">.slice(0,4000)</span>})</pre>
+          <p><strong>Then break it deliberately:</strong></p>
+          <ul>
+            <li><strong>Blow the truncation</strong> — read <code>package-lock.json</code> and list the dependencies.</li>
+            <li><strong>Blow the step cap</strong> — twelve sorting algorithms, each run and compared.</li>
+            <li><strong>Expose the missing permission layer</strong> — delete every <code>.tmp</code> under <code>/tmp</code>. The alarm you feel is <code>packages/guard</code>'s entire reason to exist.</li>
+          </ul>
+          <p><strong>Deliverables:</strong> <code>experiments/minimal-harness/harness.mjs</code>, a capture of your own harness through the proxy, and <code>notes/01-what-my-harness-lacks.md</code> — the table that becomes §4 and §5. First real <code>CONTEXT.md</code> terms land here: loop, turn, step, tool call, tool result, context window.</p>
+          <div class="c-blocks">blocked by <b>Phase 0</b> · uses the DeepSeek key<br>unblocks <b>the whole 15-thread menu</b></div>
+        </article>
 
-      <details class="phase">
-        <summary>
-          <div class="pnum">2</div>
-          <div class="ptitle">Dissect the specimen <span class="chip chip--wait">15-thread menu</span></div>
-          <p class="pbody">Capture dsh on the same task, record what you observed before reading any source, then work the thread menu in whatever order stays interesting.</p>
-          <div class="pmeta">blocked by <b>Phase 1</b> · covers all <b>49 packages</b> · no fixed order</div>
-        </summary>
-        <div class="layer">
-          <div>
-            <h4>Task 2.0 comes first — and it's observation-only</h4>
-            <p>Capture dsh on the canonical task, then write <code>notes/02-baseline-behavior.md</code> recording <strong>only what was observable</strong>: round-trip count, tool order, when approval was requested, what displayed between steps, whether it verified its own work.</p>
-            <pre>rg -n 'packages/' notes/02-baseline-behavior.md   <span class="c"># must print nothing</span></pre>
-            <p>That note is the control Thread B must later reconcile against, line by line. It only works if it was written before you read any source.</p>
-          </div>
-          <div class="divider">
-            <h4>Then diff your toy against the specimen</h4>
-            <p>Same task, two harnesses, two captures. Every difference is a thread to pull — and the thread menu below is already sorted by which question your own harness made you ask.</p>
-          </div>
-        </div>
-      </details>
+        <article class="card" data-s="next">
+          <div class="c-top"><span class="c-id">Task 2.0 · observation only</span><span class="c-state">not started</span></div>
+          <div class="c-t">Baseline capture of dsh</div>
+          <p>Capture dsh on the canonical task, then write <code>notes/02-baseline-behavior.md</code> recording <strong>only what was observable</strong>: round-trip count, tool order, when approval was requested, what displayed between steps, whether it verified its own work.</p>
+          <pre>rg -n 'packages/' notes/02-baseline-behavior.md
+<span class="c"># must print nothing</span></pre>
+          <p>That note is the control Thread B must later reconcile against, line by line. <strong>It only works if it was written before you read any source.</strong></p>
+          <p>Then diff your toy against the specimen: same task, two harnesses, two captures. Every difference is a thread to pull.</p>
+          <div class="c-blocks">blocked by <b>Phase 1</b><br>unblocks <b>Thread B</b> · <b>Threads A, C</b></div>
+        </article>
+      </div>
 
-      <details class="phase">
-        <summary>
-          <div class="pnum">3</div>
-          <div class="ptitle">Exam · one tool, two harnesses</div>
-          <p class="pbody">The same trivial tool built twice — as a dsh plugin and as an MCP server for Claude Code. The diff between the two integrations <em>is</em> the finding.</p>
-          <div class="pmeta">gated on <b>Thread D</b> · both round trips must close</div>
-        </summary>
-        <div class="layer">
-          <div>
-            <h4>Two things must be true, per harness</h4>
-            <p>The tool was <strong>offered</strong>, and the model <strong>called it</strong>. Proving only the first is the classic false pass — it shows registration worked while the loop never closed around it.</p>
-            <pre><span class="c"># offered (dsh, from the capture)</span>
+      <div class="lane" data-s="gate">
+        <div class="lane-h">
+          <div class="lane-t"><span>Gated on a finding</span><span>1</span></div>
+          <div class="lane-s">Not gated on a phase — gated on one specific thread landing.</div>
+        </div>
+
+        <article class="card" data-s="gate">
+          <div class="c-top"><span class="c-id">Phase 3 · the exam</span><span class="c-state">not started</span></div>
+          <div class="c-t">One tool, two harnesses</div>
+          <p>The same trivial tool built twice — as a dsh plugin and as an MCP server for Claude Code. <strong>The diff between the two integrations is the finding.</strong></p>
+          <p><strong>Two things must be true, per harness:</strong> the tool was <em>offered</em>, and the model <em>called it</em>. Proving only the first is the classic false pass — it shows registration worked while the loop never closed around it.</p>
+          <pre><span class="c"># offered (dsh, from the capture)</span>
 jq -r 'select(.dir=="request") | .body.tools[]? | .function.name' \
   captures/session-plugin.jsonl | sort -u | rg hello_study
 
 <span class="c"># called (either harness — grep the marker)</span>
 rg -c 'STUDY-MARKER-7f3a' captures/session-plugin.jsonl</pre>
-          </div>
-          <div class="divider">
-            <h4>Why this is the category exam</h4>
-            <p>What <em>both</em> harnesses demand of a tool is essential to the category. What only one demands is incidental to its implementation. That intersection is the real model of "a tool" — and MCP versus a Cordis plugin is itself an answer to Thread&nbsp;E's question about where an extension boundary belongs.</p>
-          </div>
-        </div>
-      </details>
+          <p><strong>Why this is the category exam:</strong> what <em>both</em> harnesses demand of a tool is essential to the category. What only one demands is incidental to its implementation. That intersection is the real model of “a tool” — and MCP versus a Cordis plugin is itself an answer to Thread&nbsp;E's question about where an extension boundary belongs.</p>
+          <div class="c-blocks">blocked by <b class="yes">Thread D only</b> — it does <em>not</em> wait for the other fourteen<br>consumes <b>D's “what a new tool must provide” checklist</b></div>
+        </article>
+      </div>
 
-      <details class="phase">
-        <summary>
-          <div class="pnum">4</div>
-          <div class="ptitle">Transfer test</div>
-          <p class="pbody">Commit predictions <em>before</em> opening the Claude Code transcripts already on disk, then score them. Sort every glossary term into universal, dsh-specific, or missing.</p>
-          <div class="pmeta">blocked by <b>Phase 2</b> · last by design — reading earlier makes the test circular</div>
-        </summary>
-        <div class="layer">
-          <div>
-            <h4>Predict first, and commit the prediction</h4>
-            <p>From the dsh-derived model alone, write down which tools you expect, how results appear serialized, what stop reasons exist, how permissions are gated. <strong>A prediction made after looking tests nothing</strong> — so it goes in a commit before the first <code>jq</code> runs.</p>
-          </div>
-          <div class="divider">
-            <h4>Three buckets, and two of them are the output</h4>
-            <ul>
-              <li><strong>Universal</strong> — explains both harnesses. Stays canonical in <code>CONTEXT.md</code>.</li>
-              <li><strong>dsh-specific</strong> — an implementation detail you mistook for a category concept.</li>
-              <li><strong>Missing</strong> — Claude Code does something your vocabulary can't name. <code>thinking</code> blocks, hooks, and sidechains are the likely candidates.</li>
-            </ul>
-            <p>Buckets two and three are what the study actually produced. Bucket one is just what survived.</p>
-          </div>
+      <div class="lane" data-s="last">
+        <div class="lane-h">
+          <div class="lane-t"><span>Last by design</span><span>1</span></div>
+          <div class="lane-s">Doing this early doesn't speed the study up — it invalidates it.</div>
         </div>
-      </details>
+
+        <article class="card" data-s="gate">
+          <div class="c-top"><span class="c-id">Phase 4</span><span class="c-state">not started</span></div>
+          <div class="c-t">Transfer test</div>
+          <p>Commit predictions <em>before</em> opening the Claude Code transcripts already on disk, then score them. Sort every glossary term into universal, dsh-specific, or missing.</p>
+          <p><strong>Predict first, and commit the prediction.</strong> From the dsh-derived model alone, write down which tools you expect, how results appear serialized, what stop reasons exist, how permissions are gated. A prediction made after looking tests nothing — so it goes in a commit before the first <code>jq</code> runs.</p>
+          <p><strong>Three buckets, and two of them are the output:</strong></p>
+          <ul>
+            <li><strong>Universal</strong> — explains both harnesses. Stays canonical in <code>CONTEXT.md</code>.</li>
+            <li><strong>dsh-specific</strong> — an implementation detail you mistook for a category concept.</li>
+            <li><strong>Missing</strong> — Claude Code does something your vocabulary can't name. <code>thinking</code> blocks, hooks, and sidechains are the likely candidates.</li>
+          </ul>
+          <p>Buckets two and three are what the study actually produced. Bucket one is just what survived.</p>
+          <div class="c-blocks">blocked by <b class="yes">all of Phase 2</b> · see §6 for what transcripts can and can't show</div>
+        </article>
+      </div>
+
     </div>
   </section>
 
-  <section>
-    <h2>The thread menu</h2>
+  <section id="s4">
+    <span class="snum">§ 4</span>
+    <h2 class="sec">The menu · fifteen threads</h2>
     <p class="lede">
-      Fifteen threads, lettered rather than numbered because there is no correct order.
-      <em>Open any card for its entry commands and the specific thing it has to answer.</em>
+      Lettered because there is no correct order, and grouped by <strong>which step of the loop each one explains</strong> —
+      read a band top to bottom and you have one step fully accounted for. Each card carries the shortcut in your own
+      harness that raised it (<span class="mono" style="font-size:11px;color:var(--specimen)">FROM</span>),
+      the packages it covers, and the command that opens it.
     </p>
+    <div class="legend">
+      <span><b class="k1">■</b> open the moment Phase 1 lands · source only · <b>12</b></span>
+      <span><b class="k2">■</b> waits on evidence · <b>3</b> — A and C need a dsh capture, B needs note 2.0</span>
+    </div>
 
-    <div class="threads">
-
-      <details class="thread">
-        <summary>
-          <div class="thead"><span class="tletter">A</span><span class="tname">Prompt &amp; presentation</span></div>
-          <p class="tq">What actually belongs in a system prompt, and how much behaviour is bought with prose rather than code?</p>
-          <div class="pkgs"><span class="pkg">core/system-prompt</span><span class="pkg">agent-tool-presentation</span><span class="pkg">preset</span></div>
-          <div class="tflags"><span class="flag flag--cap">needs capture</span></div>
-        </summary>
-        <div class="layer">
+    <div class="band" id="assemble">
+      <div class="band-head">
+        <span class="band-step">Step 1 · Assemble</span>
+        <span class="band-q">What goes <b>into</b> the request, and what gets left out?</span>
+        <span class="band-n">3 threads · 9 packages</span>
+      </div>
+      <div class="band-body two">
+        <article class="thread" data-need="capture" id="tA">
+          <div class="t-top"><span class="letter">A</span><span class="t-name">Prompt &amp; presentation</span></div>
+          <p class="t-q">What actually belongs in a system prompt, and how much behaviour is bought with prose rather than code?</p>
+          <p class="t-from">FROM <b>one hard-coded system prompt string</b> · <b>two tools in an array literal</b></p>
+          <div class="tags"><span class="pkg">core/system-prompt</span><span class="pkg">agent-tool-presentation</span><span class="pkg">preset</span><span class="tag t-cap">needs a dsh capture</span></div>
           <pre>jq -r 'select(.dir=="request") | .body.messages[]
-  | select(.role=="system") | .content' captures/session-dsh-canonical.jsonl | head -1</pre>
-          <p><strong>Answer with a number.</strong> What fraction of behavioural instruction lives in tool <em>descriptions</em> versus the system prompt? That ratio is a category-level property you can carry to any harness.</p>
-          <p>Take a distinctive six-word phrase from the capture and <code>rg</code> for it. If it isn't found literally, the prompt is assembled from fragments — record which, and where.</p>
-        </div>
-      </details>
+  | select(.role=="system") | .content' \
+  captures/session-dsh-canonical.jsonl | head -1</pre>
+          <p class="d"><strong>Answer with a number.</strong> What fraction of behavioural instruction lives in tool <em>descriptions</em> versus the system prompt? That ratio is a category-level property you can carry to any harness.</p>
+          <p class="d">Take a distinctive six-word phrase from the capture and <code>rg</code> for it. If it isn't found literally, the prompt is assembled from fragments — record which, and where.</p>
+        </article>
 
-      <details class="thread">
-        <summary>
-          <div class="thead"><span class="tletter">B</span><span class="tname">The agent loop</span></div>
-          <p class="tq">What legitimately terminates a loop? Your toy just used a hard step cap of ten.</p>
-          <div class="pkgs"><span class="pkg">core/agent-loop</span><span class="pkg">core/agent</span><span class="pkg">agent-default-model</span></div>
-          <div class="tflags"><span class="flag flag--src">source only</span></div>
-        </summary>
-        <div class="layer">
-          <pre>rg -n 'break|return|maxSteps|maxTurns|stop|finish' \
-  packages/core/agent-loop --type ts
-pnpm vitest run packages/core/agent-loop --reporter=verbose</pre>
-          <p>Mark the line where each of the five phases happens, then record <strong>every</strong> termination condition in precedence order — no tool calls emitted, step cap, token budget, user interrupt.</p>
-          <p>The tests are executable spec: an invariant you wouldn't have predicted marks a gap in your model. Then reconcile every observation in <code>notes/02-baseline-behavior.md</code> against a specific line, or list it as open.</p>
-        </div>
-      </details>
-
-      <details class="thread">
-        <summary>
-          <div class="thead"><span class="tletter">C</span><span class="tname">Context &amp; compaction</span></div>
-          <p class="tq">What should be dropped when the context fills, and is the decision positional, semantic, or size-based?</p>
-          <div class="pkgs"><span class="pkg">compaction/*</span><span class="pkg">context</span><span class="pkg">spill</span><span class="pkg">core/session</span></div>
-          <div class="tflags"><span class="flag flag--cap">needs capture</span></div>
-        </summary>
-        <div class="layer">
+        <article class="thread" data-need="capture" id="tC">
+          <div class="t-top"><span class="letter">C</span><span class="t-name">Context &amp; compaction</span></div>
+          <p class="t-q">What should be dropped when the context fills, and is the decision positional, semantic, or size-based?</p>
+          <p class="t-from">FROM <b>.slice(0, 4000) on every tool result</b></p>
+          <div class="tags"><span class="pkg">compaction/*</span><span class="pkg">context</span><span class="pkg">spill</span><span class="pkg">core/session</span><span class="tag t-cap">needs a long capture</span></div>
           <pre>jq -r 'select(.dir=="request")
   | "\(.id)\t\(.body.messages|length)\t\(.body.messages|tostring|length)"' \
   captures/session-dsh-long.jsonl</pre>
-          <p>A monotonic rise followed by a <strong>drop in message count</strong> is a compaction event. The canonical task is too short to trigger one — run the twelve-algorithm task instead.</p>
-          <p>The densest engineering in the repo: compaction is a top-level package with a dedicated <code>compaction-tool-result-pruner</code>, and <code>spill</code> sits alongside it. Direct answer to your toy's worst shortcut.</p>
-        </div>
-      </details>
+          <p class="d">A monotonic rise followed by a <strong>drop in message count</strong> is a compaction event. The canonical task is too short to trigger one — run the twelve-algorithm task instead.</p>
+          <p class="d">The densest engineering in the repo: compaction is a top-level package with a dedicated <code>compaction-tool-result-pruner</code>, and <code>spill</code> sits alongside it. Direct answer to your toy's worst shortcut.</p>
+        </article>
 
-      <details class="thread">
-        <summary>
-          <div class="thead"><span class="tletter">D</span><span class="tname">Tools &amp; permission</span></div>
-          <p class="tq">What must a harness be told about a tool, and where does the permission boundary sit?</p>
-          <div class="pkgs"><span class="pkg">core/tools</span><span class="pkg">fs</span><span class="pkg">guard</span><span class="pkg">web</span></div>
-          <div class="tflags"><span class="flag flag--src">source only</span><span class="flag flag--cc">gates exam</span></div>
-        </summary>
-        <div class="layer">
+        <article class="thread" data-need="source" id="tM">
+          <div class="t-top"><span class="letter">M</span><span class="t-name">Inputs &amp; code intelligence</span></div>
+          <p class="t-q">What does a harness feed the model besides text and tool results?</p>
+          <p class="t-from census">FROM <b>the package census — the toy never raised this one</b></p>
+          <div class="tags"><span class="pkg">attachment</span><span class="pkg">lsp</span></div>
+          <p class="d"><strong>attachment:</strong> how are images and files injected — re-sent every turn, or referenced? That has a direct cost consequence; connect it to Thread C.</p>
+          <p class="d"><strong>lsp:</strong> the harness runs a language server and hands the model its output. Determine whether that arrives as a tool the model <em>calls</em>, or as context <em>injected</em> without being asked. Those are very different designs — decide which is better, and why dsh chose as it did.</p>
+        </article>
+      </div>
+    </div>
+
+    <div class="band" id="call">
+      <div class="band-head">
+        <span class="band-step">Step 2 · Call model</span>
+        <span class="band-q">What sits between the harness and <b>any</b> model provider?</span>
+        <span class="band-n">1 thread · 6 packages</span>
+      </div>
+      <div class="band-body">
+        <article class="thread" data-need="source" id="tL">
+          <div class="t-top"><span class="letter">L</span><span class="t-name">Provider abstraction</span></div>
+          <p class="t-q">What does it take to be model-agnostic, and where does the abstraction leak?</p>
+          <p class="t-from">FROM <b>hard-coding one provider's wire format</b></p>
+          <div class="tags"><span class="pkg">llm/*</span><span class="pkg">llm-retry</span><span class="pkg">credentials</span><span class="pkg">identity</span></div>
+          <p class="d">Read the shared <code>llm</code> interface, then both implementations behind it. <strong>What sits in the interface that only one provider actually needs? That is where the abstraction leaks.</strong></p>
+          <p class="d">Then <code>llm-retry</code>: which failures are retried, with what backoff, and is a retried call visible to the loop or hidden beneath it? A hidden retry changes what “one step” means.</p>
+          <p class="d">The category question: can a harness be genuinely model-agnostic, given that prompt engineering, tool-call formats, and thinking blocks all differ per model?</p>
+        </article>
+      </div>
+    </div>
+
+    <div class="band" id="execute">
+      <div class="band-head">
+        <span class="band-step">Steps 3–4 · Parse &amp; execute</span>
+        <span class="band-q">What the model asked for — and <b>what is allowed to happen</b> as a result.</span>
+        <span class="band-n">4 threads · 18 packages</span>
+      </div>
+      <div class="band-body two">
+        <article class="thread" data-need="source" id="tD">
+          <div class="t-top"><span class="letter">D</span><span class="t-name">Tools &amp; permission</span></div>
+          <p class="t-q">What must a harness be told about a tool, and where does the permission boundary sit?</p>
+          <p class="t-from">FROM <b>running every tool unchecked, including rm</b> · <b>two tools in an array literal</b></p>
+          <div class="tags"><span class="pkg">core/tools</span><span class="pkg">fs</span><span class="pkg">guard</span><span class="pkg">web</span><span class="tag t-gate">gates Phase 3</span></div>
           <pre>rg -n 'approve|permission|confirm|allow|deny' packages/guard --type ts</pre>
-          <p>Trace the file-edit tool through <strong>six layers</strong>, each cited <code>path:line</code>: schema → registration → presentation → dispatch → permission → result serialization.</p>
-          <p>Then answer: is approval per-call, per-tool, per-session, or path-scoped — and what's the default posture? Output is a harness-neutral checklist, "what a new tool must provide," which Phase 3 consumes directly.</p>
-        </div>
-      </details>
+          <p class="d">Trace the file-edit tool through <strong>six layers</strong>, each cited <code>path:line</code>: schema → registration → presentation → dispatch → permission → result serialization.</p>
+          <p class="d">Then answer: is approval per-call, per-tool, per-session, or path-scoped — and what's the default posture? Output is a harness-neutral checklist, “what a new tool must provide,” which Phase 3 consumes directly.</p>
+        </article>
 
-      <details class="thread">
-        <summary>
-          <div class="thead"><span class="tletter">E</span><span class="tname">Plugin architecture</span></div>
-          <p class="tq">Where should a harness's extension boundary sit, and what does “everything is a plugin” make hard?</p>
-          <div class="pkgs"><span class="pkg">core/scope</span><span class="pkg">boot</span><span class="pkg">extensions</span><span class="pkg">bundle</span></div>
-          <div class="tflags"><span class="flag flag--src">source only</span></div>
-        </summary>
-        <div class="layer">
-          <pre>cat packages/core/README.md AGENTS.md CLAUDE.md packages/AGENTS.md
-rg -n 'ctx\.(plugin|on|set|inject)' packages/core --type ts</pre>
-          <p><strong>Learn Cordis first or this thread fails.</strong> It's dependency injection plus an event bus — nothing calls anything directly, so grep-based tracing finds nothing and the codebase reads as indirection with no call graph. There's a paper behind it: <em>A Programming Paradigm for Spatiotemporal Composability</em>.</p>
-          <p>The repo's own <code>AGENTS.md</code> and <code>CLAUDE.md</code> are written to orient agents working in it, which makes them the best human onboarding docs too — usually fresher than <code>docs/</code>.</p>
-        </div>
-      </details>
-
-      <details class="thread">
-        <summary>
-          <div class="thead"><span class="tletter">F</span><span class="tname">Delegation &amp; sub-agents</span></div>
-          <p class="tq">When does a harness spawn <em>another</em> harness, and what does the child inherit?</p>
-          <div class="pkgs"><span class="pkg">subagent</span><span class="pkg">plan</span><span class="pkg">goal</span><span class="pkg">jobs</span><span class="pkg">schedule</span></div>
-          <div class="tflags"><span class="flag flag--src">source only</span><span class="flag flag--cc">CC comparison</span></div>
-        </summary>
-        <div class="layer">
-          <pre>rg -n 'fork|spawn|child|sub.?agent|delegate' packages/subagent packages/jobs --type ts</pre>
-          <p>The design question is what a child inherits — tools? history? permissions? — and how its result re-enters the parent's context.</p>
-          <p><strong>One of the sharpest comparison surfaces in the study.</strong> Claude Code has the same feature: sub-agent invocations appear in transcripts as <code>Task</code>/<code>Agent</code> tool calls, and <code>isSidechain</code> marks the child sessions.</p>
-        </div>
-      </details>
-
-      <details class="thread">
-        <summary>
-          <div class="thead"><span class="tletter">G</span><span class="tname">Execution &amp; sandboxing</span></div>
-          <p class="tq">Where does model-authored code actually run, and what contains it?</p>
-          <div class="pkgs"><span class="pkg">sandbox</span><span class="pkg">e2b</span><span class="pkg">code-runtime</span><span class="pkg">shell</span><span class="pkg">subprocess</span><span class="pkg">terminal</span></div>
-          <div class="tflags"><span class="flag flag--src">source only</span></div>
-        </summary>
-        <div class="layer">
+        <article class="thread" data-need="source" id="tG">
+          <div class="t-top"><span class="letter">G</span><span class="t-name">Execution &amp; sandboxing</span></div>
+          <p class="t-q">Where does model-authored code actually run, and what contains it?</p>
+          <p class="t-from">FROM <b>bare execSync on the host</b></p>
+          <div class="tags"><span class="pkg">sandbox</span><span class="pkg">e2b</span><span class="pkg">code-runtime</span><span class="pkg">shell</span><span class="pkg">subprocess</span><span class="pkg">terminal</span></div>
           <pre>rg -n 'unsafe|escape|host|local|bypass' packages/sandbox --type ts</pre>
-          <p>Six packages here against your toy's bare <code>execSync</code> — that alone says the answer isn't obvious. Distinguish the layers: is <code>code-runtime</code> the abstraction, <code>sandbox</code> the local implementation, <code>e2b</code> a remote provider?</p>
-          <p>Then find the escape hatch — is there a path where code runs unsandboxed, and what gates it? Map the isolation strategies (none / subprocess / container / remote VM) and what each costs in latency and fidelity.</p>
-        </div>
-      </details>
+          <p class="d">Six packages here against your toy's bare <code>execSync</code> — that alone says the answer isn't obvious. Distinguish the layers: is <code>code-runtime</code> the abstraction, <code>sandbox</code> the local implementation, <code>e2b</code> a remote provider?</p>
+          <p class="d">Then find the escape hatch — is there a path where code runs unsandboxed, and what gates it? Map the isolation strategies (none / subprocess / container / remote VM) and what each costs in latency and fidelity.</p>
+        </article>
 
-      <details class="thread">
-        <summary>
-          <div class="thead"><span class="tletter">H</span><span class="tname">Interop · MCP &amp; ACP</span></div>
-          <p class="tq">When a harness standardises its extension boundary, what does it give up?</p>
-          <div class="pkgs"><span class="pkg">mcp</span><span class="pkg">acp</span><span class="pkg">api</span><span class="pkg">sdk</span></div>
-          <div class="tflags"><span class="flag flag--src">source only</span><span class="flag flag--cc">CC comparison</span></div>
-        </summary>
-        <div class="layer">
-          <p>Thread E covers the <em>native</em> extension boundary. This covers the <em>standard</em> one — and both harnesses under study speak MCP, making it the one integration surface you can compare directly.</p>
-          <p><strong>The question that matters:</strong> which capabilities can a native plugin express that an MCP server cannot? That gap is precisely why native plugin systems still exist alongside MCP.</p>
-          <pre>cat packages/acp/README.md   <span class="c"># Agent Client Protocol — what connects to what?</span></pre>
-        </div>
-      </details>
+        <article class="thread" data-need="source" id="tF">
+          <div class="t-top"><span class="letter">F</span><span class="t-name">Delegation &amp; sub-agents</span></div>
+          <p class="t-q">When does a harness spawn <em>another</em> harness, and what does the child inherit?</p>
+          <p class="t-from">FROM <b>one loop, one context, no fan-out</b></p>
+          <div class="tags"><span class="pkg">subagent</span><span class="pkg">plan</span><span class="pkg">goal</span><span class="pkg">jobs</span><span class="pkg">schedule</span><span class="tag t-cc">CC comparison</span></div>
+          <pre>rg -n 'fork|spawn|child|sub.?agent|delegate' \
+  packages/subagent packages/jobs --type ts</pre>
+          <p class="d">The design question is what a child inherits — tools? history? permissions? — and how its result re-enters the parent's context.</p>
+          <p class="d"><strong>One of the sharpest comparison surfaces in the study.</strong> Claude Code has the same feature: sub-agent invocations appear in transcripts as <code>Task</code>/<code>Agent</code> tool calls, and <code>isSidechain</code> marks the child sessions.</p>
+        </article>
 
-      <details class="thread">
-        <summary>
-          <div class="thead"><span class="tletter">I</span><span class="tname">Persistence &amp; resumption</span></div>
-          <p class="tq">What must be saved for a harness to resume a conversation it isn't currently holding in memory?</p>
-          <div class="pkgs"><span class="pkg">session</span><span class="pkg">session-query</span><span class="pkg">settings</span><span class="pkg">storage</span><span class="pkg">workspace</span></div>
-          <div class="tflags"><span class="flag flag--src">source only</span><span class="flag flag--cc">CC comparison</span></div>
-        </summary>
-        <div class="layer">
-          <p>Your toy loses everything on exit. This is the thread with the <strong>richest comparison data</strong>, because Claude Code's own answer is sitting on your disk in ~3,800 files.</p>
-          <pre>rg -n 'persist|save|write|serialize' packages/session --type ts
-
-F=$(find ~/.claude/projects -name '*.jsonl' | head -1)
-jq -r '.type' "$F" | sort | uniq -c</pre>
-          <p>Then determine what <code>session-query</code> is for: is history searchable, and does the <em>model</em> get to search it, or only the user? That distinction is a real design fork.</p>
-        </div>
-      </details>
-
-      <details class="thread">
-        <summary>
-          <div class="thead"><span class="tletter">J</span><span class="tname">Observability &amp; cost</span></div>
-          <p class="tq">How does a harness let someone outside the loop observe it — or interrupt it?</p>
-          <div class="pkgs"><span class="pkg">hooks</span><span class="pkg">feedback</span><span class="pkg">runtime-diagnostics</span><span class="pkg">token-meter</span></div>
-          <div class="tflags"><span class="flag flag--src">source only</span><span class="flag flag--cc">CC comparison</span></div>
-        </summary>
-        <div class="layer">
-          <pre>rg -n 'hook|before|after|intercept' packages/hooks --type ts</pre>
-          <p>Map the hook points: which loop phases can be intercepted, and can a hook <strong>block</strong> an action or only observe it? In Claude Code the answer is visible — <code>preventedContinuation</code> on system records proves hooks there can block.</p>
-          <p><code>token-meter</code> connects straight back to Thread C: does the harness count tokens before sending (budgeting) or after (accounting)? That determines whether compaction can be predictive.</p>
-        </div>
-      </details>
-
-      <details class="thread">
-        <summary>
-          <div class="thead"><span class="tletter">K</span><span class="tname">The host boundary</span></div>
-          <p class="tq">Where does the harness end and the user interface begin? Could you drive it with no UI at all?</p>
-          <div class="pkgs"><span class="pkg">host</span><span class="pkg">client</span><span class="pkg">interaction</span><span class="pkg">apps/</span></div>
-          <div class="tflags"><span class="flag flag--src">source only</span></div>
-        </summary>
-        <div class="layer">
-          <p>Your toy printed to stdout. dsh serves a web UI on <code>127.0.0.1:3080</code>, so it has drawn a boundary somewhere — and where that line sits determines whether the harness can be embedded, scripted, or driven headlessly.</p>
-          <p>Determine the transport between core and UI (HTTP, WebSocket, JSON-RPC, in-process?), and whether streaming reaches the UI as the raw model stream or as re-emitted domain events. Then answer the real question: <strong>what is the minimum surface a headless embedder needs?</strong></p>
-        </div>
-      </details>
-
-      <details class="thread">
-        <summary>
-          <div class="thead"><span class="tletter">L</span><span class="tname">Provider abstraction</span></div>
-          <p class="tq">What does it take to be model-agnostic, and where does the abstraction leak?</p>
-          <div class="pkgs"><span class="pkg">llm/*</span><span class="pkg">llm-retry</span><span class="pkg">credentials</span><span class="pkg">identity</span></div>
-          <div class="tflags"><span class="flag flag--src">source only</span></div>
-        </summary>
-        <div class="layer">
-          <p>Read the shared <code>llm</code> interface, then both implementations behind it. <strong>What sits in the interface that only one provider actually needs? That is where the abstraction leaks.</strong></p>
-          <p>Then <code>llm-retry</code>: which failures are retried, with what backoff, and is a retried call visible to the loop or hidden beneath it? A hidden retry changes what "one step" means.</p>
-          <p>The category question: can a harness be genuinely model-agnostic, given that prompt engineering, tool-call formats, and thinking blocks all differ per model?</p>
-        </div>
-      </details>
-
-      <details class="thread">
-        <summary>
-          <div class="thead"><span class="tletter">M</span><span class="tname">Inputs &amp; code intelligence</span></div>
-          <p class="tq">What does a harness feed the model besides text and tool results?</p>
-          <div class="pkgs"><span class="pkg">attachment</span><span class="pkg">lsp</span></div>
-          <div class="tflags"><span class="flag flag--src">source only</span></div>
-        </summary>
-        <div class="layer">
-          <p><strong>attachment:</strong> how are images and files injected — re-sent every turn, or referenced? That has a direct cost consequence; connect it to Thread C.</p>
-          <p><strong>lsp:</strong> the harness runs a language server and hands the model its output. Determine whether that arrives as a tool the model <em>calls</em>, or as context <em>injected</em> without being asked. Those are very different designs — decide which is better, and why dsh chose as it did.</p>
-        </div>
-      </details>
-
-      <details class="thread">
-        <summary>
-          <div class="thead"><span class="tletter">N</span><span class="tname">Cross-language embedding</span></div>
-          <p class="tq">Can a TypeScript harness be driven from Python, and what does that boundary force it to make explicit?</p>
-          <div class="pkgs"><span class="pkg">python/</span><span class="pkg">native/</span><span class="pkg">sdk</span><span class="pkg">examples</span></div>
-          <div class="tflags"><span class="flag flag--src">source only</span></div>
-        </summary>
-        <div class="layer">
-          <p>An RPC boundary forces the cleanest possible statement of what a harness <em>is</em>, because everything crossing it must be serialisable. <code>BENCHMARK.md</code> points at a Python SDK and a <code>jsonrpc-agent</code> variant.</p>
-          <p>Read the SDK's surface — that operation list is dsh's own answer to "what is the harness API?" Then compare it to your toy's function signatures: <strong>what did dsh have to make explicit that you left implicit?</strong></p>
-        </div>
-      </details>
-
-      <details class="thread">
-        <summary>
-          <div class="thead"><span class="tletter">O</span><span class="tname">Agent self-management</span></div>
-          <p class="tq">What tools does a harness give the model for managing its own process, rather than the user's task?</p>
-          <div class="pkgs"><span class="pkg">todo</span><span class="pkg">skill</span><span class="pkg">workflow</span></div>
-          <div class="tflags"><span class="flag flag--src">source only</span><span class="flag flag--cc">CC comparison</span></div>
-        </summary>
-        <div class="layer">
-          <p>A category of tool your toy has no concept of: the model tracking its own plan, loading its own instructions, running predefined procedures. <strong>Every one has a direct Claude Code analogue</strong>, making this the densest comparison surface in the study.</p>
+        <article class="thread" data-need="source" id="tO">
+          <div class="t-top"><span class="letter">O</span><span class="t-name">Agent self-management</span></div>
+          <p class="t-q">What tools does a harness give the model for managing its own process, rather than the user's task?</p>
+          <p class="t-from">FROM <b>the model being unable to track its own plan</b></p>
+          <div class="tags"><span class="pkg">todo</span><span class="pkg">skill</span><span class="pkg">workflow</span><span class="tag t-cc">CC comparison</span></div>
+          <p class="d">A category of tool your toy has no concept of: the model tracking its own plan, loading its own instructions, running predefined procedures. <strong>Every one has a direct Claude Code analogue</strong>, making this the densest comparison surface in the study.</p>
           <ul>
             <li><strong>todo</strong> — is the list <em>context</em> (re-sent every turn, costing tokens) or <em>external state</em> (stored, referenced)? That choice is the whole design question.</li>
             <li><strong>skill</strong> — does the model request one by name, or does the harness inject it on a match?</li>
             <li><strong>workflow</strong> — what distinguishes it from a plan (Thread F) and from a skill? If the code doesn't make that clear, the ambiguity is the finding.</li>
           </ul>
-        </div>
-      </details>
+        </article>
+      </div>
+    </div>
 
+    <div class="band" id="control">
+      <div class="band-head">
+        <span class="band-step">Step 5 &amp; the repeat · Control</span>
+        <span class="band-q">What makes it go round again — and <b>what survives when it stops</b>.</span>
+        <span class="band-n">2 threads · 8 packages</span>
+      </div>
+      <div class="band-body two">
+        <article class="thread" data-need="capture" id="tB">
+          <div class="t-top"><span class="letter">B</span><span class="t-name">The agent loop</span></div>
+          <p class="t-q">What legitimately terminates a loop? Your toy just used a hard step cap of ten.</p>
+          <p class="t-from">FROM <b>hard-coded MAX_STEPS = 10</b></p>
+          <div class="tags"><span class="pkg">core/agent-loop</span><span class="pkg">core/agent</span><span class="pkg">agent-default-model</span><span class="tag t-cap">needs note 2.0</span></div>
+          <pre>rg -n 'break|return|maxSteps|maxTurns|stop|finish' \
+  packages/core/agent-loop --type ts
+pnpm vitest run packages/core/agent-loop --reporter=verbose</pre>
+          <p class="d">Mark the line where each of the five phases happens, then record <strong>every</strong> termination condition in precedence order — no tool calls emitted, step cap, token budget, user interrupt.</p>
+          <p class="d">The tests are executable spec: an invariant you wouldn't have predicted marks a gap in your model. Then reconcile every observation in <code>notes/02-baseline-behavior.md</code> against a specific line, or list it as open — <strong>which is why this one waits for Task 2.0.</strong></p>
+        </article>
+
+        <article class="thread" data-need="source" id="tI">
+          <div class="t-top"><span class="letter">I</span><span class="t-name">Persistence &amp; resumption</span></div>
+          <p class="t-q">What must be saved for a harness to resume a conversation it isn't currently holding in memory?</p>
+          <p class="t-from">FROM <b>losing everything on exit</b></p>
+          <div class="tags"><span class="pkg">session</span><span class="pkg">session-query</span><span class="pkg">settings</span><span class="pkg">storage</span><span class="pkg">workspace</span><span class="tag t-cc">CC comparison</span></div>
+          <pre>rg -n 'persist|save|write|serialize' packages/session --type ts
+
+F=$(find ~/.claude/projects -name '*.jsonl' | head -1)
+jq -r '.type' "$F" | sort | uniq -c</pre>
+          <p class="d">Your toy loses everything on exit. This is the thread with the <strong>richest comparison data</strong>, because Claude Code's own answer is sitting on your disk in ~3,800 files.</p>
+          <p class="d">Then determine what <code>session-query</code> is for: is history searchable, and does the <em>model</em> get to search it, or only the user? That distinction is a real design fork.</p>
+        </article>
+      </div>
+    </div>
+
+    <div class="band" id="around">
+      <div class="band-head">
+        <span class="band-step">Outside the loop · Around</span>
+        <span class="band-q">The frame the loop sits in — <b>none of these is a step</b>, and that is the point.</span>
+        <span class="band-n">5 threads · 20 packages</span>
+      </div>
+      <div class="band-body two">
+        <article class="thread" data-need="source" id="tE">
+          <div class="t-top"><span class="letter">E</span><span class="t-name">Plugin architecture</span></div>
+          <p class="t-q">Where should a harness's extension boundary sit, and what does “everything is a plugin” make hard?</p>
+          <p class="t-from">FROM <b>no plugins, no extension points</b></p>
+          <div class="tags"><span class="pkg">core/scope</span><span class="pkg">boot</span><span class="pkg">extensions</span><span class="pkg">bundle</span></div>
+          <pre>cat packages/core/README.md AGENTS.md CLAUDE.md packages/AGENTS.md
+rg -n 'ctx\.(plugin|on|set|inject)' packages/core --type ts</pre>
+          <p class="d"><strong>Learn Cordis first or this thread fails.</strong> It's dependency injection plus an event bus — nothing calls anything directly, so grep-based tracing finds nothing and the codebase reads as indirection with no call graph. There's a paper behind it: <em>A Programming Paradigm for Spatiotemporal Composability</em>.</p>
+          <p class="d">The repo's own <code>AGENTS.md</code> and <code>CLAUDE.md</code> are written to orient agents working in it, which makes them the best human onboarding docs too — usually fresher than <code>docs/</code>.</p>
+        </article>
+
+        <article class="thread" data-need="source" id="tH">
+          <div class="t-top"><span class="letter">H</span><span class="t-name">Interop · MCP &amp; ACP</span></div>
+          <p class="t-q">When a harness standardises its extension boundary, what does it give up?</p>
+          <p class="t-from">FROM <b>no plugins, no extension points</b></p>
+          <div class="tags"><span class="pkg">mcp</span><span class="pkg">acp</span><span class="pkg">api</span><span class="pkg">sdk</span><span class="tag t-cc">CC comparison</span></div>
+          <pre>cat packages/acp/README.md   <span class="c"># Agent Client Protocol — what connects to what?</span></pre>
+          <p class="d">Thread E covers the <em>native</em> extension boundary. This covers the <em>standard</em> one — and both harnesses under study speak MCP, making it the one integration surface you can compare directly.</p>
+          <p class="d"><strong>The question that matters:</strong> which capabilities can a native plugin express that an MCP server cannot? That gap is precisely why native plugin systems still exist alongside MCP.</p>
+        </article>
+
+        <article class="thread" data-need="source" id="tJ">
+          <div class="t-top"><span class="letter">J</span><span class="t-name">Observability &amp; cost</span></div>
+          <p class="t-q">How does a harness let someone outside the loop observe it — or interrupt it?</p>
+          <p class="t-from">FROM <b>no way to observe or interrupt it</b></p>
+          <div class="tags"><span class="pkg">hooks</span><span class="pkg">feedback</span><span class="pkg">runtime-diagnostics</span><span class="pkg">token-meter</span><span class="tag t-cc">CC comparison</span></div>
+          <pre>rg -n 'hook|before|after|intercept' packages/hooks --type ts</pre>
+          <p class="d">Map the hook points: which loop phases can be intercepted, and can a hook <strong>block</strong> an action or only observe it? In Claude Code the answer is visible — <code>preventedContinuation</code> on system records proves hooks there can block.</p>
+          <p class="d"><code>token-meter</code> connects straight back to Thread C: does the harness count tokens before sending (budgeting) or after (accounting)? That determines whether compaction can be predictive.</p>
+        </article>
+
+        <article class="thread" data-need="source" id="tK">
+          <div class="t-top"><span class="letter">K</span><span class="t-name">The host boundary</span></div>
+          <p class="t-q">Where does the harness end and the user interface begin? Could you drive it with no UI at all?</p>
+          <p class="t-from">FROM <b>printing to stdout</b></p>
+          <div class="tags"><span class="pkg">host</span><span class="pkg">client</span><span class="pkg">interaction</span><span class="pkg">apps/</span></div>
+          <p class="d">Your toy printed to stdout. dsh serves a web UI on <code>127.0.0.1:3080</code>, so it has drawn a boundary somewhere — and where that line sits determines whether the harness can be embedded, scripted, or driven headlessly.</p>
+          <p class="d">Determine the transport between core and UI (HTTP, WebSocket, JSON-RPC, in-process?), and whether streaming reaches the UI as the raw model stream or as re-emitted domain events. Then answer the real question: <strong>what is the minimum surface a headless embedder needs?</strong></p>
+        </article>
+
+        <article class="thread" data-need="source" id="tN">
+          <div class="t-top"><span class="letter">N</span><span class="t-name">Cross-language embedding</span></div>
+          <p class="t-q">Can a TypeScript harness be driven from Python, and what does that boundary force it to make explicit?</p>
+          <p class="t-from census">FROM <b>the package census — the toy never raised this one</b></p>
+          <div class="tags"><span class="pkg">python/</span><span class="pkg">native/</span><span class="pkg">sdk</span><span class="pkg">examples</span></div>
+          <p class="d">An RPC boundary forces the cleanest possible statement of what a harness <em>is</em>, because everything crossing it must be serialisable. <code>BENCHMARK.md</code> points at a Python SDK and a <code>jsonrpc-agent</code> variant.</p>
+          <p class="d">Read the SDK's surface — that operation list is dsh's own answer to “what is the harness API?” Then compare it to your toy's function signatures: <strong>what did dsh have to make explicit that you left implicit?</strong></p>
+        </article>
+      </div>
     </div>
   </section>
 
-  <section>
-    <h2>What the transfer test can and can't see</h2>
+  <section id="s5">
+    <span class="snum">§ 5</span>
+    <h2 class="sec">Why these fifteen</h2>
+    <p class="lede">
+      §4 is a <em>filing</em> system. This is the <em>generating</em> one. Phase 1's toy harness is not a warm-up, it is the
+      <strong>question generator</strong>: every shortcut it takes is a question a real harness had to answer, and thirteen of
+      the fifteen threads start life as a row in this table. Reading it top to bottom gives the order the study
+      actually discovers things in — C, D, B, A, G, F, I, E, H, K, L, J, O.
+    </p>
+    <div class="tw">
+      <table>
+        <thead><tr><th>What the toy does</th><th>The question it raises</th><th>Thread</th></tr></thead>
+        <tbody>
+          <tr><td><code>.slice(0, 4000)</code> on every tool result</td><td>What should be dropped when context fills, and how is that decided?</td><td class="ref">C</td></tr>
+          <tr><td>Runs every tool unchecked, including <code>rm</code></td><td>Where does a permission boundary belong, and what does it gate?</td><td class="ref">D</td></tr>
+          <tr><td>Hard-coded <code>MAX_STEPS = 10</code></td><td>What legitimately terminates a loop?</td><td class="ref">B</td></tr>
+          <tr><td>Two tools in an array literal</td><td>How does a tool get registered and described at scale?</td><td class="ref">D · A</td></tr>
+          <tr><td>One hard-coded system prompt string</td><td>What actually belongs in a system prompt?</td><td class="ref">A</td></tr>
+          <tr><td>Bare <code>execSync</code> on the host</td><td>Where should model-authored code run, and what contains it?</td><td class="ref">G</td></tr>
+          <tr><td>One loop, one context, no fan-out</td><td>When does a harness spawn another harness?</td><td class="ref">F</td></tr>
+          <tr><td>Loses everything on exit</td><td>What must be saved to resume a conversation?</td><td class="ref">I</td></tr>
+          <tr><td>No plugins, no extension points</td><td>Where should the extension boundary sit?</td><td class="ref">E · H</td></tr>
+          <tr><td>Prints to stdout</td><td>Where does the harness end and the interface begin?</td><td class="ref">K</td></tr>
+          <tr><td>Hard-codes one provider's wire format</td><td>What does model-agnosticism cost, and where does it leak?</td><td class="ref">L</td></tr>
+          <tr><td>No way to observe or interrupt it</td><td>How does anyone outside the loop see in?</td><td class="ref">J</td></tr>
+          <tr><td>Model can't track its own plan</td><td>What tools manage the model's own process?</td><td class="ref">O</td></tr>
+          <tr><td colspan="2" style="color:var(--ink-faint)">Threads M and N came from the package census in §8 instead — the toy could not have suggested them.</td><td class="ref" style="color:var(--ink-faint)">M · N</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="s6">
+    <span class="snum">§ 6</span>
+    <h2 class="sec">What the transfer test can and can't see</h2>
     <p class="lede">
       Claude Code here runs on a subscription, so it's studied through the ~3,800 session transcripts
       already on disk rather than through wire capture. <em>Know these limits before predicting against it.</em>
     </p>
-    <div class="tablewrap">
+    <div class="tw">
       <table>
         <thead><tr><th>Question</th><th>In transcripts?</th><th>Where it comes from</th></tr></thead>
         <tbody>
-          <tr><td>Which tools exist and get called</td><td class="yes">yes</td><td><code>tool_use</code> blocks</td></tr>
-          <tr><td>How the loop terminates</td><td class="yes">yes</td><td><code>stopReason</code></td></tr>
-          <tr><td>How permissions are gated</td><td class="yes">yes</td><td><code>permission-mode</code></td></tr>
-          <tr><td>Whether hooks can block</td><td class="yes">yes</td><td><code>preventedContinuation</code></td></tr>
-          <tr><td>Whether sub-agents fork context</td><td class="yes">yes</td><td><code>isSidechain</code></td></tr>
-          <tr><td>Whether the model reasons before acting</td><td class="yes">yes</td><td><code>thinking</code> blocks</td></tr>
-          <tr><td>What the system prompt says</td><td class="no">no</td><td>not stored locally</td></tr>
-          <tr><td>What the tool schemas declare</td><td class="no">no</td><td>not stored locally</td></tr>
+          <tr><td>Which tools exist and get called</td><td class="y">yes</td><td><code>tool_use</code> blocks</td></tr>
+          <tr><td>How the loop terminates</td><td class="y">yes</td><td><code>stopReason</code></td></tr>
+          <tr><td>How permissions are gated</td><td class="y">yes</td><td><code>permission-mode</code></td></tr>
+          <tr><td>Whether hooks can block</td><td class="y">yes</td><td><code>preventedContinuation</code></td></tr>
+          <tr><td>Whether sub-agents fork context</td><td class="y">yes</td><td><code>isSidechain</code></td></tr>
+          <tr><td>Whether the model reasons before acting</td><td class="y">yes</td><td><code>thinking</code> blocks</td></tr>
+          <tr><td>What the system prompt says</td><td class="n">no</td><td>not stored locally</td></tr>
+          <tr><td>What the tool schemas declare</td><td class="n">no</td><td>not stored locally</td></tr>
         </tbody>
       </table>
     </div>
-    <p class="pullquote">
-      So Phase 4 tests the model of the loop, tools, and permissions — and stays silent on prompt assembly.
-      That gap is a known cost of having no Anthropic API key, not an oversight.
-    </p>
+    <p class="pull">So Phase 4 tests the model of the loop, tools, and permissions — and stays silent on prompt assembly. That gap is a known cost of having no Anthropic API key, not an oversight.</p>
   </section>
 
-  <section>
-    <h2>Reference</h2>
-
-    <div class="rules" style="margin-bottom: 26px;">
-      <div class="rule-item">
-        <h3>The canonical task</h3>
-        <p>Used verbatim for <em>every</em> harness so captures stay comparable — your toy, dsh, and Claude Code all get the same prompt: <em>“Create a file called fizzbuzz.js that prints FizzBuzz for 1..20, then run it with node and show me the output.”</em> It forces read, write, and execute in one run.</p>
-      </div>
-      <div class="rule-item">
-        <h3>The surprise budget</h3>
-        <p>There is no completion criterion. Abandon a thread after <strong>two consecutive findings that don't surprise you</strong>, and file it as a <code>needs-triage</code> issue. A dry thread is a result, not a failure.</p>
-      </div>
-      <div class="rule-item">
-        <h3>The wire wins</h3>
-        <p>When your reading of the source and the captured bytes disagree, the reading is wrong. Fix the note, not the capture.</p>
-      </div>
-      <div class="rule-item">
-        <h3>Never commit captures</h3>
-        <p><code>captures/</code> is gitignored and the proxy redacts auth headers before writing. A leaked key in a capture is the one unrecoverable mistake here.</p>
-      </div>
-      <div class="rule-item">
-        <h3>Analyse, don't dump</h3>
-        <p>dsh's prompt ships in a public MIT repo and can be quoted freely. Claude Code transcripts are personal working history — cite structure, counts, and tool names only. This repo is public.</p>
-      </div>
-      <div class="rule-item">
-        <h3>Glossary as you go</h3>
-        <p>When a thread sharpens a term, it lands in <code>CONTEXT.md</code> that session — never batched to the end. Terms get re-sorted in Phase 4, and being wrong early is data.</p>
-      </div>
+  <section id="s7">
+    <span class="snum">§ 7</span>
+    <h2 class="sec">Standing orders</h2>
+    <p class="lede">Six rules that hold in every phase and every thread. Read them once; they are assumed everywhere above.</p>
+    <div class="grid2">
+      <div class="cell"><h3>The canonical task</h3><p>Used verbatim for <em>every</em> harness so captures stay comparable — your toy, dsh, and Claude Code all get the same prompt: <em>“Create a file called fizzbuzz.js that prints FizzBuzz for 1..20, then run it with node and show me the output.”</em> It forces read, write, and execute in one run.</p></div>
+      <div class="cell"><h3>The surprise budget</h3><p>There is no completion criterion. Abandon a thread after <strong>two consecutive findings that don't surprise you</strong>, and file it as a <code>needs-triage</code> issue. A dry thread is a result, not a failure.</p></div>
+      <div class="cell"><h3>The wire wins</h3><p>When your reading of the source and the captured bytes disagree, the reading is wrong. Fix the note, not the capture.</p></div>
+      <div class="cell"><h3>Never commit captures</h3><p><code>captures/</code> is gitignored and the proxy redacts auth headers before writing. A leaked key in a capture is the one unrecoverable mistake here.</p></div>
+      <div class="cell"><h3>Analyse, don't dump</h3><p>dsh's prompt ships in a public MIT repo and can be quoted freely. Claude Code transcripts are personal working history — cite structure, counts, and tool names only. This repo is public.</p></div>
+      <div class="cell"><h3>Glossary as you go</h3><p>When a thread sharpens a term, it lands in <code>CONTEXT.md</code> that session — never batched to the end. Terms get re-sorted in Phase 4, and being wrong early is data.</p></div>
     </div>
+  </section>
 
-    <details style="border: 1px solid var(--rule);">
-      <summary style="grid-template-columns: 1fr auto;">
-        <div class="ptitle" style="grid-column: 1; font-size: 17px;">Package coverage · all 49 accounted for</div>
-        <p class="pbody" style="grid-column: 1;">Breadth is checkable, not claimed. If a package isn't listed, that's a gap in the plan — add a thread rather than skipping it.</p>
-      </summary>
-      <div class="layer">
-        <div class="coverage">
-          <div class="cov"><span class="cov-t">A · prompt</span><span class="mono">core/system-prompt · agent-tool-presentation · preset</span></div>
-          <div class="cov"><span class="cov-t">B · loop</span><span class="mono">core/agent-loop · core/agent · agent-default-model</span></div>
-          <div class="cov"><span class="cov-t">C · context</span><span class="mono">compaction/* · context · spill · core/session</span></div>
-          <div class="cov"><span class="cov-t">D · tools</span><span class="mono">core/tools · fs · guard · web</span></div>
-          <div class="cov"><span class="cov-t">E · plugins</span><span class="mono">core/scope · boot · extensions · bundle</span></div>
-          <div class="cov"><span class="cov-t">F · delegation</span><span class="mono">subagent · plan · goal · jobs · schedule</span></div>
-          <div class="cov"><span class="cov-t">G · execution</span><span class="mono">sandbox · e2b · code-runtime · shell · subprocess · terminal</span></div>
-          <div class="cov"><span class="cov-t">H · interop</span><span class="mono">mcp · acp · api · sdk</span></div>
-          <div class="cov"><span class="cov-t">I · persistence</span><span class="mono">session · session-query · settings · storage · workspace</span></div>
-          <div class="cov"><span class="cov-t">J · observability</span><span class="mono">hooks · feedback · runtime-diagnostics · token-meter</span></div>
-          <div class="cov"><span class="cov-t">K · host</span><span class="mono">host · client · interaction · apps/</span></div>
-          <div class="cov"><span class="cov-t">L · providers</span><span class="mono">llm · llm-deepseek · llm-pi-ai · llm-retry · credentials · identity</span></div>
-          <div class="cov"><span class="cov-t">M · inputs</span><span class="mono">attachment · lsp</span></div>
-          <div class="cov"><span class="cov-t">N · embedding</span><span class="mono">python/ · native/ · sdk · examples</span></div>
-          <div class="cov"><span class="cov-t">O · self-management</span><span class="mono">todo · skill · workflow</span></div>
-          <div class="cov"><span class="cov-t infra">— · infrastructure</span><span class="mono">util · typert · test-support · bundle</span></div>
-        </div>
-        <div class="divider">
-          <h4>Re-run after any upstream bump</h4>
-          <pre>gh api repos/deepseek-ai/deepseek-harness/contents/packages \
+  <section id="s8">
+    <span class="snum">§ 8</span>
+    <h2 class="sec">Package census · all 49 accounted for</h2>
+    <p class="lede">Breadth is checkable, not claimed. If a package isn't listed, that's a gap in the plan — add a thread rather than skipping it.</p>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Loop step</th><th>Thread</th><th>Needs</th><th>Packages</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">assemble</td><td class="ref">A · prompt</td><td class="mono" style="color:var(--control)">capture</td><td class="mono">core/system-prompt · agent-tool-presentation · preset</td></tr>
+          <tr><td class="mono">assemble</td><td class="ref">C · context</td><td class="mono" style="color:var(--control)">capture</td><td class="mono">compaction/* · context · spill · core/session</td></tr>
+          <tr><td class="mono">assemble</td><td class="ref">M · inputs</td><td class="mono" style="color:var(--go)">source</td><td class="mono">attachment · lsp</td></tr>
+          <tr><td class="mono">call</td><td class="ref">L · providers</td><td class="mono" style="color:var(--go)">source</td><td class="mono">llm · llm-deepseek · llm-pi-ai · llm-retry · credentials · identity</td></tr>
+          <tr><td class="mono">execute</td><td class="ref">D · tools</td><td class="mono" style="color:var(--go)">source</td><td class="mono">core/tools · fs · guard · web</td></tr>
+          <tr><td class="mono">execute</td><td class="ref">G · execution</td><td class="mono" style="color:var(--go)">source</td><td class="mono">sandbox · e2b · code-runtime · shell · subprocess · terminal</td></tr>
+          <tr><td class="mono">execute</td><td class="ref">F · delegation</td><td class="mono" style="color:var(--go)">source</td><td class="mono">subagent · plan · goal · jobs · schedule</td></tr>
+          <tr><td class="mono">execute</td><td class="ref">O · self-management</td><td class="mono" style="color:var(--go)">source</td><td class="mono">todo · skill · workflow</td></tr>
+          <tr><td class="mono">control</td><td class="ref">B · loop</td><td class="mono" style="color:var(--control)">note 2.0</td><td class="mono">core/agent-loop · core/agent · agent-default-model</td></tr>
+          <tr><td class="mono">control</td><td class="ref">I · persistence</td><td class="mono" style="color:var(--go)">source</td><td class="mono">session · session-query · settings · storage · workspace</td></tr>
+          <tr><td class="mono">around</td><td class="ref">E · plugins</td><td class="mono" style="color:var(--go)">source</td><td class="mono">core/scope · boot · extensions · bundle</td></tr>
+          <tr><td class="mono">around</td><td class="ref">H · interop</td><td class="mono" style="color:var(--go)">source</td><td class="mono">mcp · acp · api · sdk</td></tr>
+          <tr><td class="mono">around</td><td class="ref">J · observability</td><td class="mono" style="color:var(--go)">source</td><td class="mono">hooks · feedback · runtime-diagnostics · token-meter</td></tr>
+          <tr><td class="mono">around</td><td class="ref">K · host</td><td class="mono" style="color:var(--go)">source</td><td class="mono">host · client · interaction · apps/</td></tr>
+          <tr><td class="mono">around</td><td class="ref">N · embedding</td><td class="mono" style="color:var(--go)">source</td><td class="mono">python/ · native/ · sdk · examples</td></tr>
+          <tr><td class="mono" style="color:var(--ink-faint)">—</td><td class="ref" style="color:var(--ink-faint)">infrastructure</td><td class="mono" style="color:var(--ink-faint)">—</td><td class="mono">util · typert · test-support · bundle</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h4>Re-run after any upstream bump</h4>
+    <pre>gh api repos/deepseek-ai/deepseek-harness/contents/packages \
   --jq '.[] | select(.type=="dir") | .name' | sort &gt; /tmp/pkgs.txt
 while read -r p; do rg -q "$p" docs/roadmap.html || echo "UNCOVERED: $p"; done &lt; /tmp/pkgs.txt</pre>
-        </div>
-      </div>
-    </details>
   </section>
 
   <footer>
@@ -812,7 +846,9 @@ while read -r p; do rg -q "$p" docs/roadmap.html || echo "UNCOVERED: $p"; done &
     <span>plan · docs/superpowers/plans/2026-08-15-deepseek-harness-study.md</span>
     <span>method · docs/adr/0001</span>
     <span>glossary · CONTEXT.md</span>
-    <span>this page · docs/roadmap.html</span>
+    <span>layout candidates · docs/roadmap-samples/</span>
   </footer>
 
+</main>
+</div>
 </div>

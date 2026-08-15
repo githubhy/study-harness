@@ -1,0 +1,88 @@
+<title>Roadmap Layout Bakeoff</title>
+<style>
+  :root {
+    --bg:#F1F2F0; --card:#FBFCFA; --ink:#15171A; --ink-soft:#4F545A; --ink-faint:#7E848A;
+    --rule:#D7D9D4; --hair:#E5E7E2; --accent:#A85D0B; --accent-bg:#F5EADD; --alt:#1F6F6B;
+    --serif: ui-serif, Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:#121417; --card:#191C20; --ink:#E7E6E1; --ink-soft:#A8ADB3; --ink-faint:#767C83;
+      --rule:#2A2E34; --hair:#22262B; --accent:#E0973F; --accent-bg:#2A2119; --alt:#5EB5AE;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:#121417; --card:#191C20; --ink:#E7E6E1; --ink-soft:#A8ADB3; --ink-faint:#767C83;
+    --rule:#2A2E34; --hair:#22262B; --accent:#E0973F; --accent-bg:#2A2119; --alt:#5EB5AE;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--serif); font-size:16.5px; line-height:1.6; -webkit-font-smoothing:antialiased; }
+  a { color:var(--accent); }
+  :focus-visible { outline:2px solid var(--alt); outline-offset:3px; }
+  code { font-family:var(--mono); font-size:.84em; }
+  .wrap { max-width:900px; margin:0 auto; padding:56px 24px 80px; }
+  .kick { font-family:var(--mono); font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-faint); margin:0 0 15px; }
+  h1 { font-size:clamp(30px,5vw,44px); font-weight:600; letter-spacing:-.022em; line-height:1.06; margin:0 0 14px; text-wrap:balance; }
+  .sf { font-size:18px; color:var(--ink-soft); max-width:62ch; margin:0 0 34px; line-height:1.5; }
+  .sf strong { color:var(--ink); font-weight:600; }
+
+  .opts { display:grid; gap:14px; }
+  .opt { display:block; text-decoration:none; color:inherit; background:var(--card); border:1px solid var(--rule); padding:20px 22px; display:grid; gap:9px; }
+  .opt:hover { border-color:var(--accent); }
+  .o-top { display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
+  .o-n { font-family:var(--mono); font-size:12px; font-weight:600; color:var(--accent); background:var(--accent-bg); padding:2px 8px; }
+  .o-t { font-size:21px; font-weight:600; letter-spacing:-.015em; }
+  .o-for { font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--alt); margin-left:auto; }
+  .o-d { margin:0; font-size:15.5px; color:var(--ink-soft); line-height:1.5; max-width:68ch; }
+  .o-d strong { color:var(--ink); font-weight:600; }
+  .o-meta { font-family:var(--mono); font-size:11px; color:var(--ink-faint); border-top:1px solid var(--hair); padding-top:9px; display:flex; flex-wrap:wrap; gap:4px 20px; }
+
+  .foot { margin-top:34px; padding-top:18px; border-top:1px solid var(--rule); }
+  .foot h2 { font-family:var(--mono); font-size:11px; letter-spacing:.15em; text-transform:uppercase; color:var(--ink-faint); font-weight:500; margin:0 0 9px; }
+  .foot p { margin:0 0 10px; font-size:15px; color:var(--ink-soft); line-height:1.5; max-width:68ch; }
+  .foot ul { margin:0; padding-left:19px; font-size:15px; color:var(--ink-soft); line-height:1.55; }
+  .foot li + li { margin-top:4px; }
+  .foot strong { color:var(--ink); font-weight:600; }
+</style>
+
+<div class="wrap">
+  <p class="kick">Pick one · all three carry identical content</p>
+  <h1>Roadmap Layout Bakeoff</h1>
+  <p class="sf">
+    The same study — <strong>five phases, fifteen threads, forty-nine packages, six standing orders</strong> — organised three different ways.
+    Nothing is hidden behind an accordion in any of them. Choose the one that matches how you'll actually use the page,
+    and it replaces <code>docs/roadmap.html</code>.
+  </p>
+
+  <div class="opts">
+    <a class="opt" href="sample-1-field-manual.html">
+      <div class="o-top"><span class="o-n">1</span><span class="o-t">Field Manual</span><span class="o-for">to read</span></div>
+      <p class="o-d">A numbered technical document with a sticky contents rail. <strong>Threads are printed in the order your own toy harness raises them</strong> — C, D, B, A, G… — so the menu reads as an argument rather than a list. Ends with the two threads the toy could never have suggested.</p>
+      <div class="o-meta"><span>7 numbered sections</span><span>sticky TOC</span><span>prints cleanly</span><span>serif · marginal metadata rail</span></div>
+    </a>
+
+    <a class="opt" href="sample-2-dependency-map.html">
+      <div class="o-top"><span class="o-n">2</span><span class="o-t">Dependency Map</span><span class="o-for">to understand</span></div>
+      <p class="o-d">Opens with a drawn map of what blocks what — the strict 0→1→2.0 chain, the fan into fifteen, and the two gated outputs. Then <strong>files every thread under the step of the agent loop it explains</strong>: assemble 3, call 1, execute 4, control 2, around 5.</p>
+      <div class="o-meta"><span>schematic + 5 loop bands</span><span>blueprint palette</span><span>keeps the toy→question table as an index</span></div>
+    </a>
+
+    <a class="opt" href="sample-3-operations-board.html">
+      <div class="o-top"><span class="o-n">3</span><span class="o-t">Operations Board</span><span class="o-for">to work from</span></div>
+      <p class="o-d">Four lanes sorted by <strong>what is blocking each card</strong>, not by phase number — ready now / unlocked by Phase 0 / gated on a finding / last by design. The menu splits into the twelve you can start immediately and the three that wait on evidence. Card state is plain text you edit as you go.</p>
+      <div class="o-meta"><span>phase stepper + 4 lanes</span><span>15 thread cards, split by need</span><span>sans · status-coded</span></div>
+    </a>
+  </div>
+
+  <div class="foot">
+    <h2>What changed in all three</h2>
+    <ul>
+      <li><strong>Nothing collapses.</strong> The current page has 21 <code>&lt;details&gt;</code> panels; these have none.</li>
+      <li><strong>One canonical order per page.</strong> The old page listed the same fifteen threads three times in three orders — logic table, alphabetical grid, coverage table — with no signal which was primary.</li>
+      <li><strong>The toy→question mapping travels with each thread</strong> instead of sitting in a separate table you had to hold in your head.</li>
+      <li><strong>Thread B is now marked as waiting on note 2.0.</strong> The old page tagged it “source only” while its task requires reconciling against the baseline capture — that's what made the count read 15 = 2 + 13 in one place and 12 + 3 in another. It's 12 source-only and 3 evidence-dependent.</li>
+    </ul>
+    <p style="margin-top:12px">The previous version is untouched at <code>docs/roadmap.html</code> if you want to compare.</p>
+  </div>
+</div>
