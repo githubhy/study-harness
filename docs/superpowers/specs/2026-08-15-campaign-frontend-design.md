@@ -191,7 +191,7 @@ migration:
 ### Fields added during the migration
 
 Transcribing the real roadmap surfaced four more places where the source page held content the
-schema could not. Each was found by the migration acceptance check, and nine of its sixty required
+schema could not. Each was found by the migration acceptance check, and nine of its sixty-one required
 phrases live in the first of them:
 
 | Field | Shape | Why |
@@ -390,7 +390,7 @@ threads were dropped during transcription. So the first task copies the current 
 `tools/campaign/fixtures/roadmap-premigration.html`, and the acceptance check is:
 
 - every content phrase in `tools/campaign/fixtures/acceptance-phrases.txt` appears in the regenerated
-  page. That list is committed, not ad-hoc: the 60 phrases used during earlier verification are
+  page. That list is committed, not ad-hoc: the 61 phrases used during earlier verification are
   written to the fixture in the same task, so the criterion is reproducible rather than remembered.
 - every package named in the snapshot appears in the regenerated page
 - zero `<details>`, zero external references
