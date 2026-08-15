@@ -28,16 +28,27 @@ const frontier = (derived) => derived.frontier.length === 0
 
 const trail = (data, derived) => derived.trail.map((e) => {
   const t = derived.threads.get(e.thread)
-  const state = t.state === 'dry' && e === t.entries.at(-1) ? 'dry' : 'live'
+  const newest = e === t.entries.at(-1)
+  const state = t.state === 'dry' && newest ? 'dry' : 'live'
+  // Where #tX lands. Every letter in the coverage strip and every roadmap.html#tX link points at
+  // the thread's newest trail entry — the spec's "every letter anchors to its trail entries".
+  // The anchor rides inside the entry rather than on it because an element carries one id and the
+  // entry keeps its own, which the id-uniqueness check below relies on.
+  const anchor = newest ? `<span id="t${attr(e.thread)}"></span>` : ''
   const opened = e.opened.map((o) => `→ opened: ${rich(o.q)} (${esc(o.ask)})`).join('<br>')
   const issue = e.issue != null ? ` · filed #${esc(String(e.issue))}` : ''
-  return `<div class="entry" data-state="${attr(state)}" id="e-${attr(e.thread + e.date)}">`
+  return `<div class="entry" data-state="${attr(state)}" id="e-${attr(e.thread + e.date)}">${anchor}`
        + `<b><a href="roadmap.html#t${esc(e.thread)}">${esc(e.thread)} · ${esc(t.name)}</a></b> `
        + `<span class="mono">${esc(e.pips)} ${esc(e.date)}</span><br>${rich(e.finding)}<br>`
        + `<span class="mono">${opened}${opened ? ' · ' : ''}${esc(e.note)}${issue}</span></div>`
 }).join('\n')
 
-const anchors = (data) => data.threads
+// Only threads with no trail entry: those have nowhere in the trail to anchor, and without a
+// fallback the strip's own pip link and the roadmap's → worklog link would both dangle. A thread
+// that has entries is anchored on its newest one instead, so emitting a bare anchor for it here
+// would put #tX back at the top of the section — which is the whole defect.
+const anchors = (data, derived) => data.threads
+  .filter((t) => derived.threads.get(t.letter).entries.length === 0)
   .map((t) => `<span id="t${attr(t.letter)}"></span>`).join('')
 
 export function renderWorklog({ data, derived }) {
@@ -51,7 +62,7 @@ export function renderWorklog({ data, derived }) {
     strip(data, derived),
     renderGraph({ data, derived }),
     '<section><h2 class="sec">Open questions</h2>', frontier(derived), '</section>',
-    '<section><h2 class="sec">Trail</h2>', anchors(data), trail(data, derived), '</section>',
+    '<section><h2 class="sec">Trail</h2>', anchors(data, derived), trail(data, derived), '</section>',
     `<footer><span><a href="roadmap.html">← roadmap</a></span>`,
     `<span><a href="../index.html">all campaigns</a></span></footer>`,
     '</main></div>',

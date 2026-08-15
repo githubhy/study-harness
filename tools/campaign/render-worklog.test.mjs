@@ -67,6 +67,29 @@ test('anchors exist for every thread', () => {
   assert.match(html, /id="tB"/)
 })
 
+test("a thread's anchor sits on its newest trail entry, not in a clump above the trail", () => {
+  // A has two entries; #tA must land on the newer one (2026-01-03), which is what the strip's A
+  // pip and the roadmap's → worklog link both point at. Previously all fifteen anchors were
+  // emitted as empty spans directly after the Trail heading, so every letter hopped to the same
+  // spot regardless of which thread it named.
+  const entries = [...html.matchAll(/<div class="entry"[^>]*>([\s\S]*?)<\/div>/g)]
+  const withAnchor = entries.filter((m) => m[1].includes('id="tA"'))
+  assert.equal(withAnchor.length, 1, 'expected exactly one entry to carry #tA')
+  assert.match(withAnchor[0][0], /2026-01-03/)
+  // And nothing is left stranded between the heading and the first entry.
+  const betweenHeadingAndTrail = html.match(/Trail<\/h2>\n([\s\S]*?)<div class="entry"/)[1]
+  assert.doesNotMatch(betweenHeadingAndTrail, /id="tA"/)
+})
+
+test('a thread with no entries keeps a fallback anchor so the roadmap link never dangles', () => {
+  // B and C are never logged in the mini fixture. They have no trail entry to sit on, so they get
+  // the bare anchor — and only they do.
+  const betweenHeadingAndTrail = html.match(/Trail<\/h2>\n([\s\S]*?)<div class="entry"/)[1]
+  assert.match(betweenHeadingAndTrail, /id="tB"/)
+  assert.match(betweenHeadingAndTrail, /id="tC"/)
+  assert.deepEqual(checkHtml(html), [])
+})
+
 test("each trail entry shows its own stamped pips, not the thread's current pips", () => {
   // model.mjs stamps e.pips at write time, capturing the run as it stood when that entry was
   // logged: A's 2026-01-02 entry (surprising) resets to ○○, then 2026-01-03 (unsurprising)
