@@ -21,18 +21,24 @@ if (campaigns.length === 0) {
 }
 
 let drifted = 0
+let failed = 0
 for (const name of campaigns) {
-  const dir = join('campaigns', name)
-  const model = loadCampaign(dir)
-  for (const [file, html] of [['roadmap.html', renderRoadmap(model)]]) {
-    const path = join(dir, file)
-    if (check) {
-      const current = existsSync(path) ? readFileSync(path, 'utf8') : ''
-      if (current !== html) { console.error(`drift: ${path} does not match its data`); drifted++ }
-    } else {
-      writeFileSync(path, html)
-      console.log(`wrote ${path}`)
+  try {
+    const dir = join('campaigns', name)
+    const model = loadCampaign(dir)
+    for (const [file, html] of [['roadmap.html', renderRoadmap(model)]]) {
+      const path = join(dir, file)
+      if (check) {
+        const current = existsSync(path) ? readFileSync(path, 'utf8') : ''
+        if (current !== html) { console.error(`drift: ${path} does not match its data`); drifted++ }
+      } else {
+        writeFileSync(path, html)
+        console.log(`wrote ${path}`)
+      }
     }
+  } catch (err) {
+    console.error(err.message)
+    failed++
   }
 }
-process.exit(drifted > 0 ? 1 : 0)
+process.exit((drifted > 0 || failed > 0) ? 1 : 0)

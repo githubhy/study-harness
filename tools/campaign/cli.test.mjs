@@ -43,3 +43,20 @@ test('a validation error exits non-zero and names the field', () => {
   writeFileSync(p, JSON.stringify(d))
   assert.throws(() => run(['mini'], { cwd }), /log\[0\]\.thread/)
 })
+
+test('unknown campaign yields a named error, not a stack trace', () => {
+  const cwd = sandbox()
+  assert.throws(() => run(['unknown'], { cwd }), /campaign\.json/)
+})
+
+test('--all processes good campaigns and reports bad ones', () => {
+  const cwd = sandbox()
+  cpSync('tools/campaign/fixtures/mini', join(cwd, 'campaigns/zzz-broken'), { recursive: true })
+  const p = join(cwd, 'campaigns/zzz-broken/campaign.json')
+  const d = JSON.parse(readFileSync(p, 'utf8'))
+  d.log[0].thread = 'invalid'
+  writeFileSync(p, JSON.stringify(d))
+
+  assert.throws(() => run(['--all'], { cwd }), /zzz-broken.*campaign\.json/)
+  assert.match(readFileSync(join(cwd, 'campaigns/mini/roadmap.html'), 'utf8'), /<meta charset="utf-8">/)
+})
