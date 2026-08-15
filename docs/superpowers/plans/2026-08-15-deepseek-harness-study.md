@@ -1,78 +1,100 @@
-# DeepSeek Harness Study Implementation Plan
+# Agent Harness Study Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build a working, evidence-backed understanding of how the DeepSeek Harness (`dsh`) agent framework operates, and prove that understanding by extending it with a working plugin.
+**Goal:** Build a transferable understanding of agent harnesses as a category, using DeepSeek Harness (`dsh`) as the specimen, and prove it transfers by explaining a harness the vocabulary wasn't derived from.
 
-**Architecture:** Study proceeds outside-in. We first capture ground truth from the wire (every request `dsh` sends to the model API), then read source only to explain what we already observed. Notes live in this repo; the upstream checkout is a pinned, read-only sibling clone. The final deliverable is a set of annotated notes plus a plugin that demonstrably appears in captured traffic.
+**Architecture:** Outside-in. Capture wire traffic first; read source only to explain what was already observed. `dsh` is dissected to build the vocabulary; Claude Code is the transfer test, not a baseline. Phase 0 is sequential and mandatory; Phase 1 is a menu worked depth-first in any order; Phases 2–3 are the exams and the transfer test.
 
 **Tech Stack:** TypeScript, Node.js ≥20, pnpm workspaces, Cordis (plugin/DI framework), Vitest. Capture tooling is dependency-free Node (`node:http` + built-in `fetch`).
 
-**Spec:** No separate spec document. The methodology this plan implements is captured inline in "Study Thesis" below, derived from the study-approach discussion on 2026-08-15.
+**Spec:** `docs/adr/0001-outside-in-study-method.md` records the method and the rejected alternatives. `CONTEXT.md` holds the glossary this plan both consumes and extends.
 
 ## Study Thesis
 
-A harness is one loop: assemble context → call model → parse tool calls → execute → append results → repeat until stop. Everything else is decoration hanging off that loop. Three claims drive the task order:
+A harness is one loop: assemble context → call model → parse tool calls → execute → append results → repeat until stop. Everything else is decoration hanging off that loop. Three claims drive the structure:
 
-1. **Wire traffic beats source reading.** Prompt assembly is scattered across many files; the bytes on the wire are the single ground truth. Capture first, read second.
-2. **Read vertically, not horizontally.** One complete path through every layer (schema → registration → dispatch → permission → execution → serialization) teaches more than each layer surveyed across all features.
-3. **Extension is the exam.** You do not understand a harness until you have added a tool to it and watched the model call it.
+1. **Wire traffic beats source reading.** Prompt assembly is scattered across many files; the bytes on the wire are single, literal ground truth. When a reading and a capture disagree, the capture wins.
+2. **Read vertically, not horizontally.** One complete path through every layer teaches more than each layer surveyed across all features.
+3. **A vocabulary that only explains its own specimen is worthless.** The study succeeds if concepts derived from dsh explain Claude Code, and fails if they don't.
 
 ## Global Constraints
 
-- **Upstream is read-only and pinned.** Clone `deepseek-ai/deepseek-harness` at commit `47f943859bef60e4160492346772ded9b24f765a` (branch `master`, dated 2026-08-13). Never commit to it, never update it mid-study — every `file:line` citation in notes must resolve at this SHA.
-- **Upstream location:** `../deepseek-harness`, a sibling of this repo. Never nest it inside this repo.
-- **Never commit captures.** Captured traffic contains prompts and may contain credentials. `captures/` is gitignored and the proxy redacts auth headers at write time. This is non-negotiable.
-- **Every source claim in notes cites `path:line`** relative to the upstream repo root, e.g. `packages/core/agent-loop/src/index.ts:142`.
-- **Notes are markdown under `notes/`**, numbered in reading order.
-- **Commit after every task.** One task, one commit.
+- **Upstream is read-only and pinned.** `deepseek-ai/deepseek-harness` at commit `47f943859bef60e4160492346772ded9b24f765a` (branch `master`, 2026-08-13). Never commit to it, never update mid-study — every `file:line` citation must resolve at this SHA.
+- **Upstream location:** `../deepseek-harness`, a sibling of this repo. Never nested inside it.
+- **Never commit captures.** `captures/` is gitignored and the proxy redacts auth headers at write time. Non-negotiable.
+- **Analyse, don't dump.** `dsh`'s system prompt ships in a public MIT repo and may be quoted verbatim. Claude Code's has not been published — describe its structure and behaviour, never commit its text. This repo is public.
+- **Every source claim cites `path:line`** relative to the upstream root, e.g. `packages/core/agent-loop/src/index.ts:142`.
+- **Vocabulary lands in `CONTEXT.md` immediately.** When a thread names a concept precisely, add it to the glossary that session — not at the end.
+- **There is no completion criterion.** See the surprise budget below.
+
+## The Surprise Budget
+
+This study is open-ended and depth-first. In place of "done":
+
+> **Abandon a thread after two consecutive findings that don't surprise you.**
+
+When you abandon one, file it so it isn't lost:
+
+```bash
+gh issue create --title "<thread>: <where it went dry>" --label needs-triage \
+  --body "Abandoned at <point>. Last two findings were unsurprising: <what they were>. Worth resuming if <condition>."
+```
+
+A dry thread is a result, not a failure. The `needs-triage` queue is the backlog; when nothing in it is interesting, the study is resting, not finished.
+
+## How To Use This Plan
+
+**Phase 0 is sequential and mandatory** — every thread depends on the instrument. **Phase 1 is a menu.** Pick whichever thread is most interesting, work it until the surprise budget runs out, then pick another. **Phase 2 exams gate on Phase 1** only loosely: Exam 1 needs Thread D, Exam 2 needs Threads A–C. **Phase 3 is last** by design — analysing Claude Code before the vocabulary exists defeats the transfer test.
 
 ## File Structure
 
-Created in **this** repo (`study-harness`):
+Created in **this** repo:
 
 | Path | Responsibility |
 |---|---|
 | `.gitignore` | Excludes `captures/`, `node_modules/`, `.env` |
-| `notes/00-orientation.md` | Pinned SHA, package map, discovered env var names |
-| `notes/01-baseline-behavior.md` | What `dsh` does, observed before reading any source |
-| `notes/02-prompt-and-tools.md` | Extracted system prompt + tool schemas, annotated |
-| `notes/03-context-and-compaction.md` | How the message array evolves; compaction strategy |
-| `notes/04-agent-loop.md` | The loop, mapped to source with `file:line` |
-| `notes/05-tool-vertical-slice.md` | One tool traced through every layer |
-| `notes/06-plugin-architecture.md` | Cordis model, how plugins register |
-| `notes/07-synthesis.md` | Design decisions, trade-offs, comparison |
-| `CONTEXT.md` | Domain glossary (consumed by the domain-modeling skills) |
-| `tools/capture-proxy/server.mjs` | Logging reverse proxy — the core instrument |
-| `tools/capture-proxy/README.md` | How to run a capture session |
-| `experiments/hello-tool-plugin/` | The exam: a working dsh plugin |
+| `tools/capture-proxy/server.mjs` | Logging reverse proxy — the instrument everything depends on |
+| `tools/capture-proxy/README.md` | How to run a capture session against either harness |
+| `notes/00-orientation.md` | Pinned SHA, package map, discovered env vars |
+| `notes/01-baseline-behavior.md` | Observed dsh behaviour, recorded before reading source |
+| `notes/A-prompt-and-tools.md` | Thread A output |
+| `notes/B-agent-loop.md` | Thread B output |
+| `notes/C-context-and-compaction.md` | Thread C output |
+| `notes/D-tool-vertical-slice.md` | Thread D output |
+| `notes/E-plugin-architecture.md` | Thread E output |
+| `notes/X-transfer-test.md` | Phase 3 — does the vocabulary explain Claude Code? |
+| `experiments/hello-tool-dsh/` | Exam 1a — the tool as a dsh plugin |
+| `experiments/hello-tool-mcp/` | Exam 1b — the same tool as an MCP server |
+| `experiments/minimal-harness/` | Exam 2 — a harness from scratch |
+| `CONTEXT.md` | Glossary; grows continuously |
+| `docs/adr/` | Decisions; `0001` records the method |
 
-Read-only in `../deepseek-harness`, the primary study targets:
+Read-only in `../deepseek-harness`:
 
-| Path | Why it matters |
+| Path | Thread |
 |---|---|
-| `packages/core/agent-loop` | The loop itself |
-| `packages/core/system-prompt` | Prompt assembly |
-| `packages/core/agent-tool-presentation` | How tools are shown to the model |
-| `packages/core/tools` | Tool registry and dispatch |
-| `packages/core/scope` | Cordis scoping |
-| `packages/compaction/compaction-tool-result-pruner` | What gets elided from context |
-| `packages/llm/llm-deepseek` | Provider client — where the base URL is configured |
-| `packages/guard` | Permission / approval layer |
-| `packages/boot` | Plugin loading |
+| `packages/core/system-prompt`, `packages/core/agent-tool-presentation` | A |
+| `packages/core/agent-loop` | B |
+| `packages/compaction/*`, `packages/core/session` | C |
+| `packages/core/tools`, `packages/fs`, `packages/guard` | D |
+| `packages/core/scope`, `packages/boot` | E |
+| `packages/llm/llm-deepseek` | Phase 0 (base URL) |
 
 ---
 
-### Task 1: Pin the upstream checkout and scaffold the study repo
+## Phase 0 — Build the Instrument
+
+Sequential. Nothing else works until this does.
+
+### Task 0.1: Pin the upstream checkout and scaffold
 
 **Files:**
-- Create: `.gitignore`
-- Create: `notes/00-orientation.md`
-- Clone (outside repo): `../deepseek-harness` at the pinned SHA
+- Create: `.gitignore`, `notes/00-orientation.md`
+- Clone (outside repo): `../deepseek-harness`
 
 **Interfaces:**
-- Consumes: nothing (first task)
-- Produces: a built upstream checkout at the pinned SHA; `notes/00-orientation.md` recording **(a)** the pinned SHA, **(b)** the package map, **(c)** `LLM_BASE_URL_ENV` — the exact environment variable or config key that overrides the model API base URL, and **(d)** `DSH_CMD` — the exact command that starts a non-interactive run. Tasks 2, 3, and 8 depend on (c) and (d) by these names.
+- Produces: `LLM_BASE_URL_ENV` (the env var or settings key overriding the model API base URL) and `DSH_CMD` (the command starting a non-interactive run). Named deliverables — every later capture task consumes them.
 
 - [ ] **Step 1: Write `.gitignore`**
 
@@ -92,7 +114,7 @@ git -C ../deepseek-harness checkout 47f943859bef60e4160492346772ded9b24f765a
 git -C ../deepseek-harness rev-parse HEAD
 ```
 
-Expected: prints `47f943859bef60e4160492346772ded9b24f765a`. Detached HEAD is correct and intended.
+Expected: prints `47f943859bef60e4160492346772ded9b24f765a`. Detached HEAD is intended.
 
 - [ ] **Step 3: Install and build**
 
@@ -103,7 +125,7 @@ pnpm install --frozen-lockfile
 pnpm build 2>&1 | tail -20
 ```
 
-If `pnpm build` is not a defined script, list what is: `node -e "console.log(Object.keys(require('./package.json').scripts))"` and use the build-equivalent. Record whichever worked in `notes/00-orientation.md`.
+If `pnpm build` isn't defined, list what is with `node -e "console.log(Object.keys(require('./package.json').scripts))"` and use the build-equivalent. Record what worked.
 
 - [ ] **Step 4: Verify the harness runs**
 
@@ -112,7 +134,7 @@ cd ../deepseek-harness
 pnpm dsh --help 2>&1 | head -30
 ```
 
-Expected: a usage/help listing including subcommands. If `pnpm dsh` is not wired, find the binary: `node -e "const p=require('./package.json');console.log(p.bin)"` across `apps/*/package.json`. Record the working invocation as `DSH_CMD`.
+If `pnpm dsh` isn't wired, find the binary across `apps/*/package.json`. Record the working invocation as `DSH_CMD`.
 
 - [ ] **Step 5: Discover the base-URL override**
 
@@ -122,11 +144,9 @@ rg -n 'baseURL|baseUrl|base_url|BASE_URL' packages/llm/ apps/ --type ts | head -
 rg -n 'process\.env\.[A-Z_]+' packages/llm/ --type ts -o | sort -u | head -30
 ```
 
-Expected: at least one environment variable or settings key that sets the provider base URL. Record it as `LLM_BASE_URL_ENV`. If it turns out to be a settings-file key rather than an env var, record the file path and key path instead — Task 3 handles either.
+Record as `LLM_BASE_URL_ENV`. If it's a settings-file key rather than an env var, record the file path and key path instead.
 
 - [ ] **Step 6: Write `notes/00-orientation.md`**
-
-Record, with no interpretation yet:
 
 ```markdown
 # 00 — Orientation
@@ -155,71 +175,17 @@ git commit -m "study: pin upstream at 47f9438 and record orientation"
 
 ---
 
-### Task 2: Baseline behavioral observation
+### Task 0.2: Build the capture proxy
 
 **Files:**
-- Create: `notes/01-baseline-behavior.md`
+- Create: `tools/capture-proxy/server.mjs`, `tools/capture-proxy/README.md`
 
 **Interfaces:**
-- Consumes: `DSH_CMD` from Task 1
-- Produces: `CANONICAL_TASK` — a fixed, repeatable prompt used identically in Tasks 2, 3, 5, and 8, so captures are comparable across the study.
-
-- [ ] **Step 1: Define the canonical task**
-
-Use exactly this prompt for every run in this study. It forces read → edit → execute, exercising at least three distinct tools:
-
-```
-Create a file called fizzbuzz.js that prints FizzBuzz for 1..20,
-then run it with node and show me the output.
-```
-
-- [ ] **Step 2: Run it in a scratch directory**
-
-```bash
-mkdir -p /tmp/dsh-baseline && cd /tmp/dsh-baseline
-<DSH_CMD> "Create a file called fizzbuzz.js that prints FizzBuzz for 1..20, then run it with node and show me the output."
-```
-
-- [ ] **Step 3: Record observations before reading any source**
-
-Write `notes/01-baseline-behavior.md` answering only what was observable:
-
-- How many model round-trips occurred, if visible?
-- Which tools were called, in what order?
-- Was approval requested before the write? Before the shell command?
-- What did the harness display between steps (streaming? tool-call summaries?)
-- Did it verify its own work, or stop at first success?
-
-- [ ] **Step 4: Verify the note contains no source citations**
-
-```bash
-rg -n 'packages/' notes/01-baseline-behavior.md
-```
-
-Expected: no matches. This note is deliberately observation-only — it is the control against which source reading is later checked.
-
-- [ ] **Step 5: Commit**
-
-```bash
-git add notes/01-baseline-behavior.md
-git commit -m "study: baseline behavioral observation of dsh"
-```
-
----
-
-### Task 3: Build the wire-capture proxy
-
-**Files:**
-- Create: `tools/capture-proxy/server.mjs`
-- Create: `tools/capture-proxy/README.md`
-
-**Interfaces:**
-- Consumes: `LLM_BASE_URL_ENV`, `DSH_CMD` from Task 1; `CANONICAL_TASK` from Task 2
-- Produces: `captures/session-<label>.jsonl` — one JSON object per line, alternating `dir:"request"` / `dir:"response"`, correlated by `id`. Tasks 4, 5, and 8 read this file.
+- Produces: `captures/session-<label>.jsonl` — one JSON object per line, `dir:"request"` / `dir:"response"`, correlated by `id`. Every thread reads this. Parameterised by `CAPTURE_UPSTREAM`, so it works against **any** harness, not just dsh.
 
 - [ ] **Step 1: Write the proxy**
 
-Streaming-safe (tees SSE to disk without buffering the client's view) and redacts credentials at write time.
+Streaming-safe (tees SSE without buffering the client's view) and redacts credentials at write time.
 
 ```javascript
 // tools/capture-proxy/server.mjs
@@ -311,210 +277,144 @@ createServer(async (req, res) => {
 )
 ```
 
-- [ ] **Step 2: Start the proxy and verify it forwards**
+- [ ] **Step 2: Verify the redaction guarantee**
 
 ```bash
 cd /Users/claire/GitRepos/study-harness
-CAPTURE_LABEL=smoke node tools/capture-proxy/server.mjs &
+CAPTURE_LABEL=smoke CAPTURE_UPSTREAM=https://api.anthropic.com node tools/capture-proxy/server.mjs &
 sleep 1
-curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8899/v1/models -H "Authorization: Bearer $DEEPSEEK_API_KEY"
+curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8899/v1/models \
+  -H "x-api-key: $ANTHROPIC_API_KEY" -H "anthropic-version: 2023-06-01"
+rg -n 'sk-ant|Bearer' captures/session-smoke.jsonl
 ```
 
-Expected: a `200` (or a `401` if the key is unset — either proves forwarding works; a connection error does not).
+Expected: a status code (200 or 401 both prove forwarding), then **no matches** from `rg`. If `rg` prints anything, stop and fix `redact()` — a leaked key in a capture is the one unrecoverable mistake in this study.
 
-- [ ] **Step 3: Verify credentials are redacted**
+- [ ] **Step 3: Write the README**
 
-```bash
-rg -n 'Bearer|sk-' captures/session-smoke.jsonl
-```
+`tools/capture-proxy/README.md` documents the four env vars, both upstreams (`https://api.deepseek.com`, `https://api.anthropic.com`), the redaction guarantee, and the `jq` recipes used by the threads.
 
-Expected: **no matches.** If this prints anything, stop and fix `redact()` before continuing — a leaked key in a capture is the one unrecoverable mistake in this study.
-
-- [ ] **Step 4: Capture the canonical task**
-
-```bash
-mkdir -p /tmp/dsh-capture && cd /tmp/dsh-capture
-CAPTURE_LABEL=canonical node /Users/claire/GitRepos/study-harness/tools/capture-proxy/server.mjs &
-<LLM_BASE_URL_ENV>=http://127.0.0.1:8899 <DSH_CMD> "Create a file called fizzbuzz.js that prints FizzBuzz for 1..20, then run it with node and show me the output."
-```
-
-If `LLM_BASE_URL_ENV` turned out to be a settings key rather than an env var, edit that settings file to point at `http://127.0.0.1:8899` instead, and note the edit.
-
-- [ ] **Step 5: Verify the capture contains a real agent turn**
-
-```bash
-cd /Users/claire/GitRepos/study-harness
-jq -r 'select(.dir=="request") | .body.messages[0].role' captures/session-canonical.jsonl | head -3
-jq -r 'select(.dir=="request") | (.body.tools // []) | length' captures/session-canonical.jsonl | head -3
-```
-
-Expected: first prints `system` (a system message is present); second prints a non-zero tool count. If tools are zero, the harness may send them under a different key — inspect with `jq 'select(.dir=="request") | .body | keys' | head -1`.
-
-- [ ] **Step 6: Write the README**
-
-`tools/capture-proxy/README.md` documents: the four env vars, the start command, the redaction guarantee, and the `jq` one-liners from Step 5.
-
-- [ ] **Step 7: Commit**
+- [ ] **Step 4: Commit**
 
 ```bash
 git add tools/capture-proxy/
-git commit -m "study: add streaming-safe wire-capture proxy with credential redaction"
+git commit -m "study: add harness-agnostic wire-capture proxy with credential redaction"
 ```
 
 ---
 
-### Task 4: Extract and annotate the system prompt and tool schemas
+### Task 0.3: Bank a Claude Code capture (do this early)
 
-**Files:**
-- Create: `notes/02-prompt-and-tools.md`
-
-**Interfaces:**
-- Consumes: `captures/session-canonical.jsonl` from Task 3
-- Produces: the verbatim system prompt and the tool-schema inventory, both cited to source in `packages/core/system-prompt` and `packages/core/agent-tool-presentation`.
-
-- [ ] **Step 1: Extract the system prompt verbatim**
-
-```bash
-jq -r 'select(.dir=="request") | .body.messages[] | select(.role=="system") | .content' \
-  captures/session-canonical.jsonl | head -1 > /tmp/system-prompt.txt
-wc -l /tmp/system-prompt.txt
-```
-
-- [ ] **Step 2: Extract the tool inventory**
-
-```bash
-jq -r 'select(.dir=="request") | .body.tools[]? | "\(.function.name)\t\(.function.description | .[0:100])"' \
-  captures/session-canonical.jsonl | sort -u
-```
-
-- [ ] **Step 3: Find where the prompt is assembled in source**
-
-```bash
-cd ../deepseek-harness
-ls packages/core/system-prompt
-rg -n 'You are|<system|systemPrompt' packages/core/system-prompt --type ts | head -20
-```
-
-Take a distinctive 6-word phrase from the captured prompt and locate it: `rg -n "<phrase>" packages/ --type ts`. If it is not found literally, it is assembled from fragments — record which fragments and where.
-
-- [ ] **Step 4: Find where tools are presented to the model**
-
-```bash
-cd ../deepseek-harness
-ls packages/core/agent-tool-presentation
-rg -n 'description|parameters|toJSON|schema' packages/core/agent-tool-presentation --type ts | head -20
-```
-
-- [ ] **Step 5: Write `notes/02-prompt-and-tools.md`**
-
-Required sections:
-
-- **Verbatim system prompt**, in a fenced block, with an explicit note of its length in lines and approximate tokens.
-- **Section-by-section annotation** — for each block of the prompt, what behavior it is trying to buy.
-- **Tool inventory table** — name, one-line purpose, and the ratio of instruction-in-description vs instruction-in-system-prompt.
-- **Assembly trace** — `path:line` for where each part originates.
-- **The key question, answered:** how much behavior is smuggled into tool *descriptions* rather than the system prompt? Quantify it.
-
-- [ ] **Step 6: Verify every claim is cited**
-
-```bash
-rg -c 'packages/' notes/02-prompt-and-tools.md
-```
-
-Expected: at least 5 matches. Uncited structural claims are the failure mode here.
-
-- [ ] **Step 7: Commit**
-
-```bash
-git add notes/02-prompt-and-tools.md
-git commit -m "study: extract and annotate system prompt and tool schemas"
-```
-
----
-
-### Task 5: Map the context strategy and compaction
-
-**Files:**
-- Create: `notes/03-context-and-compaction.md`
+Claude Code is capturable **today** with the key already on this machine. Capture now, analyse in Phase 3 — collecting data early doesn't contaminate a vocabulary built later.
 
 **Interfaces:**
-- Consumes: `captures/session-canonical.jsonl` from Task 3; `CANONICAL_TASK` from Task 2
-- Produces: the observed context-growth curve and the compaction trigger condition, cited to `packages/compaction/*`.
+- Produces: `captures/session-cc-canonical.jsonl`, consumed only by Phase 3.
 
-- [ ] **Step 1: Measure how the message array grows per turn**
+- [ ] **Step 1: Define the canonical task**
 
-```bash
-jq -r 'select(.dir=="request") | "\(.id)\t\(.body.messages | length)\t\(.body.messages | tostring | length)"' \
-  captures/session-canonical.jsonl
+Use this exact prompt for **every** harness in this study, so captures are comparable:
+
+```
+Create a file called fizzbuzz.js that prints FizzBuzz for 1..20,
+then run it with node and show me the output.
 ```
 
-Expected: three columns — request id, message count, approximate payload size. This is the growth curve.
-
-- [ ] **Step 2: Check whether earlier messages are ever rewritten**
+- [ ] **Step 2: Capture Claude Code**
 
 ```bash
-jq -r 'select(.dir=="request") | .body.messages[1].content | .[0:80]' \
-  captures/session-canonical.jsonl | uniq -c
+mkdir -p /tmp/cc-capture && cd /tmp/cc-capture
+CAPTURE_LABEL=cc-canonical CAPTURE_UPSTREAM=https://api.anthropic.com \
+  node /Users/claire/GitRepos/study-harness/tools/capture-proxy/server.mjs &
+ANTHROPIC_BASE_URL=http://127.0.0.1:8899 claude -p "Create a file called fizzbuzz.js that prints FizzBuzz for 1..20, then run it with node and show me the output."
 ```
 
-Expected: if the count equals the number of requests, the first user message is passed through untouched. Any variation means rewriting — investigate it.
-
-- [ ] **Step 3: Generate a long-running capture to trigger compaction**
-
-The canonical task is too short to compact. Run a deliberately long one:
-
-```bash
-mkdir -p /tmp/dsh-long && cd /tmp/dsh-long
-CAPTURE_LABEL=long node /Users/claire/GitRepos/study-harness/tools/capture-proxy/server.mjs &
-<LLM_BASE_URL_ENV>=http://127.0.0.1:8899 <DSH_CMD> "Clone nothing, but create 12 small JS files each implementing a different sorting algorithm, run each one, and summarize which was fastest."
-```
-
-- [ ] **Step 4: Detect the compaction event in the capture**
+- [ ] **Step 3: Verify the capture is real, then stop looking**
 
 ```bash
 cd /Users/claire/GitRepos/study-harness
-jq -r 'select(.dir=="request") | "\(.id)\t\(.body.messages | length)"' captures/session-long.jsonl
+jq -r 'select(.dir=="request") | (.body.tools // []) | length' captures/session-cc-canonical.jsonl | head -3
 ```
 
-Expected: a monotonic rise followed by a **drop** in message count. That drop is a compaction event. If no drop occurs, the run did not reach the threshold — note that and read the threshold from source instead.
+Expected: a non-zero tool count. **Do not read the contents yet.** Reading Claude Code's prompt now would seed the vocabulary with Claude-Code-shaped concepts and destroy the transfer test. Bank it and move on.
 
-- [ ] **Step 5: Read the compaction source**
+---
+
+### Task 0.4: Capture dsh
+
+Requires the DeepSeek API key. If it hasn't arrived, skip ahead — Threads B, D, and E are source-only and need no capture.
+
+- [ ] **Step 1: Capture the canonical task**
 
 ```bash
-cd ../deepseek-harness
-ls packages/compaction/compaction packages/compaction/compaction-basic packages/compaction/compaction-tool-result-pruner
-rg -n 'threshold|maxTokens|budget|trigger|shouldCompact' packages/compaction --type ts | head -25
-rg -n 'prune|elide|truncat' packages/compaction/compaction-tool-result-pruner --type ts | head -20
+mkdir -p /tmp/dsh-capture && cd /tmp/dsh-capture
+CAPTURE_LABEL=dsh-canonical CAPTURE_UPSTREAM=https://api.deepseek.com \
+  node /Users/claire/GitRepos/study-harness/tools/capture-proxy/server.mjs &
+<LLM_BASE_URL_ENV>=http://127.0.0.1:8899 <DSH_CMD> "Create a file called fizzbuzz.js that prints FizzBuzz for 1..20, then run it with node and show me the output."
 ```
 
-- [ ] **Step 6: Write `notes/03-context-and-compaction.md`**
+- [ ] **Step 2: Record baseline behaviour before reading any source**
 
-Required sections:
+Write `notes/01-baseline-behavior.md` answering only what was observable: how many round-trips, which tools in what order, was approval requested and when, what was displayed between steps, did it verify its own work.
 
-- **Growth curve** — the table from Step 1.
-- **Compaction trigger** — the exact condition, cited to `path:line`.
-- **What survives compaction and what does not** — specifically, how `compaction-tool-result-pruner` decides which tool results to drop. This is the most interesting engineering in the repo; treat it as the centerpiece.
-- **Observed vs documented** — where the capture disagreed with what the source implied.
-
-- [ ] **Step 7: Commit**
+- [ ] **Step 3: Verify the note is observation-only**
 
 ```bash
-git add notes/03-context-and-compaction.md
-git commit -m "study: map context growth and compaction strategy"
+rg -n 'packages/' notes/01-baseline-behavior.md
+```
+
+Expected: no matches. This note is the control that Thread B must later reconcile against.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add notes/01-baseline-behavior.md
+git commit -m "study: baseline behavioral observation of dsh"
 ```
 
 ---
 
-### Task 6: Map the agent loop in source
+## Phase 1 — Threads (work in any order, depth-first)
 
-**Files:**
-- Create: `notes/04-agent-loop.md`
+Each thread has a **headline question**. The thread is finished when it answers that question, or abandoned when the surprise budget runs out. Add terms to `CONTEXT.md` as they sharpen.
 
-**Interfaces:**
-- Consumes: `notes/01-baseline-behavior.md` (the observed behavior this must explain)
-- Produces: `LOOP_ENTRY` — the `path:line` of the main loop function. Task 7 starts from it.
+### Thread A — Prompt and tool presentation
 
-- [ ] **Step 1: Locate the loop**
+> **Headline question:** How much of a harness's behaviour is bought with prompt text rather than code?
+
+**Needs:** `captures/session-dsh-canonical.jsonl` · **Note:** `notes/A-prompt-and-tools.md`
+
+- [ ] **Extract the system prompt and tool inventory**
+
+```bash
+jq -r 'select(.dir=="request") | .body.messages[] | select(.role=="system") | .content' \
+  captures/session-dsh-canonical.jsonl | head -1 > /tmp/dsh-system-prompt.txt
+jq -r 'select(.dir=="request") | .body.tools[]? | "\(.function.name)\t\(.function.description | .[0:100])"' \
+  captures/session-dsh-canonical.jsonl | sort -u
+```
+
+- [ ] **Locate the assembly in source**
+
+```bash
+cd ../deepseek-harness
+rg -n 'You are|<system|systemPrompt' packages/core/system-prompt --type ts | head -20
+rg -n 'description|parameters|toJSON|schema' packages/core/agent-tool-presentation --type ts | head -20
+```
+
+Take a distinctive six-word phrase from the captured prompt and `rg` for it. If it isn't found literally, it's assembled from fragments — record which, and where.
+
+- [ ] **Answer the headline question with a number**
+
+Quantify the split: how many bytes of behavioural instruction live in tool *descriptions* versus the system prompt? This ratio is a category-level property worth carrying to every other harness.
+
+- [ ] **Add resolved terms to `CONTEXT.md`, then commit**
+
+### Thread B — The agent loop
+
+> **Headline question:** What are the irreducible phases of a harness loop, and what stops it?
+
+**Needs:** `notes/01-baseline-behavior.md` (source-only otherwise) · **Note:** `notes/B-agent-loop.md`
+
+- [ ] **Locate the loop and mark its five phases**
 
 ```bash
 cd ../deepseek-harness
@@ -522,198 +422,156 @@ ls -R packages/core/agent-loop | head -30
 rg -n 'while|for await|async function.*[Ll]oop|step|turn' packages/core/agent-loop --type ts | head -30
 ```
 
-- [ ] **Step 2: Identify the five phases**
+Mark the line where each happens: assemble context, call model, parse tool calls, execute tools, append and decide. Every harness has all five — that's the claim to test.
 
-In the loop body, mark the line where each of these happens. Every harness has all five:
-
-1. Assemble context (messages + system + tools)
-2. Call the model
-3. Parse tool calls from the response
-4. Execute tools
-5. Append results and decide whether to continue
-
-- [ ] **Step 3: Find the termination condition**
+- [ ] **Find every termination condition**
 
 ```bash
-cd ../deepseek-harness
 rg -n 'break|return|maxSteps|maxTurns|stop|finish' packages/core/agent-loop --type ts | head -25
 ```
 
-The question to answer: what stops the loop — the model emitting no tool calls, a step cap, a token budget, or user interrupt? Usually several; record all of them and their precedence.
+Record all of them in precedence order — no tool calls emitted, step cap, token budget, user interrupt.
 
-- [ ] **Step 4: Read the loop's tests as executable spec**
-
-The tests state the invariants the maintainers actually care about and the edge cases they hit — the "why is this weird code here" answers that comments never give.
-
-```bash
-cd ../deepseek-harness
-cat vitest.config.ts vitest.*.config.ts 2>/dev/null | head -30
-fd -e test.ts -e spec.ts . packages/core/agent-loop packages/compaction 2>/dev/null || \
-  rg -l 'describe\(|it\(|test\(' packages/core/agent-loop packages/compaction --type ts
-```
-
-Run them and read the names — test names are a specification in prose:
+- [ ] **Read the tests as executable spec**
 
 ```bash
 cd ../deepseek-harness
 pnpm vitest run packages/core/agent-loop --reporter=verbose 2>&1 | head -40
 ```
 
-Record any invariant that surprised you. A test guarding behavior you did not predict marks a gap in your model of the loop.
+Test names are a specification in prose. An invariant you wouldn't have predicted marks a gap in your model.
 
-- [ ] **Step 5: Write `notes/04-agent-loop.md`**
+- [ ] **Reconcile against the baseline**
 
-Required content:
+Every observation in `notes/01-baseline-behavior.md` must be explained by a specific line, or listed as an open question. This is why the baseline was written first.
 
-- **A numbered walkthrough** of one iteration, each step cited `path:line`.
-- **A diagram** (ASCII or mermaid) of the loop with its exit edges.
-- **Termination conditions**, all of them, in precedence order.
-- **Invariants from tests** — what the suite guarantees, and which of those you would not have predicted from reading the implementation alone.
-- **The reconciliation:** explicitly answer each observation recorded in `notes/01-baseline-behavior.md` — which line of the loop produced it? Anything you observed but cannot locate in source is an open question; list it as such rather than glossing over it.
+- [ ] **Add resolved terms to `CONTEXT.md`, then commit**
 
-- [ ] **Step 6: Verify the reconciliation is complete**
+### Thread C — Context and compaction
 
-Re-read `notes/01-baseline-behavior.md`. Every observation in it must appear in the reconciliation section, either explained or listed as open. This check is the whole point of having written the baseline note first.
+> **Headline question:** What does a harness throw away when it runs out of room, and how does it decide?
 
-- [ ] **Step 7: Commit**
+**Needs:** `captures/session-dsh-canonical.jsonl` · **Note:** `notes/C-context-and-compaction.md`
+
+This is the densest engineering in the repo — `compaction` is a top-level package with a dedicated `compaction-tool-result-pruner`. Treat it as the centrepiece.
+
+- [ ] **Measure the growth curve**
 
 ```bash
-git add notes/04-agent-loop.md
-git commit -m "study: map the agent loop to source with reconciliation"
+jq -r 'select(.dir=="request") | "\(.id)\t\(.body.messages | length)\t\(.body.messages | tostring | length)"' \
+  captures/session-dsh-canonical.jsonl
 ```
 
----
+- [ ] **Force a compaction event**
 
-### Task 7: Trace one tool through every layer
+The canonical task is too short. Run a long one and look for a **drop** in message count:
 
-**Files:**
-- Create: `notes/05-tool-vertical-slice.md`
+```bash
+mkdir -p /tmp/dsh-long && cd /tmp/dsh-long
+CAPTURE_LABEL=dsh-long CAPTURE_UPSTREAM=https://api.deepseek.com \
+  node /Users/claire/GitRepos/study-harness/tools/capture-proxy/server.mjs &
+<LLM_BASE_URL_ENV>=http://127.0.0.1:8899 <DSH_CMD> "Create 12 small JS files each implementing a different sorting algorithm, run each one, and summarize which was fastest."
+```
 
-**Interfaces:**
-- Consumes: `LOOP_ENTRY` from Task 6
-- Produces: the full dispatch path for one tool — the template Task 8's plugin must satisfy.
-
-- [ ] **Step 1: Pick the file-edit tool**
-
-File-edit is the right choice: it is where harnesses differ most, and it is the one tool that must pass through the permission layer.
+- [ ] **Read the pruner**
 
 ```bash
 cd ../deepseek-harness
-ls packages/core/tools
+rg -n 'threshold|maxTokens|budget|trigger|shouldCompact' packages/compaction --type ts | head -25
+rg -n 'prune|elide|truncat' packages/compaction/compaction-tool-result-pruner --type ts | head -20
+```
+
+Answer specifically: what survives compaction, what doesn't, and is the decision positional, semantic, or size-based?
+
+- [ ] **Add resolved terms to `CONTEXT.md`, then commit**
+
+### Thread D — Tool vertical slice
+
+> **Headline question:** What must a harness be told about a tool, and where does the permission boundary sit?
+
+**Needs:** nothing (source-only) · **Note:** `notes/D-tool-vertical-slice.md` · **Gates:** Exam 1
+
+Pick the file-edit tool — it's where harnesses differ most and the only tool that must cross the permission boundary.
+
+- [ ] **Trace all six layers, each cited `path:line`**
+
+Schema definition → registration → presentation → dispatch → permission (`packages/guard`) → result serialization.
+
+```bash
+cd ../deepseek-harness
 rg -n 'edit|write|patch|replace' packages/core/tools packages/fs --type ts -l | head -20
-```
-
-- [ ] **Step 2: Trace all six layers**
-
-Record `path:line` for each:
-
-1. **Schema definition** — where its parameters are declared
-2. **Registration** — where it joins the tool registry
-3. **Presentation** — where it becomes JSON for the model (cross-check against the capture from Task 4)
-4. **Dispatch** — where a model tool-call is routed to it
-5. **Permission** — where `packages/guard` gates it
-6. **Result serialization** — what shape the result takes when appended to messages
-
-- [ ] **Step 3: Read the permission layer specifically**
-
-```bash
-cd ../deepseek-harness
-ls packages/guard
 rg -n 'approve|permission|confirm|allow|deny' packages/guard --type ts | head -25
 ```
 
-Answer: is approval per-call, per-tool, per-session, or path-scoped? What is the default posture?
-
-- [ ] **Step 4: Confirm the trace against the capture**
+- [ ] **Confirm the trace against the capture**
 
 ```bash
-cd /Users/claire/GitRepos/study-harness
 jq -r 'select(.dir=="request") | .body.messages[] | select(.role=="tool") | .content | .[0:200]' \
-  captures/session-canonical.jsonl | head -5
+  captures/session-dsh-canonical.jsonl | head -5
 ```
 
-Expected: the serialized tool results, matching the shape you predicted in Step 2 layer 6. If the shape differs from your reading, the reading is wrong — the wire wins. Fix the note.
+If the serialized shape differs from what you predicted, the reading is wrong. The wire wins.
 
-- [ ] **Step 5: Write `notes/05-tool-vertical-slice.md`**
+- [ ] **Write the checklist: "what a new tool must provide"**
 
-A six-section walkthrough, one per layer, each with `path:line` and the relevant code quoted. Close with **"What a new tool must provide"** — a checklist derived from the trace. Task 8 consumes this checklist directly.
+Exam 1 consumes this directly. Make it harness-neutral where you can — that's the category insight.
 
-- [ ] **Step 6: Commit**
+- [ ] **Add resolved terms to `CONTEXT.md`, then commit**
 
-```bash
-git add notes/05-tool-vertical-slice.md
-git commit -m "study: trace file-edit tool through all six layers"
-```
+### Thread E — Plugin architecture
 
----
+> **Headline question:** Where does dsh put its extension boundary, and what does that choice cost?
 
-### Task 8: Understand the plugin architecture and pass the exam
+**Needs:** nothing (source-only) · **Note:** `notes/E-plugin-architecture.md`
 
-**Files:**
-- Create: `notes/06-plugin-architecture.md`
-- Create: `experiments/hello-tool-plugin/package.json`
-- Create: `experiments/hello-tool-plugin/src/index.ts`
+- [ ] **Learn the Cordis model first**
 
-**Interfaces:**
-- Consumes: the "What a new tool must provide" checklist from Task 7; `LLM_BASE_URL_ENV`, `DSH_CMD` from Task 1
-- Produces: a plugin whose tool is provably present in captured wire traffic and provably invoked by the model.
-
-- [ ] **Step 1: Learn the Cordis model**
-
-Cordis is dependency-injection plus an event bus. Without it, the codebase looks like indirection with no call graph — nothing calls anything directly, so grep-based tracing fails. Read enough to answer: what are `ctx.plugin`, `ctx.on`, `ctx.set`, and service injection?
+Without it the codebase looks like indirection with no call graph — nothing calls anything directly, so grep-based tracing fails. Cordis has a paper behind it: *A Programming Paradigm for Spatiotemporal Composability*.
 
 ```bash
 cd ../deepseek-harness
-cat packages/core/README.md
-ls packages/core/scope packages/boot
+cat packages/core/README.md AGENTS.md CLAUDE.md packages/AGENTS.md
 rg -n 'ctx\.(plugin|on|set|inject)' packages/core --type ts | head -25
 ```
 
-- [ ] **Step 2: Read the maintainers' own orientation docs**
+Answer: what are `ctx.plugin`, `ctx.on`, `ctx.set`, and service injection?
 
-```bash
-cd ../deepseek-harness
-cat AGENTS.md
-cat CLAUDE.md
-cat packages/AGENTS.md
-```
+- [ ] **Trace the plugin lifecycle from `packages/boot` through registration**
 
-These are written for agents working in the codebase, which makes them the best human onboarding docs too — and usually more current than `docs/`.
+- [ ] **Record the cost of "everything is a plugin"** — what does this architecture make hard that a monolithic core would make easy?
 
-- [ ] **Step 3: Find a minimal existing tool plugin to copy**
+- [ ] **Add resolved terms to `CONTEXT.md`, then commit**
 
-```bash
-cd ../deepseek-harness
-ls examples packages/examples 2>/dev/null
-rg -n 'export default|export function apply' packages/core/tools --type ts | head -15
-```
+---
 
-Pick the smallest complete tool plugin. Copy its shape exactly — do not invent structure.
+## Phase 2 — The Exams
 
-- [ ] **Step 4: Write the plugin**
+Notes accumulate understanding but never test it. These can fail.
 
-A single tool, `hello_study`, taking one string parameter and returning a fixed marker string. Deliberately trivial: the point is the wiring, not the tool. The returned marker must be the literal `STUDY-MARKER-7f3a` so it is unambiguously greppable in the capture.
+### Exam 1: One tool, two harnesses
 
-Start from this skeleton, then **replace the registration call and imports with the exact shape found in Step 3** — the Cordis API surface is what Step 3 discovers, and the real plugin in the repo is authoritative over this sketch:
+> **Gates on:** Thread D's checklist
+
+The same trivial tool integrated into both harnesses. The *diff between the two integrations* is the category insight — everything both require is essential; everything only one requires is incidental.
+
+- [ ] **Step 1: Build it as a dsh plugin**
+
+`experiments/hello-tool-dsh/`. A single tool `hello_study` taking one string and returning the literal marker `STUDY-MARKER-7f3a`, so it's unambiguously greppable. Find the smallest existing tool plugin in the repo first and copy its shape exactly — do not invent structure.
 
 ```typescript
-// experiments/hello-tool-plugin/src/index.ts
+// experiments/hello-tool-dsh/src/index.ts
 import type { Context } from 'cordis'
 
 export const name = 'hello-study'
 
-export interface Config {}
-
 export function apply(ctx: Context) {
-  // ↓ Replace `ctx.tool` with whatever registration method Step 3 revealed.
+  // ↓ Replace `ctx.tool` with the registration method Thread E revealed.
   ctx.tool({
     name: 'hello_study',
     description: 'A study probe. Returns a fixed marker string for the given word.',
     parameters: {
       type: 'object',
-      properties: {
-        word: { type: 'string', description: 'Any word to echo back.' },
-      },
+      properties: { word: { type: 'string', description: 'Any word to echo back.' } },
       required: ['word'],
     },
     async execute({ word }: { word: string }) {
@@ -723,141 +581,78 @@ export function apply(ctx: Context) {
 }
 ```
 
-And the manifest, with `<version>` and the dependency name copied from the sibling plugin inspected in Step 3:
+- [ ] **Step 2: Build the same tool as an MCP server**
 
-```json
-{
-  "name": "@study/hello-tool-plugin",
-  "version": "0.0.0",
-  "type": "module",
-  "main": "src/index.ts",
-  "peerDependencies": { "cordis": "*" }
-}
-```
+`experiments/hello-tool-mcp/`, using `@modelcontextprotocol/sdk`. Identical name, parameters, and marker.
 
-Every item on the Task 7 "What a new tool must provide" checklist must be satisfied. If the checklist names a layer this skeleton omits (a guard/permission declaration, for instance), add it — the checklist is authoritative, not the skeleton.
+- [ ] **Step 3: Verify both round trips close**
 
-- [ ] **Step 5: Load the plugin and verify it reaches the model**
+For each harness, prove two things — the tool was *offered*, and the model *called* it:
 
 ```bash
-mkdir -p /tmp/dsh-plugin && cd /tmp/dsh-plugin
-CAPTURE_LABEL=plugin node /Users/claire/GitRepos/study-harness/tools/capture-proxy/server.mjs &
-<LLM_BASE_URL_ENV>=http://127.0.0.1:8899 <DSH_CMD> "Call the hello_study tool with the word banana and tell me exactly what it returned."
+# offered
+jq -r 'select(.dir=="request") | .body.tools[]? | .function.name' captures/session-<label>.jsonl | sort -u | rg hello_study
+# called
+rg -c 'STUDY-MARKER-7f3a' captures/session-<label>.jsonl
 ```
 
-Then:
+Both must pass. Step one alone proves only that the tool was offered, not that the loop closed around it.
 
-```bash
-cd /Users/claire/GitRepos/study-harness
-jq -r 'select(.dir=="request") | .body.tools[]? | .function.name' captures/session-plugin.jsonl | sort -u | rg hello_study
-```
+- [ ] **Step 4: Write the diff** — append to `notes/D-tool-vertical-slice.md`: what did both harnesses demand, and what did only one? The intersection is the category model of "a tool."
 
-Expected: prints `hello_study`. This proves registration → presentation worked.
+- [ ] **Step 5: Commit**
 
-- [ ] **Step 6: Verify the model actually called it**
+### Exam 2: A minimal harness from scratch
 
-```bash
-rg -c 'STUDY-MARKER-7f3a' captures/session-plugin.jsonl
-```
+> **Gates on:** Threads A, B, C and Exam 1
 
-Expected: at least 1. This proves dispatch → execution → serialization worked. **Both Step 5 and Step 6 must pass** — Step 5 alone only proves the tool was offered, not that the round trip closed.
+~200 lines that implement the loop: assemble context, call the model, parse tool calls, execute, append, repeat. Targets the Anthropic API, since that key is already available. Two tools only — read a file, run a command.
 
-- [ ] **Step 7: Write `notes/06-plugin-architecture.md`**
+**This is the exam that can't be faked.** It is also the one most likely to become the project instead of the study. Guard against that explicitly:
 
-Required content:
-
-- **The Cordis model** in your own words — DI, events, scoping.
-- **The plugin lifecycle** — from `packages/boot` through registration, cited `path:line`.
-- **What the exam cost:** every point where you needed trial and error rather than deduction. These are the real gaps in the architecture's discoverability and the most valuable thing in this note.
-
-- [ ] **Step 8: Commit**
-
-```bash
-git add notes/06-plugin-architecture.md experiments/hello-tool-plugin/
-git commit -m "study: document plugin architecture and add working hello_study plugin"
-```
+- [ ] **Step 1: Set the budget before starting** — a fixed number of sessions. When it's spent, the harness is whatever it is. It is a proof, not a product.
+- [ ] **Step 2: Implement the loop** in `experiments/minimal-harness/`. No plugin system, no compaction, no permission layer — those are deliberately out of scope and their absence is itself a finding.
+- [ ] **Step 3: Run the canonical task through it** and capture it with the same proxy. Three harnesses, one task, comparable captures.
+- [ ] **Step 4: Record what you got wrong** — every place your model of the loop turned out to be incomplete. Append to `notes/B-agent-loop.md`. This list is the single most valuable artifact in the study.
+- [ ] **Step 5: Commit**
 
 ---
 
-### Task 9: Synthesis and domain glossary
+## Phase 3 — The Transfer Test
 
-**Files:**
-- Create: `notes/07-synthesis.md`
-- Create: `CONTEXT.md`
+> **Headline question:** Does a vocabulary derived from dsh explain a harness it wasn't derived from?
 
-**Interfaces:**
-- Consumes: all prior notes
-- Produces: the study's conclusions, and a glossary the domain-modeling skills will consume per `docs/agents/domain.md`.
+**Needs:** `captures/session-cc-canonical.jsonl` (banked in Task 0.3), all Phase 1 notes · **Note:** `notes/X-transfer-test.md`
 
-- [ ] **Step 1: Write `CONTEXT.md`**
+Do this **last**. Analysing Claude Code earlier would seed the vocabulary with its concepts and make the test circular.
 
-A glossary of the terms this codebase uses, in its own vocabulary — harness, loop, turn, step, tool, plugin, scope, compaction, pruner, guard, preset, session. One line each, using the term as `dsh` uses it. `docs/agents/domain.md` directs every other skill to read this before exploring, so precision here pays off later.
+- [ ] **Step 1: Predict before looking**
 
-- [ ] **Step 2: Write the design-decision inventory**
+Write down, from the dsh-derived model alone, what you expect to find in the Claude Code capture: roughly how many tools, whether behavioural instruction sits in descriptions or the system prompt, how tool results are serialized, what triggers compaction. Commit these predictions **before** opening the capture. A prediction made after the fact tests nothing.
 
-For each, state what `dsh` chose and what it bought:
-
-- Everything-is-a-plugin on Cordis, vs a monolithic core
-- Compaction as a dedicated package with a pluggable pruner
-- A separate `guard` package for permissions
-- `agent-tool-presentation` split out from the tool registry itself
-
-- [ ] **Step 3: Recover design rationale from history**
-
-Rationale lives in commit messages and PR descriptions, not in code. For each design decision from Step 2, find why it was made:
+- [ ] **Step 2: Open the banked capture and score the predictions**
 
 ```bash
-cd ../deepseek-harness
-git log --oneline -- packages/compaction | head -20
-git log --format='%H %s%n%b' -5 -- packages/compaction/compaction-tool-result-pruner
+jq -r 'select(.dir=="request") | .body.tools[]? | .function.name' captures/session-cc-canonical.jsonl | sort -u
+jq -r 'select(.dir=="request") | "\(.id)\t\(.body.messages | length)"' captures/session-cc-canonical.jsonl
 ```
 
-Then read the corresponding PRs — the discussion is usually richer than the merged message:
+- [ ] **Step 3: Classify every term in `CONTEXT.md`**
 
-```bash
-gh pr list --repo deepseek-ai/deepseek-harness --state merged --limit 20 \
-  --json number,title,url --jq '.[] | "\(.number)\t\(.title)"'
-gh pr view <number> --repo deepseek-ai/deepseek-harness --comments | head -60
-```
+Three buckets: **universal** (explains both harnesses), **dsh-specific** (an implementation detail you mistook for a category concept), **missing** (Claude Code does something your vocabulary has no word for). The second and third buckets are the study's real output.
 
-Record any decision whose stated rationale contradicts what you inferred from the code. Those are the most interesting findings in the study.
+Remember the constraint: describe structure and behaviour, never commit Claude Code's prompt text. This repo is public.
 
-- [ ] **Step 4: Compare against a harness you already know**
+- [ ] **Step 4: Rewrite `CONTEXT.md`** keeping only the universal terms as canonical, with dsh-specific ones clearly marked as such.
 
-The useful question is not "how does dsh do tool calls" but "where did dsh choose differently, and what did that buy them." Write a short comparison table across four axes: **permission model**, **context compaction**, **subagents/delegation**, and **plugin boundary**. Where dsh diverges from the harness you know best, state which trade-off each side took.
-
-- [ ] **Step 5: Record open questions**
-
-Every item listed as unresolved in Tasks 4–8, plus contradictions found in Step 3, gathered in one place. Convert each into a GitHub issue:
-
-```bash
-gh issue create --title "<question>" --label needs-triage --body "<context and what you tried>"
-```
-
-This is what the tracker configured in `docs/agents/issue-tracker.md` is for, and `needs-triage` already exists on the repo.
-
-- [ ] **Step 6: Verify plan coverage**
-
-Confirm every note file listed in "File Structure" exists:
-
-```bash
-ls notes/
-```
-
-Expected: `00` through `07`, eight files.
-
-- [ ] **Step 7: Commit and push**
-
-```bash
-git add CONTEXT.md notes/07-synthesis.md
-git commit -m "study: synthesis, design-decision inventory, and domain glossary"
-git push
-```
+- [ ] **Step 5: Commit and push**
 
 ---
 
 ## Notes on Adapting This Plan
 
-Tasks 4–8 name specific `packages/*` directories confirmed to exist at the pinned SHA, but the files *inside* them are discovered during execution rather than asserted here. Where a step says "record it as `X`", that value is a real deliverable of that task and later tasks consume it by name — this is deliberate, not a placeholder.
+Threads name `packages/*` directories confirmed to exist at the pinned SHA, but the files inside them are discovered during execution. Where a step says "record it as `X`", that value is a real deliverable consumed by name later — deliberate, not a placeholder.
 
-If a `rg` command in any task returns nothing, that is itself a finding: it means the concept is named differently in this codebase than expected. Record the actual name in the relevant note and move on. Do not skip the step silently.
+If an `rg` command returns nothing, that is itself a finding: the concept is named differently here than expected. Record the actual name and move on. Never skip a step silently.
+
+If a thread runs dry, honour the surprise budget — file the issue and pick another. Grinding a dry seam because it's next in the document is exactly what the open-ended structure exists to prevent.
