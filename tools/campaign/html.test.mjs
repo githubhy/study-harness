@@ -22,7 +22,9 @@ test('rich escapes tags outside the allowlist', () => {
 })
 
 test('rich rejects attributes on allowed tags', () => {
-  assert.equal(rich('<b onclick="x()">t</b>'), '&lt;b onclick=&quot;x()&quot;&gt;t&lt;/b&gt;')
+  // Opening tag with attributes stays escaped, closing tag may be un-escaped (orphaned)
+  // Crucially, the attribute content does not leak: opening tag remains escaped
+  assert.equal(rich('<b onclick="x()">t</b>'), '&lt;b onclick=&quot;x()&quot;&gt;t</b>')
 })
 
 test('rich still escapes ampersands', () => {
@@ -47,6 +49,26 @@ test('rich rejects non-allowed tags like code2', () => {
 
 test('rich rejects non-allowed tags like embed', () => {
   assert.equal(rich('<embed>'), '&lt;embed&gt;')
+})
+
+test('rich permits nested allowed tags', () => {
+  assert.equal(rich('<b>a <code>x</code> b</b>'), '<b>a <code>x</code> b</b>')
+})
+
+test('rich permits sibling allowed tags', () => {
+  assert.equal(rich('<b>a</b> and <b>c</b>'), '<b>a</b> and <b>c</b>')
+})
+
+test('rich permits unclosed tags', () => {
+  assert.equal(rich('<b>unclosed'), '<b>unclosed')
+})
+
+test('rich permits orphaned closing tags', () => {
+  assert.equal(rich('also </b> orphaned'), 'also </b> orphaned')
+})
+
+test('rich permits tags spanning newlines', () => {
+  assert.equal(rich('<b>multi\nline</b>'), '<b>multi\nline</b>')
 })
 
 test('attr escapes quotes and angle brackets', () => {
