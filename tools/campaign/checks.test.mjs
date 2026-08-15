@@ -49,6 +49,15 @@ test('unbalanced tags are reported', () => {
   assert.ok(checkHtml(GOOD + '<section><div></div>').some((p) => /section/.test(p)))
 })
 
+test('bare :root inside @media is not treated as the bare block', () => {
+  const html = `<meta charset="utf-8"><style>@media (prefers-color-scheme: dark) { :root { --ink: #eee; } }
+:root { --bg: #fff; }
+body { background: var(--bg); color: var(--ink); }</style>`
+  const problems = checkHtml(html)
+  assert.ok(problems.some((p) => /--ink/.test(p)), '--ink should be reported (only in @media)')
+  assert.ok(!problems.some((p) => /--bg/.test(p)), '--bg should not be reported (in bare :root)')
+})
+
 test('the pre-migration snapshot passes every check', () => {
   const html = readFileSync('tools/campaign/fixtures/roadmap-premigration.html', 'utf8')
   assert.deepEqual(checkHtml(html), [])
