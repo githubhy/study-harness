@@ -42,3 +42,17 @@ edited directly, then rebuilt.
 Logging a finding is: write `notes/<LETTER>-<slug>.md`, append one entry to `campaign.json`'s `log`,
 rebuild, and commit all of it together. Surprise pips, dry detection, the frontier, totals, the
 thread graph, and the package census are all derived — never write them by hand.
+
+### Frozen baselines
+
+`tools/campaign/fixtures/roadmap-premigration.html` and `board-premigration.html` are frozen records
+of the hand-written pages the generator replaced — they are never edited. Similarly,
+`tools/campaign/fixtures/acceptance-phrases.txt` and the board's phrase fixture are the content
+contracts the generated pages are checked against, and are never edited to make a failing check pass.
+
+Repo-wide sweeps for stale references must exclude `tools/campaign/fixtures/**` (along with
+`.superpowers` and `docs/superpowers/**`, which contain prose describing changes rather than links
+to them). Use this form so the exclusions and their reason travel together:
+
+    rg -l '<pattern>' \
+      --glob '!.superpowers' --glob '!docs/superpowers/**' --glob '!tools/campaign/fixtures/**' .
