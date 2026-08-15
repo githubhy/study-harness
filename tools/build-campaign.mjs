@@ -3,6 +3,7 @@ import { readdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { loadCampaign } from './campaign/model.mjs'
 import { renderRoadmap } from './campaign/render-roadmap.mjs'
+import { renderWorklog } from './campaign/render-worklog.mjs'
 
 const args = process.argv.slice(2)
 const check = args.includes('--check')
@@ -26,7 +27,10 @@ for (const name of campaigns) {
   try {
     const dir = join('campaigns', name)
     const model = loadCampaign(dir)
-    for (const [file, html] of [['roadmap.html', renderRoadmap(model)]]) {
+    for (const [file, html] of [
+      ['roadmap.html', renderRoadmap(model)],
+      ['worklog.html', renderWorklog(model)],
+    ]) {
       const path = join(dir, file)
       if (check) {
         const current = existsSync(path) ? readFileSync(path, 'utf8') : ''
