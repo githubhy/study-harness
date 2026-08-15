@@ -1,0 +1,14 @@
+# Wire captures. The proxy redacts auth headers before writing, but a leaked key in a
+# capture is the one unrecoverable mistake in this repo — and this repo is public.
+# Belt and braces: never stage them, in any campaign, at any depth.
+captures/
+**/captures/
+
+# Local environment
+.env
+.env.*
+!.env.example
+
+# OS / editor noise
+.DS_Store
+*.swp

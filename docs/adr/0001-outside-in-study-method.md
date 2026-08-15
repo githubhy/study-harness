@@ -1,6 +1,8 @@
 # Study agent harnesses outside-in, with dsh as specimen and Claude Code as transfer test
 
-The subject of this repo is agent harnesses as a category, not the DeepSeek Harness in particular. We study outside-in: capture the wire traffic a harness sends to the model API first, and read source only to explain what was already observed — because prompt assembly is scattered across many files while the wire is single, literal ground truth.
+**Scope:** repo-wide. This records the method every campaign uses; the `agent-harnesses` campaign is its first application, and the specifics below are that application.
+
+The subject of the `agent-harnesses` campaign is agent harnesses as a category, not the DeepSeek Harness in particular. We study outside-in: capture the wire traffic a harness sends to the model API first, and read source only to explain what was already observed — because prompt assembly is scattered across many files while the wire is single, literal ground truth.
 
 `dsh` is the specimen because it is open, readable, and structured almost one-to-one onto the concepts we want to name. Claude Code is deliberately **not** used as a comparison baseline, since the author does not yet understand it well enough for that to mean anything; instead it is the **transfer test** — the category vocabulary built from dsh is only real if it explains a harness it wasn't derived from.
 

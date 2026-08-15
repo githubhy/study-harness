@@ -8,7 +8,9 @@
 
 **Tech Stack:** TypeScript, Node.js ≥20, pnpm workspaces, Cordis (plugin/DI framework), Vitest. The toy harness and capture proxy are dependency-free Node against the DeepSeek API (OpenAI-compatible wire format).
 
-**Spec:** `docs/adr/0001-outside-in-study-method.md` records the method and the rejected alternatives. `CONTEXT.md` holds the glossary this plan both consumes and extends.
+**Spec:** `docs/adr/0001-outside-in-study-method.md` at the repo root records the method and the rejected alternatives. `CONTEXT.md` in this campaign directory holds the glossary this plan both consumes and extends; `CONTEXT-MAP.md` at the repo root defines the shared roles (campaign, subject, specimen, transfer specimen).
+
+**Campaign:** `agent-harnesses`. Every relative path in this plan is relative to `campaigns/agent-harnesses/` unless it starts with `docs/` or `tools/`, which are repo-wide.
 
 ## Why Phase 1 Builds a Toy First
 
@@ -77,8 +79,9 @@ Phase 2 is a **menu** — work whichever thread is most interesting, until the s
 | `notes/A-*.md` … `notes/O-*.md` | Phase 2 thread outputs — 15 threads covering all 49 `packages/*` directories |
 | `experiments/hello-tool-dsh/`, `experiments/hello-tool-mcp/` | Phase 3 |
 | `notes/X-transfer-test.md` | Phase 4 |
-| `CONTEXT.md` | Glossary; grows continuously |
-| `docs/adr/` | Decisions; `0001` records the method |
+| `CONTEXT.md` | This campaign's glossary; grows continuously |
+| `roadmap.html` | The campaign's map, board, and thread menu |
+| `docs/adr/` | Repo-wide; `0001` records the method. Campaign-scoped decisions go in `campaigns/agent-harnesses/docs/adr/` |
 
 ---
 

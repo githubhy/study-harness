@@ -262,7 +262,7 @@
 <main>
 
   <header class="mast">
-    <p class="kick">Study roadmap · dsh @ 47f9438 · nothing on this page is hidden</p>
+    <p class="kick">Campaign <b style="color:var(--ink-soft);font-weight:500">agent-harnesses</b> · dsh @ 47f9438 · nothing on this page is hidden</p>
     <h1>Harness Dissection</h1>
     <p class="sf">
       Build a transferable model of <strong>agent harnesses as a category</strong> by dissecting
@@ -839,15 +839,17 @@ rg -n 'ctx\.(plugin|on|set|inject)' packages/core --type ts</pre>
     <h4>Re-run after any upstream bump</h4>
     <pre>gh api repos/deepseek-ai/deepseek-harness/contents/packages \
   --jq '.[] | select(.type=="dir") | .name' | sort &gt; /tmp/pkgs.txt
-while read -r p; do rg -q "$p" docs/roadmap.html || echo "UNCOVERED: $p"; done &lt; /tmp/pkgs.txt</pre>
+while read -r p; do rg -q "$p" campaigns/agent-harnesses/roadmap.html \
+  || echo "UNCOVERED: $p"; done &lt; /tmp/pkgs.txt</pre>
   </section>
 
   <footer>
-    <span>githubhy/study-harness</span>
-    <span>plan · docs/superpowers/plans/2026-08-15-deepseek-harness-study.md</span>
-    <span>method · docs/adr/0001</span>
+    <span><a href="../index.html">← all campaigns</a></span>
+    <span>campaign · agent-harnesses</span>
+    <span>plan · plan.md</span>
     <span>glossary · CONTEXT.md</span>
-    <span>layout candidates · docs/roadmap-samples/</span>
+    <span>method · docs/adr/0001 (repo-wide)</span>
+    <span>layout candidates · roadmap-samples/</span>
   </footer>
 
 </main>

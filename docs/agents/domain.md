@@ -4,39 +4,37 @@ How the engineering skills should consume this repo's domain documentation when 
 
 ## Before exploring, read these
 
-- **`CONTEXT.md`** at the repo root, or
-- **`CONTEXT-MAP.md`** at the repo root if it exists — it points at one `CONTEXT.md` per context. Read each one relevant to the topic.
-- **`docs/adr/`** — read ADRs that touch the area you're about to work in. In multi-context repos, also check `src/<context>/docs/adr/` for context-scoped decisions.
+- **`CONTEXT-MAP.md`** at the repo root — this repo is multi-context. It points at one `CONTEXT.md` per campaign, and carries the shared method vocabulary itself (campaign, subject, specimen, transfer specimen). Read it, then the glossary of whichever campaign you're working in.
+- **`docs/adr/`** — read ADRs that touch the area you're about to work in. Also check `campaigns/<name>/docs/adr/` for campaign-scoped decisions.
 
 If any of these files don't exist, **proceed silently**. Don't flag their absence; don't suggest creating them upfront. The `/domain-modeling` skill (reached via `/grill-with-docs` and `/improve-codebase-architecture`) creates them lazily when terms or decisions actually get resolved.
 
 ## File structure
 
-Single-context repo (most repos):
+This repo is multi-context, and its contexts are **campaigns** — one per subject, under
+`campaigns/` rather than the `src/` the skill's default example uses:
 
 ```
 /
-├── CONTEXT.md
-├── docs/adr/
-│   ├── 0001-event-sourced-orders.md
-│   └── 0002-postgres-for-write-model.md
-└── src/
+├── CONTEXT-MAP.md                     ← the index, plus shared method vocabulary
+├── docs/
+│   ├── adr/                           ← the method; outlives any one campaign
+│   └── agents/
+├── tools/                             ← shared instruments, e.g. the capture proxy
+└── campaigns/
+    ├── index.html                     ← the campaign board
+    └── agent-harnesses/
+        ├── CONTEXT.md                 ← this campaign's vocabulary
+        ├── roadmap.html
+        ├── plan.md
+        ├── docs/adr/                  ← campaign-scoped decisions (created lazily)
+        └── notes/ captures/ experiments/
 ```
 
-Multi-context repo (presence of `CONTEXT-MAP.md` at the root):
-
-```
-/
-├── CONTEXT-MAP.md
-├── docs/adr/                          ← system-wide decisions
-└── src/
-    ├── ordering/
-    │   ├── CONTEXT.md
-    │   └── docs/adr/                  ← context-specific decisions
-    └── billing/
-        ├── CONTEXT.md
-        └── docs/adr/
-```
+A campaign is scoped to one **subject**. Adding a second specimen does not start a new campaign;
+changing the subject does. Plans live at `campaigns/<name>/plan.md`, not under
+`docs/superpowers/plans/` — the campaign folder supplies the context the date-stamped filename
+used to carry.
 
 ## Use the glossary's vocabulary
 
