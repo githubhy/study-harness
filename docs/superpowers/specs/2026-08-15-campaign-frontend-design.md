@@ -264,8 +264,15 @@ written exactly once, in the entry that raised it.
 
 **Strip totals, board resume line, findings counts** — counted from the log.
 
-**Graph edges.** One edge per `opened` entry, `thread → ask`, labelled with the question. Plus one
+**Graph edges.** One edge per `opened` entry, `thread → ask`, labelled with the question, plus one
 `thread → phase` edge per non-null `gates`.
+
+The worklog's drawn graph renders **only the `opened` edges**. A `gates` edge points at a phase, which
+has no node in a thread graph, so drawing it would leave a dangling half-edge; the roadmap's §2
+dependency map already shows Phase 3 gated on Thread D, which is where that relationship belongs. The
+graph is therefore omitted entirely when no `opened` edge exists — as is the case before the first
+finding is logged. A node grid with no edges is not a graph, and it duplicates the coverage strip
+directly above it.
 
 **Package census (§8) and the uncovered-package check.** Both from `threads[].packages` plus
 `infrastructurePackages` — which kills the double-hardcoding defect: §4 and §8 read the same array.
