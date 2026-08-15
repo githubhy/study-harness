@@ -9,14 +9,16 @@ const NUM_WORDS = [
 ]
 const spell = (n) => NUM_WORDS[n] ?? String(n)
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1)
-const byLetter = (a, b) => (a.letter < b.letter ? -1 : a.letter > b.letter ? 1 : 0)
 
 const joinAnd = (arr) => {
   if (arr.length <= 1) return arr.join('')
   return `${arr.slice(0, -1).join(', ')} and ${arr.at(-1)}`
 }
 
-const threadsByLoop = (threads, loopId) => threads.filter((t) => t.loop === loopId).sort(byLetter)
+// Band grouping and within-band order are derived once (derive().bands) and consumed here, in the
+// worklog's coverage strip, and in the thread graph. This page has four surfaces that must agree
+// with each other and with those two: §2's stagerow, §4's bands, §8's census rows, and the
+// contents rail.
 const sumPackages = (threads) => threads.reduce((s, t) => s + t.packages.length, 0)
 
 const needsLabel = (needs) => (needs === 'capture' ? 'capture' : needs === 'note-2.0' ? 'note 2.0' : 'source')
@@ -108,7 +110,7 @@ const renderOutput = (o) => `<div class="out">
           <div class="n-s">${rich(o.sub)}</div>
         </div>`
 
-const sMap = (data) => {
+const sMap = (data, derived) => {
   const map = data.copy.map ?? {}
   const lede = map.lede ? `<p class="lede">${rich(map.lede)}</p>` : ''
   const chain = map.chain ?? []
@@ -120,11 +122,8 @@ const sMap = (data) => {
     return `${renderNodebox(node)}\n      ${link}`
   }).join('\n\n      ')
 
-  const stagecells = data.loopSteps
-    .map((s) => {
-      const members = threadsByLoop(data.threads, s.id)
-      return `<a class="stagecell" href="#${attr(s.id)}"><span class="st-n">${esc(s.label)}</span><span class="st-c">${members.length}</span><span class="st-l">${esc(members.map((t) => t.letter).join(' · '))}</span></a>`
-    })
+  const stagecells = derived.bands
+    .map((b) => `<a class="stagecell" href="#${attr(b.id)}"><span class="st-n">${esc(b.label)}</span><span class="st-c">${b.threads.length}</span><span class="st-l">${esc(b.threads.map((t) => t.letter).join(' · '))}</span></a>`)
     .join('\n          ')
 
   const outputsHtml = outputs.map(renderOutput).join('\n        ')
@@ -303,7 +302,6 @@ const renderThreadCard = (t, data) => {
 }
 
 const sMenu = (data, derived) => {
-  void derived
   const lede = data.copy.sections.s4 ? `<p class="lede">${rich(data.copy.sections.s4)}</p>` : ''
   const { source, evidence } = splitByNeeds(data.threads)
   const legend = `<div class="legend">
@@ -311,13 +309,13 @@ const sMenu = (data, derived) => {
       <span><b class="k2">■</b> waits on evidence · <b>${evidence.length}</b>${evidence.length ? ` — ${esc(evidenceClause(evidence))}` : ''}</span>
     </div>`
 
-  const bands = data.loopSteps.map((s) => {
-    const members = threadsByLoop(data.threads, s.id)
+  const bands = derived.bands.map((b) => {
+    const members = b.threads
     const bodyCls = members.length > 1 ? ' two' : ''
-    return `<div class="band" id="${attr(s.id)}">
+    return `<div class="band" id="${attr(b.id)}">
       <div class="band-head">
-        <span class="band-step">${esc(s.step)} · ${esc(s.label)}</span>
-        <span class="band-q">${rich(s.question)}</span>
+        <span class="band-step">${esc(b.step)} · ${esc(b.label)}</span>
+        <span class="band-q">${rich(b.question)}</span>
         <span class="band-n">${members.length} thread${members.length === 1 ? '' : 's'} · ${sumPackages(members)} packages</span>
       </div>
       <div class="band-body${bodyCls}">
@@ -443,7 +441,10 @@ const sCensus = (derived, data) => {
   const total = packageTotal(data, derived.census, data.infrastructurePackages ?? [])
   // Grouped by loop step (same ordering nav, §2, and §4 use), not sorted flat by letter — that's
   // what makes the "Loop step" column mean anything instead of just repeating per row.
-  const rows = data.loopSteps.flatMap((s) => threadsByLoop(derived.census, s.id)).map((c) =>
+  // Rows in band order, cells from derived.census — the same projection of the same threads §4's
+  // cards read, which is what killed the packages-hardcoded-twice defect.
+  const censusBy = new Map(derived.census.map((c) => [c.letter, c]))
+  const rows = derived.bands.flatMap((b) => b.threads.map((t) => censusBy.get(t.letter))).map((c) =>
     `<tr><td class="mono">${esc(c.loop)}</td><td class="ref">${esc(c.letter)} · ${esc(c.name)}</td><td class="mono" style="color:${needsColor(c.needs)}">${esc(needsLabel(c.needs))}</td><td class="mono">${esc(c.packages.join(' · '))}</td></tr>`
   ).join('\n          ')
 
@@ -493,21 +494,20 @@ const NAV_SECTIONS = [
   ['s8', '8', 'Census'],
 ]
 
-const nav = (data) => {
+const nav = (data, derived) => {
   const sectionItems = [
     ...NAV_SECTIONS.slice(0, 4).map(([id, n, label]) => `<li><a href="#${id}"><b>${n}</b><span>${esc(label)}</span></a></li>`),
     `<li><a href="#s5"><b>5</b><span>Why these ${data.threads.length}</span></a></li>`,
     ...NAV_SECTIONS.slice(4).map(([id, n, label]) => `<li><a href="#${id}"><b>${n}</b><span>${esc(label)}</span></a></li>`),
   ].join('\n    ')
 
-  const groups = data.loopSteps.map((s) => {
-    const members = threadsByLoop(data.threads, s.id)
-    if (!members.length) return ''
-    const items = members.map((t) => {
+  const groups = derived.bands.map((b) => {
+    if (!b.threads.length) return ''
+    const items = b.threads.map((t) => {
       const capCls = t.needs !== 'source' ? ' class="cap"' : ''
       return `<li><a href="#t${attr(t.letter)}"${capCls}><b>${esc(t.letter)}</b><span>${esc(t.name)}</span></a></li>`
     }).join('\n      ')
-    return `<h2>${esc(s.label)}</h2>
+    return `<h2>${esc(b.label)}</h2>
     <ol>
       ${items}
     </ol>`
@@ -556,9 +556,9 @@ export function renderRoadmap({ data, derived }) {
     `<title>${esc(data.title)}</title>`,
     CSS,
     '<div class="page"><div class="cols">',
-    nav(data), '<main>',
+    nav(data, derived), '<main>',
     masthead(data, derived),
-    sLoop(data), sMap(data), sBoard(data), sMenu(data, derived),
+    sLoop(data), sMap(data, derived), sBoard(data), sMenu(data, derived),
     sWhy(data), sTransfer(data), sOrders(data), sCensus(derived, data),
     footer(data),
     '</main></div></div>',

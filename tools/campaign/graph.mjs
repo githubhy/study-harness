@@ -2,7 +2,9 @@ import { esc, attr } from './html.mjs'
 
 const COL = 170, ROW = 46, PAD = 26, W = 62, H = 26
 
-export function renderGraph({ data, derived }) {
+// Takes the whole model for symmetry with the other renderers; everything it draws — bands,
+// nodes, edges — now comes off `derived`.
+export function renderGraph({ derived }) {
   // derived.edges mixes thread -> thread ('opened', from a logged question) and thread ->
   // phase ('gates'). Only 'opened' edges connect two nodes on this graph; gate relationships
   // are already drawn on the roadmap's dependency map, so duplicating them here as dangling
@@ -11,15 +13,16 @@ export function renderGraph({ data, derived }) {
   const opened = derived.edges.filter((e) => e.kind === 'opened')
   if (opened.length === 0) return ''
 
+  // Column per band, row per thread within it, both straight from derived.bands — the same
+  // ordering §4 and the coverage strip use. A node's position is where the strip's letter is, or
+  // the two disagree the moment a letter is not a single uppercase character.
   const pos = new Map()
-  data.loopSteps.forEach((step, col) => {
-    data.threads.filter((t) => t.loop === step.id)
-      .sort((a, b) => a.letter.localeCompare(b.letter))
-      .forEach((t, row) => pos.set(t.letter, { x: PAD + col * COL, y: PAD + row * ROW }))
+  derived.bands.forEach((band, col) => {
+    band.threads.forEach((t, row) => pos.set(t.letter, { x: PAD + col * COL, y: PAD + row * ROW }))
   })
 
-  const rows = Math.max(...data.loopSteps.map((s) => data.threads.filter((t) => t.loop === s.id).length))
-  const width = PAD * 2 + (data.loopSteps.length - 1) * COL + W
+  const rows = Math.max(...derived.bands.map((b) => b.threads.length))
+  const width = PAD * 2 + (derived.bands.length - 1) * COL + W
   const height = PAD * 2 + rows * ROW
 
   const edges = opened.filter((e) => pos.has(e.from) && pos.has(e.to)).map((e) => {
@@ -42,9 +45,9 @@ export function renderGraph({ data, derived }) {
          + `${esc(letter)} ${esc(d.pips)}</text></g>`
   }).join('')
 
-  const labels = data.loopSteps.map((s, col) =>
+  const labels = derived.bands.map((b, col) =>
     `<text x="${PAD + col * COL}" y="14" font-size="9" fill="currentColor" opacity=".6" `
-    + `font-family="ui-monospace, Menlo, monospace">${esc(s.label.toUpperCase())}</text>`).join('')
+    + `font-family="ui-monospace, Menlo, monospace">${esc(b.label.toUpperCase())}</text>`).join('')
 
   return `<figure class="loop"><svg viewBox="0 0 ${width} ${height + 16}" role="img" `
        + `aria-label="Thread graph: which thread opened a question for which other thread.">`

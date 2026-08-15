@@ -108,6 +108,10 @@ export function readCampaign(dir, override) {
 
 const pipsFor = (run, budget) => '●'.repeat(Math.min(run, budget)) + '○'.repeat(Math.max(budget - run, 0))
 
+// Thread letters are validated on read as single characters from A-O, so code-unit order is
+// alphabetical order. Stated once, here, rather than assumed three times.
+const byLetter = (a, b) => (a.letter < b.letter ? -1 : a.letter > b.letter ? 1 : 0)
+
 export function derive(data) {
   const budget = data.surpriseBudget
   const byDate = [...data.log].sort((a, b) => Date.parse(a.date) - Date.parse(b.date))
@@ -142,9 +146,20 @@ export function derive(data) {
     ...data.threads.filter((t) => t.gates).map((t) => ({ from: t.letter, to: t.gates, label: 'gates', kind: 'gates' })),
   ]
 
+  // The one band ordering. §4's thread bands, §8's census rows, the contents rail, §2's stagerow,
+  // the worklog's coverage strip, and the thread graph all have to agree — the spec makes "same
+  // order as the roadmap's §4 bands" a requirement — and each renderer used to group and sort for
+  // itself, across two different comparators. They agreed only because thread letters happen to be
+  // single uppercase characters: a property of this campaign's data, not of the code.
+  const bands = data.loopSteps.map((s) => ({
+    ...s,
+    threads: data.threads.filter((t) => t.loop === s.id).sort(byLetter),
+  }))
+
   const list = [...threads.values()]
   return {
     threads,
+    bands,
     totals: {
       touched: list.filter((t) => t.state !== 'not-started').length,
       dry: list.filter((t) => t.state === 'dry').length,
