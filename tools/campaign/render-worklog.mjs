@@ -7,10 +7,10 @@ const strip = (data, derived) => {
   // "same order as the roadmap's §4 bands" is a spec requirement, so it cannot be a second sort
   // here that happens to agree.
   const bands = derived.bands.map((band) => {
-    const letters = band.threads.map((t) => {
-      const d = derived.threads.get(t.letter)
-      return `<a class="pip" data-state="${attr(d.state)}" href="#t${esc(t.letter)}" `
-           + `title="${attr(t.name)}">${esc(t.letter)} ${esc(d.pips)}</a>`
+    const letters = band.letters.map((l) => {
+      const d = derived.threads.get(l)
+      return `<a class="pip" data-state="${attr(d.state)}" href="#t${esc(d.letter)}" `
+           + `title="${attr(d.name)}">${esc(d.letter)} ${esc(d.pips)}</a>`
     }).join('')
     return `<div class="strip-band" data-band="${attr(band.id)}">`
          + `<span class="strip-label">${esc(band.label)}</span>${letters}</div>`

@@ -18,10 +18,10 @@ export function renderGraph({ derived }) {
   // the two disagree the moment a letter is not a single uppercase character.
   const pos = new Map()
   derived.bands.forEach((band, col) => {
-    band.threads.forEach((t, row) => pos.set(t.letter, { x: PAD + col * COL, y: PAD + row * ROW }))
+    band.letters.forEach((l, row) => pos.set(l, { x: PAD + col * COL, y: PAD + row * ROW }))
   })
 
-  const rows = Math.max(...derived.bands.map((b) => b.threads.length))
+  const rows = Math.max(...derived.bands.map((b) => b.letters.length))
   const width = PAD * 2 + (derived.bands.length - 1) * COL + W
   const height = PAD * 2 + rows * ROW
 

@@ -4,7 +4,8 @@ import { loadCampaign } from './model.mjs'
 import { renderRoadmap } from './render-roadmap.mjs'
 import { checkHtml } from './checks.mjs'
 
-const html = renderRoadmap(loadCampaign('tools/campaign/fixtures/mini'))
+const MINI = 'tools/campaign/fixtures/mini'
+const html = renderRoadmap(loadCampaign(MINI))
 
 test('passes every HTML property check', () => {
   assert.deepEqual(checkHtml(html), [])
@@ -147,6 +148,34 @@ test('no unreplaced {{token}} survives rendering', () => {
   // (e.g. {{canonicalTasks}}) added later — an exact-literal match means a typo would
   // otherwise render the literal braces onto the page instead of failing loudly.
   assert.doesNotMatch(html, /\{\{/)
+  // The real campaign too: it is the page that actually uses {{pinnedFull}}, so checking only
+  // the fixture would leave the substitution that matters unguarded.
+  assert.doesNotMatch(renderRoadmap(loadCampaign('campaigns/agent-harnesses')), /\{\{/)
+})
+
+test('{{pinnedFull}} resolves inside a code field, so the SHA has one home', () => {
+  // mini's pinnedFull is deliberately different from its pinned (abc1234), so this can only pass
+  // by reading pinnedFull — the field that had no reader at all before.
+  assert.match(html, /git checkout abc1234def5678901234567890abcdef12345678/)
+})
+
+test('{{pinnedFull}} resolves in a thread entry as well as a phase pre', () => {
+  // Both go through the same helper; this pins the second call site so a future change that
+  // routes only one of them through it fails here.
+  const m = loadCampaign(MINI)
+  const data = { ...m.data, threads: m.data.threads.map((t) => (t.letter === 'A' ? { ...t, entry: 'git show {{pinnedFull}}' } : t)) }
+  assert.match(renderRoadmap({ data, derived: m.derived }), /git show abc1234def5678901234567890abcdef12345678/)
+})
+
+test('an unresolvable {{pinnedFull}} is left literal rather than emitting a wrong SHA', () => {
+  // The failure mode that matters is a plausible-looking wrong commit. Leaving the token in place
+  // makes the page visibly broken and fails the no-{{ test above, which is the guard the plan
+  // relies on; substituting "undefined" or an empty string would ship a command that looks fine.
+  const m = loadCampaign(MINI)
+  const data = { ...m.data, specimen: { ...m.data.specimen, pinnedFull: undefined } }
+  const out = renderRoadmap({ data, derived: m.derived })
+  assert.match(out, /git checkout \{\{pinnedFull\}\}/)
+  assert.doesNotMatch(out, /git checkout undefined/)
 })
 
 test('the masthead kicker uses specimen.short while .facts keeps the full name', () => {

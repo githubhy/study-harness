@@ -15,7 +15,7 @@ const MINI = 'tools/campaign/fixtures/mini'
 test('derive computes the bands in loopSteps order, alphabetical within', () => {
   const { derived } = loadCampaign(MINI)
   assert.deepEqual(
-    derived.bands.map((b) => [b.id, b.threads.map((t) => t.letter)]),
+    derived.bands.map((b) => [b.id, b.letters]),
     [['assemble', ['A', 'C']], ['around', ['B']]],
   )
 })
@@ -28,7 +28,7 @@ const flipped = () => {
   const m = loadCampaign(MINI)
   return {
     data: m.data,
-    derived: { ...m.derived, bands: m.derived.bands.map((b) => ({ ...b, threads: [...b.threads].reverse() })) },
+    derived: { ...m.derived, bands: m.derived.bands.map((b) => ({ ...b, letters: [...b.letters].reverse() })) },
   }
 }
 

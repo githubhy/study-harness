@@ -139,7 +139,7 @@
       "lane": "ready",
       "title": "Pin the checkout",
       "body": "Clone, detach at <code>47f9438</code>, install frozen, build. Then discover and record the base-URL override and the non-interactive run command.",
-      "pre": "<span class=\"c\"># pin the specimen</span>\ngit clone https://github.com/deepseek-ai/deepseek-harness.git \\\n  ../deepseek-harness\ngit -C ../deepseek-harness checkout <span class=\"k\">47f943859bef60e4160492346772ded9b24f765a</span>\n\n<span class=\"c\"># build it</span>\ncd ../deepseek-harness && corepack enable\npnpm install --frozen-lockfile && pnpm build\n\n<span class=\"c\"># find the base-URL override — this is what lets you capture later</span>\nrg -n 'baseURL|baseUrl|base_url|BASE_URL' packages/llm/ apps/ --type ts",
+      "pre": "<span class=\"c\"># pin the specimen</span>\ngit clone https://github.com/deepseek-ai/deepseek-harness.git \\\n  ../deepseek-harness\ngit -C ../deepseek-harness checkout <span class=\"k\">{{pinnedFull}}</span>\n\n<span class=\"c\"># build it</span>\ncd ../deepseek-harness && corepack enable\npnpm install --frozen-lockfile && pnpm build\n\n<span class=\"c\"># find the base-URL override — this is what lets you capture later</span>\nrg -n 'baseURL|baseUrl|base_url|BASE_URL' packages/llm/ apps/ --type ts",
       "halt": null,
       "detail": [],
       "blocks": "nothing",

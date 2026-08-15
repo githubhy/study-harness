@@ -48,6 +48,21 @@ const evidenceClause = (evidence) => {
 const packageTotal = (data, census, infra) =>
   data.specimen.packageCount ?? new Set([...census.flatMap((c) => c.packages), ...infra]).size
 
+// Code fields — `threads[].entry`, `phases[].pre`, `phases[].halt.pre` — carry one substitution of
+// their own. Phase 0.1's command pins the checkout by the specimen's full SHA, which
+// `specimen.pinnedFull` already holds; writing it into the command as well gave the same forty
+// characters two homes, and editing one could not reach the other. (pinnedFull was otherwise dead
+// data: no renderer read it.) A token that fails to resolve is left in place rather than replaced
+// with something wrong, so it reaches the page as a literal `{{…}}` — which is what the
+// "no unreplaced {{token}}" tests fail on.
+const PINNED_FULL_TOKEN = '{{pinnedFull}}'
+
+const codeField = (s, data) => code(
+  typeof data.specimen.pinnedFull === 'string'
+    ? s.replaceAll(PINNED_FULL_TOKEN, data.specimen.pinnedFull)
+    : s,
+)
+
 // ---------- §1 the loop: fixed SVG diagram ----------
 
 const LOOP_SVG = `<figure class="loop">
@@ -123,7 +138,7 @@ const sMap = (data, derived) => {
   }).join('\n\n      ')
 
   const stagecells = derived.bands
-    .map((b) => `<a class="stagecell" href="#${attr(b.id)}"><span class="st-n">${esc(b.label)}</span><span class="st-c">${b.threads.length}</span><span class="st-l">${esc(b.threads.map((t) => t.letter).join(' · '))}</span></a>`)
+    .map((b) => `<a class="stagecell" href="#${attr(b.id)}"><span class="st-n">${esc(b.label)}</span><span class="st-c">${b.letters.length}</span><span class="st-l">${esc(b.letters.join(' · '))}</span></a>`)
     .join('\n          ')
 
   const outputsHtml = outputs.map(renderOutput).join('\n        ')
@@ -166,9 +181,9 @@ const LANES = {
 }
 const LANE_ORDER = ['ready', 'next', 'gate', 'last']
 
-const renderHalt = (halt) => {
+const renderHalt = (halt, data) => {
   if (!halt) return ''
-  const pre = halt.pre ? `<pre>${code(halt.pre)}</pre>` : ''
+  const pre = halt.pre ? `<pre>${codeField(halt.pre, data)}</pre>` : ''
   const body = halt.body ? `<p>${rich(halt.body)}</p>` : ''
   const inner = [pre, body].filter(Boolean).join('\n            ')
   return `<div class="halt">
@@ -195,18 +210,18 @@ const renderBlocks = (phase) => {
 // A phase detail entry is a prose string (a card paragraph), { bullets: [...] } (a <ul>), or
 // { pre: "..." } (a code block). The third shape exists because Phase 3's card interleaves
 // prose, a <pre>, and more prose — an order `phases[].pre` alone cannot express.
-const renderPhaseDetail = (d) => {
+const renderPhaseDetail = (d, data) => {
   if (typeof d === 'string') return `<p>${rich(d)}</p>`
   if (d && Array.isArray(d.bullets)) return `<ul>${d.bullets.map((b) => `<li>${rich(b)}</li>`).join('')}</ul>`
-  if (d && typeof d.pre === 'string') return `<pre>${code(d.pre)}</pre>`
+  if (d && typeof d.pre === 'string') return `<pre>${codeField(d.pre, data)}</pre>`
   return ''
 }
 
-const renderCard = (phase) => {
+const renderCard = (phase, data) => {
   const dataS = LANES[phase.lane]?.dataS ?? 'go'
-  const pre = phase.pre ? `<pre>${code(phase.pre)}</pre>` : ''
-  const details = (phase.detail ?? []).map(renderPhaseDetail).join('\n          ')
-  const body = [`<p>${rich(phase.body)}</p>`, pre, renderHalt(phase.halt), details]
+  const pre = phase.pre ? `<pre>${codeField(phase.pre, data)}</pre>` : ''
+  const details = (phase.detail ?? []).map((d) => renderPhaseDetail(d, data)).join('\n          ')
+  const body = [`<p>${rich(phase.body)}</p>`, pre, renderHalt(phase.halt, data), details]
     .filter(Boolean).join('\n          ')
   return `<article class="card" data-s="${attr(dataS)}">
           <div class="c-top"><span class="c-id">${esc(phase.id)}</span></div>
@@ -231,7 +246,7 @@ const sBoard = (data) => {
           <div class="lane-s">${esc(meta.sub)}</div>
         </div>
 
-        ${phases.map(renderCard).join('\n\n        ')}
+        ${phases.map((p) => renderCard(p, data)).join('\n\n        ')}
       </div>`
   }).filter(Boolean).join('\n\n      ')
 
@@ -282,7 +297,7 @@ const renderThreadCard = (t, data) => {
   const fromCls = t.raisedBy.kind === 'census' ? ' census' : ''
   // Five thread cards open on reading rather than on a command, so `entry` is nullable and an
   // absent one emits nothing rather than an empty <pre> box.
-  const entry = t.entry ? `<pre>${code(t.entry)}</pre>` : ''
+  const entry = t.entry ? `<pre>${codeField(t.entry, data)}</pre>` : ''
   // A census-raised thread has no questionIndex entry by definition — the toy never raised it — so
   // raisedBy.text carries its FROM line. A toy-raised thread derives its line instead, which is why
   // raisedBy.text is absent on those: one string, one home.
@@ -309,8 +324,9 @@ const sMenu = (data, derived) => {
       <span><b class="k2">■</b> waits on evidence · <b>${evidence.length}</b>${evidence.length ? ` — ${esc(evidenceClause(evidence))}` : ''}</span>
     </div>`
 
+  const byLetter = new Map(data.threads.map((t) => [t.letter, t]))
   const bands = derived.bands.map((b) => {
-    const members = b.threads
+    const members = b.letters.map((l) => byLetter.get(l))
     const bodyCls = members.length > 1 ? ' two' : ''
     return `<div class="band" id="${attr(b.id)}">
       <div class="band-head">
@@ -444,7 +460,7 @@ const sCensus = (derived, data) => {
   // Rows in band order, cells from derived.census — the same projection of the same threads §4's
   // cards read, which is what killed the packages-hardcoded-twice defect.
   const censusBy = new Map(derived.census.map((c) => [c.letter, c]))
-  const rows = derived.bands.flatMap((b) => b.threads.map((t) => censusBy.get(t.letter))).map((c) =>
+  const rows = derived.bands.flatMap((b) => b.letters.map((l) => censusBy.get(l))).map((c) =>
     `<tr><td class="mono">${esc(c.loop)}</td><td class="ref">${esc(c.letter)} · ${esc(c.name)}</td><td class="mono" style="color:${needsColor(c.needs)}">${esc(needsLabel(c.needs))}</td><td class="mono">${esc(c.packages.join(' · '))}</td></tr>`
   ).join('\n          ')
 
@@ -501,9 +517,10 @@ const nav = (data, derived) => {
     ...NAV_SECTIONS.slice(4).map(([id, n, label]) => `<li><a href="#${id}"><b>${n}</b><span>${esc(label)}</span></a></li>`),
   ].join('\n    ')
 
+  const byLetter = new Map(data.threads.map((t) => [t.letter, t]))
   const groups = derived.bands.map((b) => {
-    if (!b.threads.length) return ''
-    const items = b.threads.map((t) => {
+    if (!b.letters.length) return ''
+    const items = b.letters.map((l) => byLetter.get(l)).map((t) => {
       const capCls = t.needs !== 'source' ? ' class="cap"' : ''
       return `<li><a href="#t${attr(t.letter)}"${capCls}><b>${esc(t.letter)}</b><span>${esc(t.name)}</span></a></li>`
     }).join('\n      ')

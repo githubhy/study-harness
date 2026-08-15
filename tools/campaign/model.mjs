@@ -151,9 +151,13 @@ export function derive(data) {
   // order as the roadmap's §4 bands" a requirement — and each renderer used to group and sort for
   // itself, across two different comparators. They agreed only because thread letters happen to be
   // single uppercase characters: a property of this campaign's data, not of the code.
+  // A band carries the loop step and its letters in order — an ordering, not a second copy of the
+  // threads. Each renderer maps the letters onto whatever it draws (data.threads for §4's cards,
+  // derived.threads for the strip's pips, derived.census for §8's rows), so there is one order and
+  // still one home for the content.
   const bands = data.loopSteps.map((s) => ({
     ...s,
-    threads: data.threads.filter((t) => t.loop === s.id).sort(byLetter),
+    letters: data.threads.filter((t) => t.loop === s.id).sort(byLetter).map((t) => t.letter),
   }))
 
   const list = [...threads.values()]
