@@ -1,0 +1,818 @@
+<title>Harness Dissection</title>
+<style>
+  :root {
+    --paper:      #F2F3F1;
+    --raised:     #FBFBFA;
+    --sunk:       #EBEDE9;
+    --ink:        #16181C;
+    --ink-soft:   #4E5359;
+    --ink-faint:  #7C8289;
+    --rule:       #D6D8D3;
+    --rule-soft:  #E4E6E1;
+    --specimen:   #A85D0B;
+    --specimen-bg:#F6ECE0;
+    --control:    #1F6F6B;
+    --control-bg: #E3EFEE;
+    --ready:      #2F6B34;
+    --ready-bg:   #E6EFE5;
+
+    --serif: ui-serif, Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --w: 1120px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:      #131518;
+      --raised:     #1A1D21;
+      --sunk:       #0E1013;
+      --ink:        #E7E5DF;
+      --ink-soft:   #A9AEB4;
+      --ink-faint:  #767C83;
+      --rule:       #2B2F35;
+      --rule-soft:  #23272C;
+      --specimen:   #E0973F;
+      --specimen-bg:#2A2119;
+      --control:    #5EB5AE;
+      --control-bg: #162726;
+      --ready:      #7BB77F;
+      --ready-bg:   #1A2419;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper:      #131518;
+    --raised:     #1A1D21;
+    --sunk:       #0E1013;
+    --ink:        #E7E5DF;
+    --ink-soft:   #A9AEB4;
+    --ink-faint:  #767C83;
+    --rule:       #2B2F35;
+    --rule-soft:  #23272C;
+    --specimen:   #E0973F;
+    --specimen-bg:#2A2119;
+    --control:    #5EB5AE;
+    --control-bg: #162726;
+    --ready:      #7BB77F;
+    --ready-bg:   #1A2419;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--serif); font-size: 17px; line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: var(--w); margin: 0 auto; padding: 0 28px 96px; }
+  a { color: var(--specimen); }
+  :focus-visible { outline: 2px solid var(--control); outline-offset: 3px; border-radius: 2px; }
+  code, .mono { font-family: var(--mono); font-size: .85em; }
+
+  /* ---------- masthead ---------- */
+  .mast { padding: 68px 0 36px; border-bottom: 1px solid var(--rule); }
+  .eyebrow {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--ink-faint); margin: 0 0 18px;
+  }
+  h1 {
+    font-weight: 600; font-size: clamp(38px, 6vw, 60px); line-height: 1.04;
+    letter-spacing: -.022em; margin: 0 0 20px; text-wrap: balance;
+  }
+  .standfirst { font-size: clamp(18px, 2.1vw, 21px); line-height: 1.55; color: var(--ink-soft); max-width: 62ch; margin: 0; }
+  .standfirst strong { color: var(--ink); font-weight: 600; }
+  .facts { display: flex; flex-wrap: wrap; gap: 10px 34px; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--rule-soft); }
+  .fact { display: flex; flex-direction: column; gap: 3px; }
+  .fact dt { font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-faint); }
+  .fact dd { margin: 0; font-family: var(--mono); font-size: 13px; font-variant-numeric: tabular-nums; }
+
+  /* ---------- sections ---------- */
+  section { padding-top: 58px; }
+  h2 {
+    font-size: 13px; font-family: var(--mono); font-weight: 500; letter-spacing: .15em;
+    text-transform: uppercase; color: var(--ink-faint); margin: 0 0 6px;
+    display: flex; align-items: baseline; gap: 12px;
+  }
+  h2::after { content: ""; flex: 1; height: 1px; background: var(--rule); }
+  .lede { font-size: 19px; line-height: 1.5; margin: 0 0 28px; max-width: 64ch; }
+  .lede em { color: var(--ink-soft); font-style: italic; }
+
+  /* ---------- code ---------- */
+  pre {
+    background: var(--sunk); border: 1px solid var(--rule); margin: 0;
+    padding: 14px 16px; overflow-x: auto; font-family: var(--mono);
+    font-size: 12.5px; line-height: 1.62; color: var(--ink);
+  }
+  pre .c { color: var(--ink-faint); }
+  pre .k { color: var(--specimen); }
+
+  /* ---------- start-here ---------- */
+  .today { border: 1px solid var(--control); background: var(--control-bg); padding: 24px 26px; display: grid; gap: 16px; }
+  .today h3 { margin: 0; font-size: 19px; font-weight: 600; display: flex; align-items: center; gap: 12px; }
+  .today p { margin: 0; font-size: 15.5px; color: var(--ink-soft); max-width: 68ch; }
+  .today pre { background: var(--raised); border-color: var(--rule); }
+
+  /* ---------- diagram ---------- */
+  .loopbox { background: var(--raised); border: 1px solid var(--rule); padding: 28px 24px 18px; margin: 0 0 24px; overflow-x: auto; }
+  .loopbox figcaption { font-family: var(--mono); font-size: 11.5px; color: var(--ink-faint); letter-spacing: .04em; margin-top: 14px; text-align: center; }
+  svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+
+  /* ---------- claims ---------- */
+  .claims { display: grid; gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+  .claim { background: var(--raised); padding: 20px 22px; }
+  .claim h3 { margin: 0 0 6px; font-size: 17px; font-weight: 600; letter-spacing: -.01em; }
+  .claim p { margin: 0; font-size: 15px; line-height: 1.55; color: var(--ink-soft); }
+  @media (min-width: 800px) { .claims { grid-template-columns: repeat(3, 1fr); } }
+
+  /* ---------- generic layered block ---------- */
+  details { background: var(--raised); }
+  details > summary {
+    cursor: pointer; list-style: none; display: grid; align-items: start;
+    padding: 20px 22px; gap: 4px 20px;
+  }
+  details > summary::-webkit-details-marker { display: none; }
+  details > summary::after {
+    content: "+"; font-family: var(--mono); font-size: 17px; color: var(--ink-faint);
+    grid-column: 3; grid-row: 1; justify-self: end; line-height: 1.2;
+  }
+  details[open] > summary::after { content: "\2212"; }
+  details > summary:hover::after { color: var(--specimen); }
+  .layer { padding: 0 22px 22px; display: grid; gap: 16px; }
+  .layer h4 {
+    margin: 0 0 8px; font-family: var(--mono); font-size: 10.5px; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--ink-faint); font-weight: 500;
+  }
+  .layer p { margin: 0; font-size: 15px; line-height: 1.58; color: var(--ink-soft); max-width: 72ch; }
+  .layer p strong { color: var(--ink); font-weight: 600; }
+  .layer ul { margin: 0; padding-left: 20px; font-size: 15px; line-height: 1.58; color: var(--ink-soft); }
+  .layer li + li { margin-top: 5px; }
+  .layer li strong { color: var(--ink); font-weight: 600; }
+  .divider { border-top: 1px solid var(--rule-soft); padding-top: 16px; }
+
+  /* ---------- phase spine ---------- */
+  .spine { display: flex; flex-direction: column; gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+  .phase > summary { grid-template-columns: 54px 1fr auto; }
+  .phase[data-kind="control"] { background: var(--control-bg); }
+  .pnum {
+    font-family: var(--mono); font-size: 29px; font-weight: 500; color: var(--ink-faint);
+    line-height: 1; font-variant-numeric: tabular-nums; grid-row: 1 / span 3; padding-top: 3px;
+  }
+  .phase[data-kind="control"] .pnum { color: var(--control); }
+  .ptitle { font-size: 20px; font-weight: 600; letter-spacing: -.012em; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; grid-column: 2; }
+  .pbody { font-size: 15.5px; line-height: 1.55; color: var(--ink-soft); max-width: 70ch; grid-column: 2; margin: 0; }
+  .pmeta { font-family: var(--mono); font-size: 11.5px; color: var(--ink-faint); letter-spacing: .03em; grid-column: 2; }
+  .pmeta b { color: var(--ink-soft); font-weight: 500; }
+  .phase .layer { padding-left: 96px; }
+  @media (max-width: 640px) { .phase .layer { padding-left: 22px; } }
+
+  .chip {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
+    padding: 3px 8px; border: 1px solid currentColor; white-space: nowrap; font-weight: 500;
+  }
+  .chip--ready { color: var(--ready); background: var(--ready-bg); }
+  .chip--wait  { color: var(--ink-faint); }
+  .chip--ctrl  { color: var(--control); }
+
+  /* ---------- logic table ---------- */
+  .tablewrap { overflow-x: auto; border: 1px solid var(--rule); background: var(--raised); }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; }
+  th, td { text-align: left; padding: 11px 16px; border-bottom: 1px solid var(--rule-soft); font-size: 15px; vertical-align: top; }
+  th { font-family: var(--mono); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; border-bottom: 1px solid var(--rule); }
+  tr:last-child td { border-bottom: none; }
+  td.yes { color: var(--control); font-family: var(--mono); font-size: 13px; }
+  td.no  { color: var(--ink-faint); font-family: var(--mono); font-size: 13px; }
+  td.tref { font-family: var(--mono); font-size: 12.5px; color: var(--specimen); white-space: nowrap; }
+
+  /* ---------- thread grid ---------- */
+  .threads { display: grid; gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+  @media (min-width: 760px) { .threads { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1060px) { .threads { grid-template-columns: repeat(3, 1fr); } }
+  .thread > summary { grid-template-columns: 1fr auto; padding: 18px 18px 16px; gap: 9px 14px; }
+  .thead { display: flex; align-items: baseline; gap: 9px; grid-column: 1; }
+  .tletter { font-family: var(--mono); font-size: 12.5px; font-weight: 600; color: var(--specimen); background: var(--specimen-bg); padding: 2px 7px; letter-spacing: .04em; }
+  .tname { font-size: 16px; font-weight: 600; letter-spacing: -.01em; line-height: 1.25; }
+  .tq { margin: 0; font-size: 14.5px; line-height: 1.48; color: var(--ink-soft); font-style: italic; grid-column: 1 / -1; }
+  .pkgs { display: flex; flex-wrap: wrap; gap: 4px; grid-column: 1 / -1; }
+  .pkg { font-family: var(--mono); font-size: 10.5px; color: var(--ink-faint); border: 1px solid var(--rule); padding: 1px 5px; white-space: nowrap; }
+  .tflags { display: flex; flex-wrap: wrap; gap: 5px; grid-column: 1 / -1; }
+  .flag { font-family: var(--mono); font-size: 9.5px; letter-spacing: .09em; text-transform: uppercase; padding: 2px 6px; border: 1px solid currentColor; }
+  .flag--src { color: var(--ready); background: var(--ready-bg); }
+  .flag--cap { color: var(--specimen); background: var(--specimen-bg); }
+  .flag--cc  { color: var(--control); background: var(--control-bg); }
+  .thread > summary::after { grid-column: 2; grid-row: 1; }
+  .thread .layer { padding: 0 18px 18px; gap: 14px; }
+
+  /* ---------- rules ---------- */
+  .rules { display: grid; gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+  @media (min-width: 780px) { .rules { grid-template-columns: repeat(2, 1fr); } }
+  .rule-item { background: var(--raised); padding: 19px 22px; }
+  .rule-item h3 { margin: 0 0 5px; font-size: 16px; font-weight: 600; }
+  .rule-item p { margin: 0; font-size: 15px; line-height: 1.55; color: var(--ink-soft); }
+
+  .pullquote { border-left: 3px solid var(--specimen); padding: 4px 0 4px 20px; margin: 24px 0 0; font-size: 18.5px; line-height: 1.5; max-width: 60ch; }
+
+  .coverage { display: grid; gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+  @media (min-width: 700px) { .coverage { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1000px) { .coverage { grid-template-columns: repeat(3, 1fr); } }
+  .cov { background: var(--raised); padding: 13px 16px; display: flex; flex-direction: column; gap: 6px; }
+  .cov-t { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--specimen); }
+  .cov-t.infra { color: var(--ink-faint); }
+
+  footer { margin-top: 66px; padding-top: 22px; border-top: 1px solid var(--rule); font-family: var(--mono); font-size: 12px; color: var(--ink-faint); display: flex; flex-wrap: wrap; gap: 8px 26px; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    details > summary::after { transition: color .15s ease; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="mast">
+    <p class="eyebrow">Study roadmap · dsh @ 47f9438 · every panel below opens</p>
+    <h1>Harness Dissection</h1>
+    <p class="standfirst">
+      Build a transferable model of <strong>agent harnesses as a category</strong> by dissecting
+      DeepSeek Harness — then test whether that model explains a harness it was never derived from.
+    </p>
+    <dl class="facts">
+      <div class="fact"><dt>Specimen</dt><dd>deepseek-harness</dd></div>
+      <div class="fact"><dt>Pinned</dt><dd>47f9438 · 2026-08-13</dd></div>
+      <div class="fact"><dt>Packages</dt><dd>49 · all covered</dd></div>
+      <div class="fact"><dt>Threads</dt><dd>15 · 12 need no key</dd></div>
+      <div class="fact"><dt>Transfer test</dt><dd>Claude Code · transcripts</dd></div>
+      <div class="fact"><dt>Completion</dt><dd>none — surprise budget</dd></div>
+    </dl>
+  </header>
+
+  <section>
+    <h2>Start here</h2>
+    <div class="today">
+      <h3>Three commands, no API key <span class="chip chip--ready">runnable now</span></h3>
+      <p>Phase 0 is the long pole and needs nothing but a clone. Everything downstream depends on the instrument it builds.</p>
+      <pre><span class="c"># 1 · pin the specimen</span>
+git clone https://github.com/deepseek-ai/deepseek-harness.git ../deepseek-harness
+git -C ../deepseek-harness checkout <span class="k">47f943859bef60e4160492346772ded9b24f765a</span>
+
+<span class="c"># 2 · build it</span>
+cd ../deepseek-harness &amp;&amp; corepack enable &amp;&amp; pnpm install --frozen-lockfile &amp;&amp; pnpm build
+
+<span class="c"># 3 · find the base-URL override — this is what lets you capture later</span>
+rg -n 'baseURL|baseUrl|base_url|BASE_URL' packages/llm/ apps/ --type ts</pre>
+      <p>Then twelve of the fifteen threads are open to you immediately — they read source only. The DeepSeek key gates just Threads&nbsp;A and&nbsp;C.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>The thing being studied</h2>
+    <p class="lede">
+      A language model is a function from text to text. It cannot read a file, run a command, or
+      remember anything. A <strong>harness</strong> is the program wrapped around it that supplies all three.
+      <em>Everything else — compaction, permissions, plugins, sandboxing, delegation — is a refinement of one of these five steps.</em>
+    </p>
+
+    <figure class="loopbox">
+      <svg viewBox="0 0 900 168" role="img" aria-label="The agent loop: assemble context, call model, parse tool calls, execute tools, append results, then repeat until a stop condition fires.">
+        <defs>
+          <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+          </marker>
+        </defs>
+        <g style="color: var(--ink-faint)">
+          <g font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12.5" text-anchor="middle">
+            <g style="color: var(--ink)" fill="currentColor">
+              <rect x="8"   y="34" width="150" height="46" fill="none" stroke="currentColor" stroke-width="1"/>
+              <text x="83"  y="62">assemble</text>
+              <rect x="196" y="34" width="130" height="46" fill="none" stroke="currentColor" stroke-width="1"/>
+              <text x="261" y="62">call model</text>
+              <rect x="364" y="34" width="130" height="46" fill="none" stroke="currentColor" stroke-width="1"/>
+              <text x="429" y="62">parse calls</text>
+              <rect x="532" y="34" width="140" height="46" fill="none" stroke="currentColor" stroke-width="1"/>
+              <text x="602" y="62">execute</text>
+              <rect x="710" y="34" width="140" height="46" fill="none" stroke="currentColor" stroke-width="1"/>
+              <text x="780" y="62">append</text>
+            </g>
+            <g stroke="currentColor" stroke-width="1.25" fill="none" marker-end="url(#ar)">
+              <path d="M158,57 L190,57"/><path d="M326,57 L358,57"/>
+              <path d="M494,57 L526,57"/><path d="M672,57 L704,57"/>
+            </g>
+            <path d="M780,80 L780,124 L83,124 L83,86" stroke="currentColor" stroke-width="1.25" fill="none" stroke-dasharray="4 4" marker-end="url(#ar)"/>
+            <text x="431" y="142" fill="currentColor">repeat until a stop condition fires</text>
+          </g>
+        </g>
+      </svg>
+      <figcaption>Five phases. Every harness has all of them; they differ in what they do at each.</figcaption>
+    </figure>
+
+    <div class="claims">
+      <article class="claim">
+        <h3>You can't read what you can't name</h3>
+        <p>Writing a harness first supplies the vocabulary that makes a real one legible. Reading <code>agent-loop</code> cold teaches nothing; reading it after writing a loop teaches everything.</p>
+      </article>
+      <article class="claim">
+        <h3>The wire beats the source</h3>
+        <p>Prompt assembly is scattered across dozens of files. The bytes sent to the API are single, literal ground truth. When a reading and a capture disagree, the capture wins.</p>
+      </article>
+      <article class="claim">
+        <h3>A vocabulary must transfer</h3>
+        <p>Concepts that only explain their own specimen are worthless. The study succeeds if ideas derived from dsh explain Claude Code — and fails if they don't.</p>
+      </article>
+    </div>
+  </section>
+
+  <section>
+    <h2>The logic of the study</h2>
+    <p class="lede">
+      Phase 1's toy harness is not a warm-up — it is the <strong>question generator</strong>.
+      Every shortcut it takes is a question a real harness had to answer, and that mapping <em>is</em> the thread menu.
+    </p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>What the toy does</th><th>The question it raises</th><th>Thread</th></tr></thead>
+        <tbody>
+          <tr><td><code>.slice(0, 4000)</code> on every tool result</td><td>What should be dropped when context fills, and how is that decided?</td><td class="tref">C</td></tr>
+          <tr><td>Runs every tool unchecked, including <code>rm</code></td><td>Where does a permission boundary belong, and what does it gate?</td><td class="tref">D</td></tr>
+          <tr><td>Hard-coded <code>MAX_STEPS = 10</code></td><td>What legitimately terminates a loop?</td><td class="tref">B</td></tr>
+          <tr><td>Two tools in an array literal</td><td>How does a tool get registered and described at scale?</td><td class="tref">D · A</td></tr>
+          <tr><td>One hard-coded system prompt string</td><td>What actually belongs in a system prompt?</td><td class="tref">A</td></tr>
+          <tr><td>Bare <code>execSync</code> on the host</td><td>Where should model-authored code run, and what contains it?</td><td class="tref">G</td></tr>
+          <tr><td>One loop, one context, no fan-out</td><td>When does a harness spawn another harness?</td><td class="tref">F</td></tr>
+          <tr><td>Loses everything on exit</td><td>What must be saved to resume a conversation?</td><td class="tref">I</td></tr>
+          <tr><td>No plugins, no extension points</td><td>Where should the extension boundary sit?</td><td class="tref">E · H</td></tr>
+          <tr><td>Prints to stdout</td><td>Where does the harness end and the interface begin?</td><td class="tref">K</td></tr>
+          <tr><td>Hard-codes one provider's wire format</td><td>What does model-agnosticism cost, and where does it leak?</td><td class="tref">L</td></tr>
+          <tr><td>No way to observe or interrupt it</td><td>How does anyone outside the loop see in?</td><td class="tref">J</td></tr>
+          <tr><td>Model can't track its own plan</td><td>What tools manage the model's own process?</td><td class="tref">O</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Phases</h2>
+    <p class="lede">These <em>are</em> sequential, so they're numbered. The threads inside Phase 2 are not, so they aren't. Open any phase for its tasks and deliverables.</p>
+
+    <div class="spine">
+      <details class="phase" open>
+        <summary>
+          <div class="pnum">0</div>
+          <div class="ptitle">Scaffold &amp; instrument <span class="chip chip--ready">runnable now</span></div>
+          <p class="pbody">Clone dsh at the pinned SHA and build it. Write the streaming-safe capture proxy that tees every model request to disk with credentials redacted at write time.</p>
+          <div class="pmeta">blocked by <b>nothing</b> · needs no API key · produces <b>LLM_BASE_URL_ENV</b>, <b>DSH_CMD</b></div>
+        </summary>
+        <div class="layer">
+          <div>
+            <h4>Tasks</h4>
+            <ul>
+              <li><strong>0.1 · Pin the checkout.</strong> Clone, detach at <code>47f9438</code>, <code>pnpm install --frozen-lockfile</code>, build. Discover and record the base-URL override and the non-interactive run command.</li>
+              <li><strong>0.2 · Build the proxy.</strong> ~70 lines of dependency-free Node. Tees SSE to disk without buffering the client's view, and redacts <code>authorization</code>, <code>x-api-key</code>, <code>api-key</code>, <code>cookie</code> before any write.</li>
+            </ul>
+          </div>
+          <div class="divider">
+            <h4>The one check you must not skip</h4>
+            <pre>rg -n 'sk-|Bearer' captures/session-smoke.jsonl   <span class="c"># must print nothing</span></pre>
+            <p>A leaked key in a capture is the single unrecoverable mistake in this study. If that command prints anything, stop and fix <code>redact()</code> before going further.</p>
+          </div>
+          <div class="divider">
+            <h4>Deliverables</h4>
+            <p><code>.gitignore</code> · <code>tools/capture-proxy/server.mjs</code> · <code>notes/00-orientation.md</code> holding the pinned SHA, the package map, and the two discovered values every later task consumes by name.</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="phase" data-kind="control">
+        <summary>
+          <div class="pnum">1</div>
+          <div class="ptitle">Write a harness from scratch <span class="chip chip--ctrl">the control</span></div>
+          <p class="pbody">~45 lines against the DeepSeek API: a message list, two tools, a loop, a step cap. The only harness whose every byte you can account for — and therefore the reference against which dsh's captures are read.</p>
+          <div class="pmeta">blocked by <b>Phase 0</b> · about an hour · produces the question list driving Phase 2</div>
+        </summary>
+        <div class="layer">
+          <div>
+            <h4>The whole thing, in shape</h4>
+            <pre>messages = [system, user]
+<span class="k">for</span> step <span class="k">in</span> 1..10:
+    msg = POST /chat/completions {model, messages, tools}
+    messages.push(msg)
+    <span class="k">if</span> not msg.tool_calls: print(msg.content); <span class="k">break</span>
+    <span class="k">for</span> call <span class="k">in</span> msg.tool_calls:
+        result = impls[call.name](call.args)
+        messages.push({role:'tool', tool_call_id, content: result<span class="k">.slice(0,4000)</span>})</pre>
+          </div>
+          <div class="divider">
+            <h4>Then break it deliberately</h4>
+            <ul>
+              <li><strong>Blow the truncation:</strong> ask it to read <code>package-lock.json</code> and list the dependencies.</li>
+              <li><strong>Blow the step cap:</strong> twelve sorting algorithms, each run and compared.</li>
+              <li><strong>Expose the missing permission layer:</strong> ask it to delete every <code>.tmp</code> under <code>/tmp</code>. The alarm you feel is <code>packages/guard</code>'s entire reason to exist.</li>
+            </ul>
+          </div>
+          <div class="divider">
+            <h4>Deliverables</h4>
+            <p><code>experiments/minimal-harness/harness.mjs</code>, a capture of your own harness through the proxy, and <code>notes/01-what-my-harness-lacks.md</code> — the table that becomes the thread menu. First real <code>CONTEXT.md</code> terms land here: loop, turn, step, tool call, tool result, context window.</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="phase">
+        <summary>
+          <div class="pnum">2</div>
+          <div class="ptitle">Dissect the specimen <span class="chip chip--wait">15-thread menu</span></div>
+          <p class="pbody">Capture dsh on the same task, record what you observed before reading any source, then work the thread menu in whatever order stays interesting.</p>
+          <div class="pmeta">blocked by <b>Phase 1</b> · covers all <b>49 packages</b> · no fixed order</div>
+        </summary>
+        <div class="layer">
+          <div>
+            <h4>Task 2.0 comes first — and it's observation-only</h4>
+            <p>Capture dsh on the canonical task, then write <code>notes/02-baseline-behavior.md</code> recording <strong>only what was observable</strong>: round-trip count, tool order, when approval was requested, what displayed between steps, whether it verified its own work.</p>
+            <pre>rg -n 'packages/' notes/02-baseline-behavior.md   <span class="c"># must print nothing</span></pre>
+            <p>That note is the control Thread B must later reconcile against, line by line. It only works if it was written before you read any source.</p>
+          </div>
+          <div class="divider">
+            <h4>Then diff your toy against the specimen</h4>
+            <p>Same task, two harnesses, two captures. Every difference is a thread to pull — and the thread menu below is already sorted by which question your own harness made you ask.</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="phase">
+        <summary>
+          <div class="pnum">3</div>
+          <div class="ptitle">Exam · one tool, two harnesses</div>
+          <p class="pbody">The same trivial tool built twice — as a dsh plugin and as an MCP server for Claude Code. The diff between the two integrations <em>is</em> the finding.</p>
+          <div class="pmeta">gated on <b>Thread D</b> · both round trips must close</div>
+        </summary>
+        <div class="layer">
+          <div>
+            <h4>Two things must be true, per harness</h4>
+            <p>The tool was <strong>offered</strong>, and the model <strong>called it</strong>. Proving only the first is the classic false pass — it shows registration worked while the loop never closed around it.</p>
+            <pre><span class="c"># offered (dsh, from the capture)</span>
+jq -r 'select(.dir=="request") | .body.tools[]? | .function.name' \
+  captures/session-plugin.jsonl | sort -u | rg hello_study
+
+<span class="c"># called (either harness — grep the marker)</span>
+rg -c 'STUDY-MARKER-7f3a' captures/session-plugin.jsonl</pre>
+          </div>
+          <div class="divider">
+            <h4>Why this is the category exam</h4>
+            <p>What <em>both</em> harnesses demand of a tool is essential to the category. What only one demands is incidental to its implementation. That intersection is the real model of "a tool" — and MCP versus a Cordis plugin is itself an answer to Thread&nbsp;E's question about where an extension boundary belongs.</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="phase">
+        <summary>
+          <div class="pnum">4</div>
+          <div class="ptitle">Transfer test</div>
+          <p class="pbody">Commit predictions <em>before</em> opening the Claude Code transcripts already on disk, then score them. Sort every glossary term into universal, dsh-specific, or missing.</p>
+          <div class="pmeta">blocked by <b>Phase 2</b> · last by design — reading earlier makes the test circular</div>
+        </summary>
+        <div class="layer">
+          <div>
+            <h4>Predict first, and commit the prediction</h4>
+            <p>From the dsh-derived model alone, write down which tools you expect, how results appear serialized, what stop reasons exist, how permissions are gated. <strong>A prediction made after looking tests nothing</strong> — so it goes in a commit before the first <code>jq</code> runs.</p>
+          </div>
+          <div class="divider">
+            <h4>Three buckets, and two of them are the output</h4>
+            <ul>
+              <li><strong>Universal</strong> — explains both harnesses. Stays canonical in <code>CONTEXT.md</code>.</li>
+              <li><strong>dsh-specific</strong> — an implementation detail you mistook for a category concept.</li>
+              <li><strong>Missing</strong> — Claude Code does something your vocabulary can't name. <code>thinking</code> blocks, hooks, and sidechains are the likely candidates.</li>
+            </ul>
+            <p>Buckets two and three are what the study actually produced. Bucket one is just what survived.</p>
+          </div>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <section>
+    <h2>The thread menu</h2>
+    <p class="lede">
+      Fifteen threads, lettered rather than numbered because there is no correct order.
+      <em>Open any card for its entry commands and the specific thing it has to answer.</em>
+    </p>
+
+    <div class="threads">
+
+      <details class="thread">
+        <summary>
+          <div class="thead"><span class="tletter">A</span><span class="tname">Prompt &amp; presentation</span></div>
+          <p class="tq">What actually belongs in a system prompt, and how much behaviour is bought with prose rather than code?</p>
+          <div class="pkgs"><span class="pkg">core/system-prompt</span><span class="pkg">agent-tool-presentation</span><span class="pkg">preset</span></div>
+          <div class="tflags"><span class="flag flag--cap">needs capture</span></div>
+        </summary>
+        <div class="layer">
+          <pre>jq -r 'select(.dir=="request") | .body.messages[]
+  | select(.role=="system") | .content' captures/session-dsh-canonical.jsonl | head -1</pre>
+          <p><strong>Answer with a number.</strong> What fraction of behavioural instruction lives in tool <em>descriptions</em> versus the system prompt? That ratio is a category-level property you can carry to any harness.</p>
+          <p>Take a distinctive six-word phrase from the capture and <code>rg</code> for it. If it isn't found literally, the prompt is assembled from fragments — record which, and where.</p>
+        </div>
+      </details>
+
+      <details class="thread">
+        <summary>
+          <div class="thead"><span class="tletter">B</span><span class="tname">The agent loop</span></div>
+          <p class="tq">What legitimately terminates a loop? Your toy just used a hard step cap of ten.</p>
+          <div class="pkgs"><span class="pkg">core/agent-loop</span><span class="pkg">core/agent</span><span class="pkg">agent-default-model</span></div>
+          <div class="tflags"><span class="flag flag--src">source only</span></div>
+        </summary>
+        <div class="layer">
+          <pre>rg -n 'break|return|maxSteps|maxTurns|stop|finish' \
+  packages/core/agent-loop --type ts
+pnpm vitest run packages/core/agent-loop --reporter=verbose</pre>
+          <p>Mark the line where each of the five phases happens, then record <strong>every</strong> termination condition in precedence order — no tool calls emitted, step cap, token budget, user interrupt.</p>
+          <p>The tests are executable spec: an invariant you wouldn't have predicted marks a gap in your model. Then reconcile every observation in <code>notes/02-baseline-behavior.md</code> against a specific line, or list it as open.</p>
+        </div>
+      </details>
+
+      <details class="thread">
+        <summary>
+          <div class="thead"><span class="tletter">C</span><span class="tname">Context &amp; compaction</span></div>
+          <p class="tq">What should be dropped when the context fills, and is the decision positional, semantic, or size-based?</p>
+          <div class="pkgs"><span class="pkg">compaction/*</span><span class="pkg">context</span><span class="pkg">spill</span><span class="pkg">core/session</span></div>
+          <div class="tflags"><span class="flag flag--cap">needs capture</span></div>
+        </summary>
+        <div class="layer">
+          <pre>jq -r 'select(.dir=="request")
+  | "\(.id)\t\(.body.messages|length)\t\(.body.messages|tostring|length)"' \
+  captures/session-dsh-long.jsonl</pre>
+          <p>A monotonic rise followed by a <strong>drop in message count</strong> is a compaction event. The canonical task is too short to trigger one — run the twelve-algorithm task instead.</p>
+          <p>The densest engineering in the repo: compaction is a top-level package with a dedicated <code>compaction-tool-result-pruner</code>, and <code>spill</code> sits alongside it. Direct answer to your toy's worst shortcut.</p>
+        </div>
+      </details>
+
+      <details class="thread">
+        <summary>
+          <div class="thead"><span class="tletter">D</span><span class="tname">Tools &amp; permission</span></div>
+          <p class="tq">What must a harness be told about a tool, and where does the permission boundary sit?</p>
+          <div class="pkgs"><span class="pkg">core/tools</span><span class="pkg">fs</span><span class="pkg">guard</span><span class="pkg">web</span></div>
+          <div class="tflags"><span class="flag flag--src">source only</span><span class="flag flag--cc">gates exam</span></div>
+        </summary>
+        <div class="layer">
+          <pre>rg -n 'approve|permission|confirm|allow|deny' packages/guard --type ts</pre>
+          <p>Trace the file-edit tool through <strong>six layers</strong>, each cited <code>path:line</code>: schema → registration → presentation → dispatch → permission → result serialization.</p>
+          <p>Then answer: is approval per-call, per-tool, per-session, or path-scoped — and what's the default posture? Output is a harness-neutral checklist, "what a new tool must provide," which Phase 3 consumes directly.</p>
+        </div>
+      </details>
+
+      <details class="thread">
+        <summary>
+          <div class="thead"><span class="tletter">E</span><span class="tname">Plugin architecture</span></div>
+          <p class="tq">Where should a harness's extension boundary sit, and what does “everything is a plugin” make hard?</p>
+          <div class="pkgs"><span class="pkg">core/scope</span><span class="pkg">boot</span><span class="pkg">extensions</span><span class="pkg">bundle</span></div>
+          <div class="tflags"><span class="flag flag--src">source only</span></div>
+        </summary>
+        <div class="layer">
+          <pre>cat packages/core/README.md AGENTS.md CLAUDE.md packages/AGENTS.md
+rg -n 'ctx\.(plugin|on|set|inject)' packages/core --type ts</pre>
+          <p><strong>Learn Cordis first or this thread fails.</strong> It's dependency injection plus an event bus — nothing calls anything directly, so grep-based tracing finds nothing and the codebase reads as indirection with no call graph. There's a paper behind it: <em>A Programming Paradigm for Spatiotemporal Composability</em>.</p>
+          <p>The repo's own <code>AGENTS.md</code> and <code>CLAUDE.md</code> are written to orient agents working in it, which makes them the best human onboarding docs too — usually fresher than <code>docs/</code>.</p>
+        </div>
+      </details>
+
+      <details class="thread">
+        <summary>
+          <div class="thead"><span class="tletter">F</span><span class="tname">Delegation &amp; sub-agents</span></div>
+          <p class="tq">When does a harness spawn <em>another</em> harness, and what does the child inherit?</p>
+          <div class="pkgs"><span class="pkg">subagent</span><span class="pkg">plan</span><span class="pkg">goal</span><span class="pkg">jobs</span><span class="pkg">schedule</span></div>
+          <div class="tflags"><span class="flag flag--src">source only</span><span class="flag flag--cc">CC comparison</span></div>
+        </summary>
+        <div class="layer">
+          <pre>rg -n 'fork|spawn|child|sub.?agent|delegate' packages/subagent packages/jobs --type ts</pre>
+          <p>The design question is what a child inherits — tools? history? permissions? — and how its result re-enters the parent's context.</p>
+          <p><strong>One of the sharpest comparison surfaces in the study.</strong> Claude Code has the same feature: sub-agent invocations appear in transcripts as <code>Task</code>/<code>Agent</code> tool calls, and <code>isSidechain</code> marks the child sessions.</p>
+        </div>
+      </details>
+
+      <details class="thread">
+        <summary>
+          <div class="thead"><span class="tletter">G</span><span class="tname">Execution &amp; sandboxing</span></div>
+          <p class="tq">Where does model-authored code actually run, and what contains it?</p>
+          <div class="pkgs"><span class="pkg">sandbox</span><span class="pkg">e2b</span><span class="pkg">code-runtime</span><span class="pkg">shell</span><span class="pkg">subprocess</span><span class="pkg">terminal</span></div>
+          <div class="tflags"><span class="flag flag--src">source only</span></div>
+        </summary>
+        <div class="layer">
+          <pre>rg -n 'unsafe|escape|host|local|bypass' packages/sandbox --type ts</pre>
+          <p>Six packages here against your toy's bare <code>execSync</code> — that alone says the answer isn't obvious. Distinguish the layers: is <code>code-runtime</code> the abstraction, <code>sandbox</code> the local implementation, <code>e2b</code> a remote provider?</p>
+          <p>Then find the escape hatch — is there a path where code runs unsandboxed, and what gates it? Map the isolation strategies (none / subprocess / container / remote VM) and what each costs in latency and fidelity.</p>
+        </div>
+      </details>
+
+      <details class="thread">
+        <summary>
+          <div class="thead"><span class="tletter">H</span><span class="tname">Interop · MCP &amp; ACP</span></div>
+          <p class="tq">When a harness standardises its extension boundary, what does it give up?</p>
+          <div class="pkgs"><span class="pkg">mcp</span><span class="pkg">acp</span><span class="pkg">api</span><span class="pkg">sdk</span></div>
+          <div class="tflags"><span class="flag flag--src">source only</span><span class="flag flag--cc">CC comparison</span></div>
+        </summary>
+        <div class="layer">
+          <p>Thread E covers the <em>native</em> extension boundary. This covers the <em>standard</em> one — and both harnesses under study speak MCP, making it the one integration surface you can compare directly.</p>
+          <p><strong>The question that matters:</strong> which capabilities can a native plugin express that an MCP server cannot? That gap is precisely why native plugin systems still exist alongside MCP.</p>
+          <pre>cat packages/acp/README.md   <span class="c"># Agent Client Protocol — what connects to what?</span></pre>
+        </div>
+      </details>
+
+      <details class="thread">
+        <summary>
+          <div class="thead"><span class="tletter">I</span><span class="tname">Persistence &amp; resumption</span></div>
+          <p class="tq">What must be saved for a harness to resume a conversation it isn't currently holding in memory?</p>
+          <div class="pkgs"><span class="pkg">session</span><span class="pkg">session-query</span><span class="pkg">settings</span><span class="pkg">storage</span><span class="pkg">workspace</span></div>
+          <div class="tflags"><span class="flag flag--src">source only</span><span class="flag flag--cc">CC comparison</span></div>
+        </summary>
+        <div class="layer">
+          <p>Your toy loses everything on exit. This is the thread with the <strong>richest comparison data</strong>, because Claude Code's own answer is sitting on your disk in ~3,800 files.</p>
+          <pre>rg -n 'persist|save|write|serialize' packages/session --type ts
+
+F=$(find ~/.claude/projects -name '*.jsonl' | head -1)
+jq -r '.type' "$F" | sort | uniq -c</pre>
+          <p>Then determine what <code>session-query</code> is for: is history searchable, and does the <em>model</em> get to search it, or only the user? That distinction is a real design fork.</p>
+        </div>
+      </details>
+
+      <details class="thread">
+        <summary>
+          <div class="thead"><span class="tletter">J</span><span class="tname">Observability &amp; cost</span></div>
+          <p class="tq">How does a harness let someone outside the loop observe it — or interrupt it?</p>
+          <div class="pkgs"><span class="pkg">hooks</span><span class="pkg">feedback</span><span class="pkg">runtime-diagnostics</span><span class="pkg">token-meter</span></div>
+          <div class="tflags"><span class="flag flag--src">source only</span><span class="flag flag--cc">CC comparison</span></div>
+        </summary>
+        <div class="layer">
+          <pre>rg -n 'hook|before|after|intercept' packages/hooks --type ts</pre>
+          <p>Map the hook points: which loop phases can be intercepted, and can a hook <strong>block</strong> an action or only observe it? In Claude Code the answer is visible — <code>preventedContinuation</code> on system records proves hooks there can block.</p>
+          <p><code>token-meter</code> connects straight back to Thread C: does the harness count tokens before sending (budgeting) or after (accounting)? That determines whether compaction can be predictive.</p>
+        </div>
+      </details>
+
+      <details class="thread">
+        <summary>
+          <div class="thead"><span class="tletter">K</span><span class="tname">The host boundary</span></div>
+          <p class="tq">Where does the harness end and the user interface begin? Could you drive it with no UI at all?</p>
+          <div class="pkgs"><span class="pkg">host</span><span class="pkg">client</span><span class="pkg">interaction</span><span class="pkg">apps/</span></div>
+          <div class="tflags"><span class="flag flag--src">source only</span></div>
+        </summary>
+        <div class="layer">
+          <p>Your toy printed to stdout. dsh serves a web UI on <code>127.0.0.1:3080</code>, so it has drawn a boundary somewhere — and where that line sits determines whether the harness can be embedded, scripted, or driven headlessly.</p>
+          <p>Determine the transport between core and UI (HTTP, WebSocket, JSON-RPC, in-process?), and whether streaming reaches the UI as the raw model stream or as re-emitted domain events. Then answer the real question: <strong>what is the minimum surface a headless embedder needs?</strong></p>
+        </div>
+      </details>
+
+      <details class="thread">
+        <summary>
+          <div class="thead"><span class="tletter">L</span><span class="tname">Provider abstraction</span></div>
+          <p class="tq">What does it take to be model-agnostic, and where does the abstraction leak?</p>
+          <div class="pkgs"><span class="pkg">llm/*</span><span class="pkg">llm-retry</span><span class="pkg">credentials</span><span class="pkg">identity</span></div>
+          <div class="tflags"><span class="flag flag--src">source only</span></div>
+        </summary>
+        <div class="layer">
+          <p>Read the shared <code>llm</code> interface, then both implementations behind it. <strong>What sits in the interface that only one provider actually needs? That is where the abstraction leaks.</strong></p>
+          <p>Then <code>llm-retry</code>: which failures are retried, with what backoff, and is a retried call visible to the loop or hidden beneath it? A hidden retry changes what "one step" means.</p>
+          <p>The category question: can a harness be genuinely model-agnostic, given that prompt engineering, tool-call formats, and thinking blocks all differ per model?</p>
+        </div>
+      </details>
+
+      <details class="thread">
+        <summary>
+          <div class="thead"><span class="tletter">M</span><span class="tname">Inputs &amp; code intelligence</span></div>
+          <p class="tq">What does a harness feed the model besides text and tool results?</p>
+          <div class="pkgs"><span class="pkg">attachment</span><span class="pkg">lsp</span></div>
+          <div class="tflags"><span class="flag flag--src">source only</span></div>
+        </summary>
+        <div class="layer">
+          <p><strong>attachment:</strong> how are images and files injected — re-sent every turn, or referenced? That has a direct cost consequence; connect it to Thread C.</p>
+          <p><strong>lsp:</strong> the harness runs a language server and hands the model its output. Determine whether that arrives as a tool the model <em>calls</em>, or as context <em>injected</em> without being asked. Those are very different designs — decide which is better, and why dsh chose as it did.</p>
+        </div>
+      </details>
+
+      <details class="thread">
+        <summary>
+          <div class="thead"><span class="tletter">N</span><span class="tname">Cross-language embedding</span></div>
+          <p class="tq">Can a TypeScript harness be driven from Python, and what does that boundary force it to make explicit?</p>
+          <div class="pkgs"><span class="pkg">python/</span><span class="pkg">native/</span><span class="pkg">sdk</span><span class="pkg">examples</span></div>
+          <div class="tflags"><span class="flag flag--src">source only</span></div>
+        </summary>
+        <div class="layer">
+          <p>An RPC boundary forces the cleanest possible statement of what a harness <em>is</em>, because everything crossing it must be serialisable. <code>BENCHMARK.md</code> points at a Python SDK and a <code>jsonrpc-agent</code> variant.</p>
+          <p>Read the SDK's surface — that operation list is dsh's own answer to "what is the harness API?" Then compare it to your toy's function signatures: <strong>what did dsh have to make explicit that you left implicit?</strong></p>
+        </div>
+      </details>
+
+      <details class="thread">
+        <summary>
+          <div class="thead"><span class="tletter">O</span><span class="tname">Agent self-management</span></div>
+          <p class="tq">What tools does a harness give the model for managing its own process, rather than the user's task?</p>
+          <div class="pkgs"><span class="pkg">todo</span><span class="pkg">skill</span><span class="pkg">workflow</span></div>
+          <div class="tflags"><span class="flag flag--src">source only</span><span class="flag flag--cc">CC comparison</span></div>
+        </summary>
+        <div class="layer">
+          <p>A category of tool your toy has no concept of: the model tracking its own plan, loading its own instructions, running predefined procedures. <strong>Every one has a direct Claude Code analogue</strong>, making this the densest comparison surface in the study.</p>
+          <ul>
+            <li><strong>todo</strong> — is the list <em>context</em> (re-sent every turn, costing tokens) or <em>external state</em> (stored, referenced)? That choice is the whole design question.</li>
+            <li><strong>skill</strong> — does the model request one by name, or does the harness inject it on a match?</li>
+            <li><strong>workflow</strong> — what distinguishes it from a plan (Thread F) and from a skill? If the code doesn't make that clear, the ambiguity is the finding.</li>
+          </ul>
+        </div>
+      </details>
+
+    </div>
+  </section>
+
+  <section>
+    <h2>What the transfer test can and can't see</h2>
+    <p class="lede">
+      Claude Code here runs on a subscription, so it's studied through the ~3,800 session transcripts
+      already on disk rather than through wire capture. <em>Know these limits before predicting against it.</em>
+    </p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Question</th><th>In transcripts?</th><th>Where it comes from</th></tr></thead>
+        <tbody>
+          <tr><td>Which tools exist and get called</td><td class="yes">yes</td><td><code>tool_use</code> blocks</td></tr>
+          <tr><td>How the loop terminates</td><td class="yes">yes</td><td><code>stopReason</code></td></tr>
+          <tr><td>How permissions are gated</td><td class="yes">yes</td><td><code>permission-mode</code></td></tr>
+          <tr><td>Whether hooks can block</td><td class="yes">yes</td><td><code>preventedContinuation</code></td></tr>
+          <tr><td>Whether sub-agents fork context</td><td class="yes">yes</td><td><code>isSidechain</code></td></tr>
+          <tr><td>Whether the model reasons before acting</td><td class="yes">yes</td><td><code>thinking</code> blocks</td></tr>
+          <tr><td>What the system prompt says</td><td class="no">no</td><td>not stored locally</td></tr>
+          <tr><td>What the tool schemas declare</td><td class="no">no</td><td>not stored locally</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="pullquote">
+      So Phase 4 tests the model of the loop, tools, and permissions — and stays silent on prompt assembly.
+      That gap is a known cost of having no Anthropic API key, not an oversight.
+    </p>
+  </section>
+
+  <section>
+    <h2>Reference</h2>
+
+    <div class="rules" style="margin-bottom: 26px;">
+      <div class="rule-item">
+        <h3>The canonical task</h3>
+        <p>Used verbatim for <em>every</em> harness so captures stay comparable — your toy, dsh, and Claude Code all get the same prompt: <em>“Create a file called fizzbuzz.js that prints FizzBuzz for 1..20, then run it with node and show me the output.”</em> It forces read, write, and execute in one run.</p>
+      </div>
+      <div class="rule-item">
+        <h3>The surprise budget</h3>
+        <p>There is no completion criterion. Abandon a thread after <strong>two consecutive findings that don't surprise you</strong>, and file it as a <code>needs-triage</code> issue. A dry thread is a result, not a failure.</p>
+      </div>
+      <div class="rule-item">
+        <h3>The wire wins</h3>
+        <p>When your reading of the source and the captured bytes disagree, the reading is wrong. Fix the note, not the capture.</p>
+      </div>
+      <div class="rule-item">
+        <h3>Never commit captures</h3>
+        <p><code>captures/</code> is gitignored and the proxy redacts auth headers before writing. A leaked key in a capture is the one unrecoverable mistake here.</p>
+      </div>
+      <div class="rule-item">
+        <h3>Analyse, don't dump</h3>
+        <p>dsh's prompt ships in a public MIT repo and can be quoted freely. Claude Code transcripts are personal working history — cite structure, counts, and tool names only. This repo is public.</p>
+      </div>
+      <div class="rule-item">
+        <h3>Glossary as you go</h3>
+        <p>When a thread sharpens a term, it lands in <code>CONTEXT.md</code> that session — never batched to the end. Terms get re-sorted in Phase 4, and being wrong early is data.</p>
+      </div>
+    </div>
+
+    <details style="border: 1px solid var(--rule);">
+      <summary style="grid-template-columns: 1fr auto;">
+        <div class="ptitle" style="grid-column: 1; font-size: 17px;">Package coverage · all 49 accounted for</div>
+        <p class="pbody" style="grid-column: 1;">Breadth is checkable, not claimed. If a package isn't listed, that's a gap in the plan — add a thread rather than skipping it.</p>
+      </summary>
+      <div class="layer">
+        <div class="coverage">
+          <div class="cov"><span class="cov-t">A · prompt</span><span class="mono">core/system-prompt · agent-tool-presentation · preset</span></div>
+          <div class="cov"><span class="cov-t">B · loop</span><span class="mono">core/agent-loop · core/agent · agent-default-model</span></div>
+          <div class="cov"><span class="cov-t">C · context</span><span class="mono">compaction/* · context · spill · core/session</span></div>
+          <div class="cov"><span class="cov-t">D · tools</span><span class="mono">core/tools · fs · guard · web</span></div>
+          <div class="cov"><span class="cov-t">E · plugins</span><span class="mono">core/scope · boot · extensions · bundle</span></div>
+          <div class="cov"><span class="cov-t">F · delegation</span><span class="mono">subagent · plan · goal · jobs · schedule</span></div>
+          <div class="cov"><span class="cov-t">G · execution</span><span class="mono">sandbox · e2b · code-runtime · shell · subprocess · terminal</span></div>
+          <div class="cov"><span class="cov-t">H · interop</span><span class="mono">mcp · acp · api · sdk</span></div>
+          <div class="cov"><span class="cov-t">I · persistence</span><span class="mono">session · session-query · settings · storage · workspace</span></div>
+          <div class="cov"><span class="cov-t">J · observability</span><span class="mono">hooks · feedback · runtime-diagnostics · token-meter</span></div>
+          <div class="cov"><span class="cov-t">K · host</span><span class="mono">host · client · interaction · apps/</span></div>
+          <div class="cov"><span class="cov-t">L · providers</span><span class="mono">llm · llm-deepseek · llm-pi-ai · llm-retry · credentials · identity</span></div>
+          <div class="cov"><span class="cov-t">M · inputs</span><span class="mono">attachment · lsp</span></div>
+          <div class="cov"><span class="cov-t">N · embedding</span><span class="mono">python/ · native/ · sdk · examples</span></div>
+          <div class="cov"><span class="cov-t">O · self-management</span><span class="mono">todo · skill · workflow</span></div>
+          <div class="cov"><span class="cov-t infra">— · infrastructure</span><span class="mono">util · typert · test-support · bundle</span></div>
+        </div>
+        <div class="divider">
+          <h4>Re-run after any upstream bump</h4>
+          <pre>gh api repos/deepseek-ai/deepseek-harness/contents/packages \
+  --jq '.[] | select(.type=="dir") | .name' | sort &gt; /tmp/pkgs.txt
+while read -r p; do rg -q "$p" docs/roadmap.html || echo "UNCOVERED: $p"; done &lt; /tmp/pkgs.txt</pre>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <footer>
+    <span>githubhy/study-harness</span>
+    <span>plan · docs/superpowers/plans/2026-08-15-deepseek-harness-study.md</span>
+    <span>method · docs/adr/0001</span>
+    <span>glossary · CONTEXT.md</span>
+    <span>this page · docs/roadmap.html</span>
+  </footer>
+
+</div>
