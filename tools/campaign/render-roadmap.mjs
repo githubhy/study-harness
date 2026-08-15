@@ -1,12 +1,6 @@
 import { CSS } from './theme.mjs'
 import { esc, rich, attr } from './html.mjs'
 
-// theme.mjs is a verbatim, landed copy of the pre-migration stylesheet and still carries the
-// `.c-state` rule for the six chips this page no longer emits (controller ruling: no state chips).
-// The rule is dead weight once nothing on the page uses the class, so strip it here rather than
-// editing the shared, already-landed theme module.
-const PAGE_CSS = CSS.replace(/\s*\.c-state\s*\{[^}]*\}/, '')
-
 // ---------- small shared helpers ----------
 
 const NUM_WORDS = [
@@ -90,10 +84,34 @@ const sLoop = (data) => {
   </section>`
 }
 
-// ---------- §2 the map: fixed schematic, data-driven stagerow ----------
+// ---------- §2 the map: campaign-specific narrative from copy.map, data-driven stagerow ----------
+
+const NODEBOX_KIND_CLASS = { plain: '', control: ' ctl', observe: ' obs' }
+
+const renderNodebox = (node) => `<div class="nodebox${NODEBOX_KIND_CLASS[node.kind] ?? ''}">
+        <div class="n-id">${esc(node.id)}</div>
+        <div class="n-t">${rich(node.title)}</div>
+        <div class="n-s">${rich(node.sub)}</div>
+      </div>`
+
+const renderOutput = (o) => `<div class="out">
+          <div class="n-id">${esc(o.id)}</div>
+          <div class="n-t">${rich(o.title)}</div>
+          <div class="n-s">${rich(o.sub)}</div>
+        </div>`
 
 const sMap = (data) => {
-  const lede = data.copy.sections.s2 ? `<p class="lede">${rich(data.copy.sections.s2)}</p>` : ''
+  const map = data.copy.map ?? {}
+  const lede = map.lede ? `<p class="lede">${rich(map.lede)}</p>` : ''
+  const chain = map.chain ?? []
+  const links = map.links ?? []
+  const outputs = map.outputs ?? []
+
+  const chainHtml = chain.map((node, i) => {
+    const link = links[i] ? `<div class="link"><i></i><span>${rich(links[i])}</span><i></i><u></u></div>` : ''
+    return `${renderNodebox(node)}\n      ${link}`
+  }).join('\n\n      ')
+
   const stagecells = data.loopSteps
     .map((s) => {
       const members = threadsByLoop(data.threads, s.id)
@@ -101,32 +119,11 @@ const sMap = (data) => {
     })
     .join('\n          ')
 
-  return `<section id="s2">
-    <span class="snum">§ 2</span>
-    <h2 class="sec">The map · what blocks what</h2>
-    ${lede}
+  const outputsHtml = outputs.map(renderOutput).join('\n        ')
 
-    <figure class="schema">
-      <div class="nodebox">
-        <div class="n-id">Phase 0 · no blockers · no API key</div>
-        <div class="n-t">Scaffold &amp; instrument</div>
-        <div class="n-s">Clone at the pinned SHA, build, write the capture proxy.</div>
-      </div>
-      <div class="link"><i></i><span>produces the instrument</span><i></i><u></u></div>
-
-      <div class="nodebox ctl">
-        <div class="n-id">Phase 1 · the experimental control</div>
-        <div class="n-t">Write a harness from scratch</div>
-        <div class="n-s">~45 lines. The only harness whose every byte you can account for.</div>
-      </div>
-      <div class="link"><i></i><span>produces the question list</span><i></i><u></u></div>
-
-      <div class="nodebox obs">
-        <div class="n-id">Task 2.0 · observation only</div>
-        <div class="n-t">Baseline capture of the specimen</div>
-        <div class="n-s">Write down what you saw before reading any source.</div>
-      </div>
-      <div class="link"><i></i><span>opens the menu — ${data.threads.length} threads, no order</span><i></i><u></u></div>
+  const figure = chain.length
+    ? `<figure class="schema">
+      ${chainHtml}
 
       <div class="fan">
         <div class="fan-bar"></div>
@@ -137,20 +134,19 @@ const sMap = (data) => {
 
       <div class="link"><i></i><u></u></div>
       <div class="outs">
-        <div class="out">
-          <div class="n-id">Exam phase</div>
-          <div class="n-t">One tool, two harnesses</div>
-          <div class="n-s">Runnable as soon as its gating thread lands — it does not wait for the rest of the menu.</div>
-        </div>
-        <div class="out">
-          <div class="n-id">Transfer phase</div>
-          <div class="n-t">Transfer test</div>
-          <div class="n-s">Last by design. Reading the transfer material earlier makes the test circular.</div>
-        </div>
+        ${outputsHtml}
       </div>
 
-      <figcaption>Solid = required. Dashed = must be written blind.</figcaption>
-    </figure>
+      ${map.caption ? `<figcaption>${rich(map.caption)}</figcaption>` : ''}
+    </figure>`
+    : ''
+
+  return `<section id="s2">
+    <span class="snum">§ 2</span>
+    <h2 class="sec">The map · what blocks what</h2>
+    ${lede}
+
+    ${figure}
   </section>`
 }
 
@@ -233,14 +229,23 @@ const sBoard = (data) => {
 
 // ---------- §4 the menu: five loop bands, thread cards ----------
 
+// A detail entry is either a prose string (rendered as a paragraph) or an object
+// { bullets: [...] } (rendered as a <ul>), per the schema addition covering thread O's list.
+const renderDetail = (d) => {
+  if (typeof d === 'string') return `<p class="d">${rich(d)}</p>`
+  if (d && Array.isArray(d.bullets)) return `<ul>${d.bullets.map((b) => `<li>${rich(b)}</li>`).join('')}</ul>`
+  return ''
+}
+
 const renderThreadCard = (t) => {
   const tags = [
     ...t.packages.map((p) => `<span class="pkg">${esc(p)}</span>`),
     needsBadge(t.needs) ? `<span class="tag t-cap">${esc(needsBadge(t.needs))}</span>` : '',
     t.gates ? `<span class="tag t-gate">gates ${esc(t.gates)}</span>` : '',
+    t.comparison ? '<span class="tag t-cc">CC comparison</span>' : '',
   ].filter(Boolean).join('')
 
-  const details = (t.detail ?? []).map((d) => `<p class="d">${rich(d)}</p>`).join('\n          ')
+  const details = (t.detail ?? []).map(renderDetail).join('\n          ')
   const fromCls = t.raisedBy.kind === 'census' ? ' census' : ''
 
   return `<article class="thread" data-need="${attr(dataNeed(t.needs))}" id="t${attr(t.letter)}">
@@ -381,6 +386,14 @@ const sCensus = (derived, data) => {
     ? `<tr><td class="mono" style="color:var(--ink-faint)">—</td><td class="ref" style="color:var(--ink-faint)">infrastructure</td><td class="mono" style="color:var(--ink-faint)">—</td><td class="mono">${esc(infra.join(' · '))}</td></tr>`
     : ''
 
+  const recheck = data.specimen.repo
+    ? `<h4>Re-run after any upstream bump</h4>
+    <pre>${esc(`gh api repos/${data.specimen.repo}/contents/packages \\
+  --jq '.[] | select(.type=="dir") | .name' | sort > /tmp/pkgs.txt
+while read -r p; do rg -q "$p" campaigns/${data.campaign}/roadmap.html \\
+  || echo "UNCOVERED: $p"; done < /tmp/pkgs.txt`)}</pre>`
+    : ''
+
   return `<section id="s8">
     <span class="snum">§ 8</span>
     <h2 class="sec">Package census · all ${total} accounted for</h2>
@@ -394,6 +407,7 @@ const sCensus = (derived, data) => {
         </tbody>
       </table>
     </div>
+    ${recheck}
   </section>`
 }
 
@@ -470,7 +484,7 @@ export function renderRoadmap({ data, derived }) {
   return [
     '<meta charset="utf-8">',
     `<title>${esc(data.title)}</title>`,
-    PAGE_CSS,
+    CSS,
     '<div class="page"><div class="cols">',
     nav(data), '<main>',
     masthead(data, derived),

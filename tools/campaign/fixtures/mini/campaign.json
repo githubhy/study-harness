@@ -2,23 +2,40 @@
   "campaign": "mini",
   "title": "Mini",
   "subject": "test subject",
-  "specimen": { "name": "spec", "pinned": "abc1234", "pinnedFull": "abc1234", "date": "2026-01-01" },
+  "specimen": { "name": "spec", "pinned": "abc1234", "pinnedFull": "abc1234", "date": "2026-01-01", "repo": "acme/spec-repo" },
   "transferSpecimen": { "name": "other", "via": "transcripts" },
   "surpriseBudget": 2,
   "canonicalTask": "Do the thing.",
-  "copy": { "standfirst": "A <b>mini</b> campaign.", "claims": [], "standingOrders": [], "sections": {} },
+  "copy": { "standfirst": "A <b>mini</b> campaign.", "claims": [], "standingOrders": [], "sections": {},
+    "map": {
+      "lede": "Map lede.",
+      "chain": [
+        { "id": "Node 1", "title": "First node", "sub": "First sub.", "kind": "plain" },
+        { "id": "Node 2", "title": "Second node", "sub": "Second sub.", "kind": "control" }
+      ],
+      "links": ["link one", "link two"],
+      "outputs": [
+        { "id": "Out 1", "title": "Output one", "sub": "Output sub one." },
+        { "id": "Out 2", "title": "Output two", "sub": "Output sub two." }
+      ],
+      "caption": "Map caption text."
+    } },
   "loopSteps": [
     { "id": "assemble", "label": "Assemble", "step": "Step 1", "question": "What goes in?" },
     { "id": "around", "label": "Around", "step": "Outside", "question": "What frames it?" }
   ],
   "phases": [
+    { "id": "Task 0.1", "lane": "ready", "title": "Ready task", "body": "Ready body.",
+      "pre": "echo hi", "blocks": "nothing", "unblocks": null, "produces": [],
+      "halt": { "title": "Do not skip", "pre": "grep -n 'x' .", "body": "Halt body <b>bold</b>." } },
     { "id": "Phase 3", "lane": "gate", "title": "The exam", "body": "Sample phase.",
       "pre": null, "blocks": "Thread D", "unblocks": null, "produces": [], "halt": null }
   ],
   "threads": [
     { "letter": "A", "name": "Alpha", "loop": "assemble", "question": "A?",
       "raisedBy": { "kind": "toy", "text": "shortcut a" }, "packages": ["pkg-a", "shared"],
-      "needs": "source", "gates": null, "entry": "rg -n 'a' .", "detail": ["Detail a."] },
+      "needs": "source", "gates": null, "entry": "rg -n 'a' .", "comparison": true,
+      "detail": ["Detail a.", { "bullets": ["Bullet one.", "Bullet two."] }] },
     { "letter": "B", "name": "Beta", "loop": "around", "question": "B?",
       "raisedBy": { "kind": "census", "text": "the census" }, "packages": ["pkg-b", "shared"],
       "needs": "capture", "gates": "Phase 3", "entry": "rg -n 'b' .", "detail": ["Detail b."] }

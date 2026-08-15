@@ -146,6 +146,30 @@ use `"census"`, which is how §5's closing row is emitted. `needs` is `"source"`
 `copy` holds page prose so a different subject can supply its own words without touching templates.
 All `copy`, `question`, and `detail` strings may contain a restricted inline HTML subset —
 `<b> <i> <em> <strong> <code>` — which the renderer passes through; everything else is escaped.
+Those strings store **literal characters**, never pre-escaped entities: `&`, not `&amp;`.
+
+### Fields added during implementation
+
+Building the roadmap renderer surfaced content on the source page that the schema above had nowhere
+to put. Each of these exists because omitting it would have silently dropped content during the
+migration:
+
+| Field | Shape | Why |
+|---|---|---|
+| `specimen.repo` | `"owner/name"` | §8's `gh api` package re-check command is rendered from it |
+| `threads[].comparison` | boolean | Renders the `t-cc` "CC comparison" marker several thread cards carry |
+| `detail[]` entries | string **or** `{ "bullets": ["…"] }` | A string is a paragraph; the object form is the `<ul>` list thread O uses |
+| `phases[].halt` | `null` or `{ title, pre, body }` | The halt block on Task 0.2's card — its heading, code block, and warning |
+| `copy.map` | `{ lede, chain[], links[], outputs[], caption }` | §2's schematic prose. `chain` is the vertical box sequence, `links` the arrow labels between them, `outputs` the two gated boxes |
+
+`copy.map` exists rather than hardcoding §2's narrative in the renderer because that narrative is
+campaign-specific: a different subject has a different dependency story, and prose baked into a
+shared template is exactly the drift this design exists to prevent.
+
+The stylesheet keeps its now-unused `.c-state` rule. `theme.mjs` is a byte-verbatim copy of the
+source stylesheet, guarded by a test that derives the expected text from the fixture — that invariant
+is what proves no styling was lost, and it outweighs deleting one inert rule. The requirement is that
+the renderer emit no state chips, not that the stylesheet forget they existed.
 
 ---
 
