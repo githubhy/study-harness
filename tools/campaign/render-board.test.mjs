@@ -18,9 +18,26 @@ test('the page says it is generated and names the command that rebuilds it', () 
 })
 
 test('shows the three roles', () => {
-  assert.match(html, /test subject/)
-  assert.match(html, /spec/)
-  assert.match(html, /other/)
+  // Scoped to the card and matched on the rendered values, not on bare words: /spec/ against the
+  // whole page passed on the standfirst and on the "Specimen" glossary heading below, so it could
+  // not fail on a card that dropped its role values entirely.
+  const card = html.match(/<article class="card"[\s\S]*?<\/article>/)[0]
+  assert.match(card, /<b>test subject<\/b>/)
+  assert.match(card, /<b>spec<\/b> @ <b>abc1234<\/b>/)
+  assert.match(card, /<b>other<\/b> · <b>transcripts<\/b>/)
+})
+
+test('the board names the same four shared terms as CONTEXT-MAP.md', () => {
+  // The shared vocabulary has two homes on purpose — CONTEXT-MAP.md defines it, the board shows a
+  // shortened version — and it has already drifted once: the two describe "Specimen" differently.
+  // The names are the vocabulary and must match exactly. The bodies are deliberate abridgements
+  // (the board's are one sentence shorter and drop the "one primary specimen" clause), so this
+  // asserts names only; asserting bodies would force the board to carry the full prose.
+  const map = readFileSync('CONTEXT-MAP.md', 'utf8')
+  const headings = [...map.slice(map.indexOf('## Shared language')).matchAll(/^\*\*(.+?)\*\*:$/gm)]
+    .map((m) => m[1])
+  assert.equal(headings.length, 4, `expected four terms in CONTEXT-MAP.md, found ${headings}`)
+  assert.deepEqual(board.sharedLanguage.terms.map((t) => t.name), headings)
 })
 
 test('the card itself carries the three role labels, not just the glossary below', () => {

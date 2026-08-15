@@ -35,6 +35,10 @@ campaign roadmap before writing anything to disk.
 These four terms are method vocabulary. They mean the same thing in every campaign, so they are
 defined here rather than in any one glossary.
 
+`campaigns/index.html` shows the same four, abridged, from `campaigns/board.json`. The **names** are
+the vocabulary and must match this list exactly — a test asserts it. The board's bodies are
+deliberately shorter; the definitions below are the canonical ones.
+
 **Campaign**:
 One investigation, scoped to **one subject**. It owns a glossary, a plan, a roadmap, and its working
 material. Adding a second specimen does not start a new campaign; changing the subject does.

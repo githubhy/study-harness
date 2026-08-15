@@ -45,8 +45,14 @@ test('census and thread cards read the same package array', () => {
   assert.match(html, /pkg-a · shared/)
 })
 
-test('a census-raised thread is marked as such', () => {
-  assert.match(html, /the census/)
+test('§5 closes with the census row naming the threads the toy could not have raised', () => {
+  // Was a page-wide /the census/, which the thread card's own FROM line already satisfied — so it
+  // could not fail on a dropped §5 closing row, and its stronger sibling below covers the card.
+  // The closing row is the surface nothing else asserted: the §5 row test matches only <td> first
+  // cells, and this row uses <td colspan="2">.
+  const s5 = html.match(/<section id="s5">[\s\S]*?<\/section>/)[0]
+  assert.match(s5, /<td colspan="2"[^>]*>Thread B came from the package census in §8 instead — the toy could not have suggested it\.<\/td>/)
+  assert.match(s5, /<td class="ref"[^>]*>B<\/td>/)
 })
 
 test('a sparse mini fixture never emits the literal string "undefined"', () => {

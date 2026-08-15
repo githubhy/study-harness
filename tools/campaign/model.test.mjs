@@ -31,9 +31,11 @@ test('rejects a log entry naming an unknown thread', () => {
 })
 
 test('rejects an opened question asking an unknown thread', () => {
+  // Was /ask/, which several unrelated messages contain and which passes on any error mentioning
+  // an ask at all. Matched on the whole message: this is the one that names the question id.
   const d = clone()
   d.log[0].opened[0].ask = 'Q'
-  assert.throws(() => readCampaign(MINI, d), /ask/)
+  assert.throws(() => readCampaign(MINI, d), /log\[0\] opened "q1" asks unknown thread Q/)
 })
 
 test('rejects a resolved id that was never opened', () => {
