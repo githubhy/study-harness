@@ -12,6 +12,9 @@ function sandbox() {
   const dir = mkdtempSync(join(tmpdir(), 'campaign-'))
   cpSync('tools', join(dir, 'tools'), { recursive: true })
   cpSync('tools/campaign/fixtures/mini', join(dir, 'campaigns/mini'), { recursive: true })
+  // --all also renders campaigns/index.html from campaigns/board.json, so the sandbox needs a
+  // copy of the real one — the board's own content, not any one campaign's.
+  cpSync('campaigns/board.json', join(dir, 'campaigns/board.json'))
   return dir
 }
 

@@ -1,0 +1,30 @@
+{
+  "standfirst": "A study workspace, not a product. Each <strong>campaign</strong> is one investigation scoped to <strong>one subject</strong>, and owns its glossary, plan, roadmap, and working material. Adding a second specimen doesn't start a new campaign — changing the subject does.",
+  "emptyState": {
+    "title": "No second campaign yet",
+    "body": "A new one starts by creating <code>campaigns/<subject-slug>/</code> with a <code>CONTEXT.md</code> and a <code>roadmap.html</code>, then adding a row to <code>CONTEXT-MAP.md</code>. Copy the roadmap's structure, not its content — the thread menu is filed under the agent loop's five steps, and a different subject needs a different spine."
+  },
+  "ownership": {
+    "lede": "The method outlives any one campaign, so it lives at the repo root. Anything that would be re-derived for a different subject lives inside the campaign.",
+    "rows": [
+      { "path": "campaigns/<name>/CONTEXT.md", "scope": "That campaign's vocabulary — its output, not its input", "shared": false },
+      { "path": "campaigns/<name>/roadmap.html", "scope": "Its map, board, and thread menu", "shared": false },
+      { "path": "campaigns/<name>/plan.md", "scope": "Its executable plan", "shared": false },
+      { "path": "campaigns/<name>/docs/adr/", "scope": "Decisions scoped to that campaign (created lazily)", "shared": false },
+      { "path": "campaigns/<name>/notes · captures · experiments", "scope": "Its working material. <code>captures/</code> is gitignored", "shared": false },
+      { "path": "docs/adr/", "scope": "The <strong>method</strong> — decisions that outlive any one campaign", "shared": true },
+      { "path": "docs/agents/", "scope": "Issue tracker, triage labels, domain-doc rules", "shared": true },
+      { "path": "tools/", "scope": "Shared instruments, e.g. the capture proxy", "shared": true },
+      { "path": "CONTEXT-MAP.md", "scope": "This map, plus the four shared method terms below", "shared": true }
+    ]
+  },
+  "sharedLanguage": {
+    "lede": "Method vocabulary — the same in every campaign, so defined once in <code>CONTEXT-MAP.md</code> rather than in any one glossary.",
+    "terms": [
+      { "name": "Campaign", "body": "One investigation, scoped to <strong>one subject</strong>. It owns a glossary, a plan, a roadmap, and its working material. <em>Avoid: study, project, investigation as a proper noun.</em>" },
+      { "name": "Subject", "body": "The category a campaign is ultimately about — never a particular artefact. A finding matters only insofar as it generalises to the subject." },
+      { "name": "Specimen", "body": "The particular artefact being dissected to learn about the subject. Chosen for being open and readable rather than for being representative." },
+      { "name": "Transfer specimen", "body": "A second artefact the vocabulary was <strong>not</strong> derived from, used to falsify it. Predictions are committed before it is examined, or the test proves nothing." }
+    ]
+  }
+}

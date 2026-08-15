@@ -4,6 +4,7 @@ import { join } from 'node:path'
 import { loadCampaign } from './campaign/model.mjs'
 import { renderRoadmap } from './campaign/render-roadmap.mjs'
 import { renderWorklog } from './campaign/render-worklog.mjs'
+import { renderBoard } from './campaign/render-board.mjs'
 
 const args = process.argv.slice(2)
 const check = args.includes('--check')
@@ -23,10 +24,12 @@ if (campaigns.length === 0) {
 
 let drifted = 0
 let failed = 0
+const models = []
 for (const name of campaigns) {
   try {
     const dir = join('campaigns', name)
     const model = loadCampaign(dir)
+    models.push(model)
     for (const [file, html] of [
       ['roadmap.html', renderRoadmap(model)],
       ['worklog.html', renderWorklog(model)],
@@ -45,4 +48,17 @@ for (const name of campaigns) {
     failed++
   }
 }
+
+if (all) {
+  const board = JSON.parse(readFileSync('campaigns/board.json', 'utf8'))
+  const html = renderBoard(models, board)
+  if (check) {
+    const current = existsSync('campaigns/index.html') ? readFileSync('campaigns/index.html', 'utf8') : ''
+    if (current !== html) { console.error('drift: campaigns/index.html does not match its data'); drifted++ }
+  } else {
+    writeFileSync('campaigns/index.html', html)
+    console.log('wrote campaigns/index.html')
+  }
+}
+
 process.exit((drifted > 0 || failed > 0) ? 1 : 0)
