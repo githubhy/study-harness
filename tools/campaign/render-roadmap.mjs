@@ -38,7 +38,13 @@ const evidenceClause = (evidence) => {
   return parts.join(', ')
 }
 
-const packageTotal = (census, infra) => new Set([...census.flatMap((c) => c.packages), ...infra]).size
+// What the masthead and §8's heading assert is how many packages the specimen actually has — the
+// checkable claim §8's `gh api` command re-verifies. Counting the tokens the threads happen to list
+// would instead assert "everything we listed is listed", which is circular, and diverges anyway
+// because the lists use globs (`compaction/*`) and sub-paths (`core/agent`, `core/agent-loop`).
+// specimen.packageCount is that claim; the derived count is the fallback when none is stated.
+const packageTotal = (data, census, infra) =>
+  data.specimen.packageCount ?? new Set([...census.flatMap((c) => c.packages), ...infra]).size
 
 // ---------- §1 the loop: fixed SVG diagram ----------
 
@@ -253,7 +259,14 @@ const renderDetail = (d) => {
   return ''
 }
 
-const renderThreadCard = (t) => {
+// A toy shortcut may raise more than one thread, and a thread may be raised by more than one
+// shortcut — D and A each appear in two rows of the source's question index. questionIndex models
+// that many-to-many relation directly; a card's FROM line is every entry naming its letter, in
+// index order, so the two directions cannot drift apart.
+const shortcutsFor = (data, letter) =>
+  (data.questionIndex ?? []).filter((e) => e.threads.includes(letter)).map((e) => e.shortcut)
+
+const renderThreadCard = (t, data) => {
   const tags = [
     ...t.packages.map((p) => `<span class="pkg">${esc(p)}</span>`),
     needsBadge(t.needs) ? `<span class="tag t-cap">${esc(needsBadge(t.needs))}</span>` : '',
@@ -266,11 +279,17 @@ const renderThreadCard = (t) => {
   // Five thread cards open on reading rather than on a command, so `entry` is nullable and an
   // absent one emits nothing rather than an empty <pre> box.
   const entry = t.entry ? `<pre>${code(t.entry)}</pre>` : ''
+  // A census-raised thread has no questionIndex entry by definition — the toy never raised it — so
+  // raisedBy.text carries its FROM line. A toy-raised thread derives its line instead, which is why
+  // raisedBy.text is absent on those: one string, one home.
+  const from = t.raisedBy.kind === 'census'
+    ? `<b>${rich(t.raisedBy.text)}</b>`
+    : shortcutsFor(data, t.letter).map((s) => `<b>${rich(s)}</b>`).join(' · ')
 
   return `<article class="thread" data-need="${attr(dataNeed(t.needs))}" id="t${attr(t.letter)}">
           <div class="t-top"><span class="letter">${esc(t.letter)}</span><span class="t-name">${esc(t.name)}</span></div>
           <p class="t-q">${rich(t.question)}</p>
-          <p class="t-from${fromCls}">FROM <b>${rich(t.raisedBy.text)}</b></p>
+          <p class="t-from${fromCls}">FROM ${from}</p>
           <div class="tags">${tags}</div>
           ${entry}
           ${details}
@@ -297,7 +316,7 @@ const sMenu = (data, derived) => {
         <span class="band-n">${members.length} thread${members.length === 1 ? '' : 's'} · ${sumPackages(members)} packages</span>
       </div>
       <div class="band-body${bodyCls}">
-        ${members.map(renderThreadCard).join('\n\n        ')}
+        ${members.map((t) => renderThreadCard(t, data)).join('\n\n        ')}
       </div>
     </div>`
   }).join('\n\n    ')
@@ -312,28 +331,18 @@ const sMenu = (data, derived) => {
   </section>`
 }
 
-// ---------- §5 the question index: from threads[].raisedBy ----------
+// ---------- §5 the question index: from data.questionIndex ----------
 
 const sWhy = (data) => {
   const lede = data.copy.sections.s5 ? `<p class="lede">${rich(data.copy.sections.s5)}</p>` : ''
 
-  // A single shortcut can raise more than one thread (e.g. "two tools in an array literal" reads
-  // as both A and D's from-line in the source), so rows merge on identical raisedBy.text rather
-  // than emitting one row per thread — grouped in first-appearance order, letters joined with ' · '.
-  const groups = []
-  const byText = new Map()
-  for (const t of data.threads) {
-    if (t.raisedBy.kind !== 'toy') continue
-    let g = byText.get(t.raisedBy.text)
-    if (!g) {
-      g = { text: t.raisedBy.text, question: t.question, letters: [] }
-      byText.set(t.raisedBy.text, g)
-      groups.push(g)
-    }
-    g.letters.push(t.letter)
-  }
-  const toyRows = groups.map((g) =>
-    `<tr><td>${rich(g.text)}</td><td>${rich(g.question)}</td><td class="ref">${esc(g.letters.join(' · '))}</td></tr>`
+  // One row per questionIndex entry, in the order the entries are written. The relation is
+  // many-to-many in both directions — a shortcut can raise several threads ("two tools in an array
+  // literal" raises D and A) and a thread can be raised by several shortcuts (D again, plus
+  // "running every tool unchecked") — so it is modelled as its own list rather than inferred by
+  // grouping one field on the threads, which could only ever express one direction.
+  const toyRows = (data.questionIndex ?? []).map((e) =>
+    `<tr><td>${rich(e.shortcut)}</td><td>${rich(e.question)}</td><td class="ref">${esc(e.threads.join(' · '))}</td></tr>`
   ).join('\n          ')
 
   const census = data.threads.filter((t) => t.raisedBy.kind === 'census')
@@ -421,7 +430,7 @@ const sOrders = (data) => {
 // ---------- §8 the package census ----------
 
 const sCensus = (derived, data) => {
-  const total = packageTotal(derived.census, data.infrastructurePackages ?? [])
+  const total = packageTotal(data, derived.census, data.infrastructurePackages ?? [])
   // Grouped by loop step (same ordering nav, §2, and §4 use), not sorted flat by letter — that's
   // what makes the "Loop step" column mean anything instead of just repeating per row.
   const rows = data.loopSteps.flatMap((s) => threadsByLoop(derived.census, s.id)).map((c) =>
@@ -501,7 +510,7 @@ const nav = (data) => {
 
 const masthead = (data, derived) => {
   const { source, evidence } = splitByNeeds(data.threads)
-  const packages = packageTotal(derived.census, data.infrastructurePackages ?? [])
+  const packages = packageTotal(data, derived.census, data.infrastructurePackages ?? [])
 
   return `<header class="mast">
     <p class="kick">Campaign <b style="color:var(--ink-soft);font-weight:500">${esc(data.campaign)}</b> · ${esc(data.specimen.short ?? data.specimen.name)} @ ${esc(data.specimen.pinned)} · nothing on this page is hidden</p>

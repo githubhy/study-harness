@@ -86,8 +86,34 @@ test('census groups rows by loop step rather than sorting all threads alphabetic
   assert.deepEqual(order, ['A', 'C', 'B'])
 })
 
-test('threads sharing raisedBy.text merge into one §5 row', () => {
-  assert.match(html, /<tr><td>shortcut a<\/td><td>A\?<\/td><td class="ref">A · C<\/td><\/tr>/)
+test('§5 emits one row per questionIndex entry, with its own question wording', () => {
+  const s5 = html.match(/<section id="s5">[\s\S]*?<\/section>/)[0]
+  // One row per entry — not one per thread, and not one per distinct shortcut.
+  const rows = [...s5.matchAll(/<tr><td>([^<]*)<\/td><td>([^<]*)<\/td><td class="ref">([^<]*)<\/td><\/tr>/g)]
+  assert.deepEqual(rows.map((m) => [m[1], m[2], m[3]]), [
+    ['shortcut a', 'What does a do?', 'A · C'],
+    ['shortcut b', 'What does b do?', 'A'],
+  ])
+})
+
+test('a thread named by two questionIndex entries shows both shortcuts in its FROM line', () => {
+  // The many-to-many case: A is raised by two shortcuts, one of which also raises C. A one-field
+  // raisedBy could only ever express one of them, which is what dropped content before.
+  const cardA = html.match(/<article class="thread"[^>]*id="tA">[\s\S]*?<\/article>/)[0]
+  assert.match(cardA, /<p class="t-from">FROM <b>shortcut a<\/b> · <b>shortcut b<\/b><\/p>/)
+  const cardC = html.match(/<article class="thread"[^>]*id="tC">[\s\S]*?<\/article>/)[0]
+  assert.match(cardC, /<p class="t-from">FROM <b>shortcut a<\/b><\/p>/)
+})
+
+test('a census-raised thread keeps its own FROM text, having no questionIndex entry', () => {
+  const cardB = html.match(/<article class="thread"[^>]*id="tB">[\s\S]*?<\/article>/)[0]
+  assert.match(cardB, /<p class="t-from census">FROM <b>the census<\/b><\/p>/)
+})
+
+test('the package total falls back to the derived count when none is claimed', () => {
+  // mini states no specimen.packageCount: pkg-a, shared, pkg-b, pkg-c, util = 5.
+  assert.match(html, /Package census · all 5 accounted for/)
+  assert.match(html, /packages <b>5<\/b>, all covered/)
 })
 
 test('the transfer pull quote comes from copy.transferPull', () => {

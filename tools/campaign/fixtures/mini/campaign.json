@@ -6,9 +6,14 @@
   "transferSpecimen": { "name": "other", "via": "transcripts" },
   "surpriseBudget": 2,
   "canonicalTask": "Do the thing.",
-  "copy": { "standfirst": "A <b>mini</b> campaign.", "claims": [],
+  "copy": {
+    "standfirst": "A <b>mini</b> campaign.",
+    "claims": [],
     "standingOrders": [
-      { "title": "The canonical task", "body": "Used verbatim for every harness so captures stay comparable: {{canonicalTask}} It forces the same steps each run." }
+      {
+        "title": "The canonical task",
+        "body": "Used verbatim for every harness so captures stay comparable: {{canonicalTask}} It forces the same steps each run."
+      }
     ],
     "sections": {},
     "transferPull": "Pull quote text.",
@@ -24,37 +29,108 @@
         { "id": "Out 2", "title": "Output two", "sub": "Output sub two." }
       ],
       "caption": "Map caption text."
-    } },
+    }
+  },
   "loopSteps": [
     { "id": "assemble", "label": "Assemble", "step": "Step 1", "question": "What goes in?" },
     { "id": "around", "label": "Around the loop", "step": "Outside", "question": "What frames it?" }
   ],
   "phases": [
-    { "id": "Task 0.1", "lane": "ready", "title": "Ready task", "body": "Ready body.",
-      "pre": "echo hi", "blocks": "nothing", "unblocks": null, "produces": [],
-      "halt": { "title": "Do not skip", "pre": "grep -n 'x' .", "body": "Halt body <b>bold</b>." } },
-    { "id": "Phase 3", "lane": "gate", "title": "The exam", "body": "Sample phase.",
-      "pre": null, "blocks": "Thread D", "unblocks": null, "produces": [], "halt": null }
+    {
+      "id": "Task 0.1",
+      "lane": "ready",
+      "title": "Ready task",
+      "body": "Ready body.",
+      "pre": "echo hi",
+      "blocks": "nothing",
+      "unblocks": null,
+      "produces": [],
+      "halt": { "title": "Do not skip", "pre": "grep -n 'x' .", "body": "Halt body <b>bold</b>." }
+    },
+    {
+      "id": "Phase 3",
+      "lane": "gate",
+      "title": "The exam",
+      "body": "Sample phase.",
+      "pre": null,
+      "blocks": "Thread D",
+      "unblocks": null,
+      "produces": [],
+      "halt": null
+    }
   ],
   "threads": [
-    { "letter": "A", "name": "Alpha", "loop": "assemble", "question": "A?",
-      "raisedBy": { "kind": "toy", "text": "shortcut a" }, "packages": ["pkg-a", "shared"],
-      "needs": "source", "gates": null, "entry": "rg -n 'a' . <span class=\"c\"># note</span>", "comparison": true,
-      "detail": ["Detail a.", { "bullets": ["Bullet one.", "Bullet two."] }] },
-    { "letter": "B", "name": "Beta", "loop": "around", "question": "B?",
-      "raisedBy": { "kind": "census", "text": "the census" }, "packages": ["pkg-b", "shared"],
-      "needs": "capture", "gates": "Phase 3", "entry": "rg -n 'b' .", "detail": ["Detail b."] },
-    { "letter": "C", "name": "Gamma", "loop": "assemble", "question": "C?",
-      "raisedBy": { "kind": "toy", "text": "shortcut a" }, "packages": ["pkg-c"],
-      "needs": "source", "gates": null, "entry": "rg -n 'c' .", "detail": ["Detail c."] }
+    {
+      "letter": "A",
+      "name": "Alpha",
+      "loop": "assemble",
+      "question": "A?",
+      "raisedBy": { "kind": "toy" },
+      "packages": ["pkg-a", "shared"],
+      "needs": "source",
+      "gates": null,
+      "entry": "rg -n 'a' . <span class=\"c\"># note</span>",
+      "comparison": true,
+      "detail": [
+        "Detail a.",
+        { "bullets": ["Bullet one.", "Bullet two."] }
+      ]
+    },
+    {
+      "letter": "B",
+      "name": "Beta",
+      "loop": "around",
+      "question": "B?",
+      "raisedBy": { "kind": "census", "text": "the census" },
+      "packages": ["pkg-b", "shared"],
+      "needs": "capture",
+      "gates": "Phase 3",
+      "entry": "rg -n 'b' .",
+      "detail": ["Detail b."]
+    },
+    {
+      "letter": "C",
+      "name": "Gamma",
+      "loop": "assemble",
+      "question": "C?",
+      "raisedBy": { "kind": "toy" },
+      "packages": ["pkg-c"],
+      "needs": "source",
+      "gates": null,
+      "entry": "rg -n 'c' .",
+      "detail": ["Detail c."]
+    }
   ],
   "infrastructurePackages": ["util"],
-  "transferLedger": [{ "q": "Does it log?", "available": true, "source": "logs" }],
+  "transferLedger": [
+    { "q": "Does it log?", "available": true, "source": "logs" }
+  ],
   "log": [
-    { "thread": "A", "date": "2026-01-02", "finding": "Found a.", "surprising": true,
-      "note": "notes/A-alpha.md", "opened": [{ "id": "q1", "q": "Why b?", "ask": "B" }],
-      "resolved": [], "issue": null },
-    { "thread": "A", "date": "2026-01-03", "finding": "Dull.", "surprising": false,
-      "note": "notes/A-alpha.md", "opened": [], "resolved": [], "issue": null }
+    {
+      "thread": "A",
+      "date": "2026-01-02",
+      "finding": "Found a.",
+      "surprising": true,
+      "note": "notes/A-alpha.md",
+      "opened": [
+        { "id": "q1", "q": "Why b?", "ask": "B" }
+      ],
+      "resolved": [],
+      "issue": null
+    },
+    {
+      "thread": "A",
+      "date": "2026-01-03",
+      "finding": "Dull.",
+      "surprising": false,
+      "note": "notes/A-alpha.md",
+      "opened": [],
+      "resolved": [],
+      "issue": null
+    }
+  ],
+  "questionIndex": [
+    { "shortcut": "shortcut a", "question": "What does a do?", "threads": ["A", "C"] },
+    { "shortcut": "shortcut b", "question": "What does b do?", "threads": ["A"] }
   ]
 }

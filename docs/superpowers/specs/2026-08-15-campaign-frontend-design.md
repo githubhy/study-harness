@@ -114,12 +114,18 @@ One file. Two halves: a registry that changes rarely, and a log that grows.
       "name": "Context & compaction",
       "loop": "assemble",
       "question": "What should be dropped when the context fills, and is the decision positional, semantic, or size-based?",
-      "raisedBy": { "kind": "toy", "text": ".slice(0, 4000) on every tool result" },
+      "raisedBy": { "kind": "toy" },
       "packages": ["compaction/*", "context", "spill", "core/session"],
       "needs": "capture",
       "gates": null,
       "entry": "jq -r 'select(.dir==\"request\") …' captures/session-dsh-long.jsonl",
       "detail": ["A monotonic rise followed by a <b>drop in message count</b> is a compaction event. …"] }
+  ],
+
+  "questionIndex": [
+    { "shortcut": "two tools in an array literal",
+      "question": "How does a tool get registered and described at scale?",
+      "threads": ["D", "A"] }
   ],
 
   "infrastructurePackages": ["util", "typert", "test-support", "bundle"],
@@ -142,8 +148,16 @@ One file. Two halves: a registry that changes rarely, and a log that grows.
 ```
 
 `raisedBy.kind` is `"toy"` or `"census"` — the two threads the toy could not have suggested (M and N)
-use `"census"`, which is how §5's closing row is emitted. `needs` is `"source"`, `"capture"`, or
-`"note-2.0"`. `gates` names a phase or is null.
+use `"census"`, which is how §5's closing row is emitted. Only a census-raised thread carries
+`raisedBy.text`; a toy-raised one derives its `FROM` line from `questionIndex`, so the string has one
+home. `needs` is `"source"`, `"capture"`, or `"note-2.0"`. `gates` names a phase or is null.
+
+`questionIndex` is §5, written once in the order the section lists its rows. The relation it models
+is **many-to-many in both directions** — a shortcut can raise several threads (`two tools in an array
+literal` raises D and A) and a thread can be raised by several shortcuts (D again, plus `running
+every tool unchecked`). Each entry emits one row, refs joined with ` · `, and each thread card's
+`FROM` line is every entry naming its letter, in index order. Modelling it as one field on the thread
+could express only one direction, which is why it is its own list.
 
 `copy` holds page prose so a different subject can supply its own words without touching templates.
 All `copy`, `question`, and `detail` strings may contain a restricted inline HTML subset —
@@ -178,6 +192,8 @@ phrases live in the first of them:
 | `phases[].note` | string or null | The rich clause trailing the "blocked by" line (`· uses the DeepSeek key`, `— it does <em>not</em> wait for the other fourteen`). It carries its own leading separator because the source uses different ones |
 | `phases[].consumes` | string or null | Phase 3's fourth `c-blocks` line, `consumes <b>D's "what a new tool must provide" checklist</b>` — the payload of the D → Phase 3 gate |
 | `threads[].entry` | now nullable | Five thread cards (K, L, M, N, O) open on reading rather than on a command. A null entry emits nothing rather than an empty `<pre>` box |
+| `questionIndex` | `[{ shortcut, question, threads[] }]` | §5 is many-to-many in both directions and `raisedBy` could hold only one of each. Modelling it as one field cost two rows and two `FROM` entries in the first migration pass; this restores them. **Supersedes the merge-by-`raisedBy.text` rule below**, and `raisedBy.text` with it — that field now exists only on census-raised threads, which have no index entry by definition |
+| `specimen.packageCount` | number | The masthead strip and §8's heading assert how many packages the **specimen** has — the checkable claim §8's `gh api` command re-verifies. Counting the tokens the threads list instead asserts "everything we listed is listed", which is circular, and diverges anyway because the lists use globs (`compaction/*`) and sub-paths (`core/agent`). Omit it and the derived count is used |
 
 `rich()` also stopped escaping `'`. Its output is only ever text content, never an attribute value,
 so an apostrophe needs no escaping there — and prose is full of them. `esc()` still escapes it,
@@ -186,10 +202,14 @@ because `esc()` output does reach quoted contexts. Without this two acceptance p
 
 Two structural rules the renderer follows that are not fields:
 
-- **§5 merges rows by identical `raisedBy.text`.** One toy shortcut may be credited to two threads —
-  "Two tools in an array literal" belongs to both D and A — so rows are grouped by exact text, ordered
-  by first appearance in `threads[]`, with thread refs joined by ` · `. Modelling `raisedBy` per
-  thread and merging at render time avoids a many-to-many relation in the data.
+- ~~**§5 merges rows by identical `raisedBy.text`.**~~ **Superseded by `questionIndex`.** The
+  original rule assumed one shortcut could raise two threads but not the reverse. Both happen: D is
+  raised by "running every tool unchecked" *and* "two tools in an array literal", and A by "two tools
+  in an array literal" *and* "one hard-coded system prompt string". Merging one field on the thread
+  could express only the first direction, so it silently dropped two of the source's thirteen rows
+  and one shortcut from each of two `FROM` lines. `questionIndex` models the relation directly, and
+  §5's row order is the order its entries are written rather than an artefact of `threads[]` order —
+  which frees `threads[]` to be plain alphabetical.
 - **§8 groups by loop step**, using the same ordering as the contents rail, §2, and §4, rather than
   sorting all fifteen threads alphabetically. The "Loop step" column is meaningless otherwise.
 

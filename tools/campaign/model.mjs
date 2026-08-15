@@ -24,6 +24,13 @@ export function readCampaign(dir, override) {
     if (t.gates !== null && !phases.has(t.gates)) fail(`thread ${t.letter} gates ${t.gates} is not a known phase`)
   }
 
+  // questionIndex drives §5's rows and every toy thread's FROM line, so a letter that names no
+  // thread would silently emit a row pointing at nothing.
+  ;(data.questionIndex ?? []).forEach((e, i) => {
+    for (const l of e.threads)
+      if (!seen.has(l)) fail(`questionIndex[${i}] names unknown thread ${l}`)
+  })
+
   const openedIds = new Set()
   for (const e of data.log) for (const o of e.opened) openedIds.add(o.id)
 
