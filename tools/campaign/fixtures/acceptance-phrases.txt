@@ -1,0 +1,60 @@
+47f943859bef60e4160492346772ded9b24f765a
+corepack enable
+sk-|Bearer
+session-smoke.jsonl
+STUDY-MARKER-7f3a
+hello_study
+02-baseline-behavior.md
+01-what-my-harness-lacks.md
+00-orientation.md
+capture-proxy/server.mjs
+minimal-harness/harness.mjs
+LLM_BASE_URL_ENV
+DSH_CMD
+fizzbuzz.js
+needs-triage
+surprise budget
+two consecutive findings
+Analyse, don't dump
+Spatiotemporal Composability
+compaction-tool-result-pruner
+127.0.0.1:3080
+3,800
+jsonrpc-agent
+BENCHMARK.md
+package-lock.json
+twelve sorting algorithms
+preventedContinuation
+isSidechain
+stopReason
+permission-mode
+tool_use
+thinking
+six layers
+token-meter
+session-query
+Prompt &amp; presentation
+The agent loop
+Context &amp; compaction
+Tools &amp; permission
+Plugin architecture
+Delegation &amp; sub-agents
+Execution &amp; sandboxing
+Interop
+Persistence &amp; resumption
+Observability &amp; cost
+host boundary
+Provider abstraction
+Inputs &amp; code intelligence
+Cross-language embedding
+Agent self-management
+You can't read what you can't name
+The wire beats the source
+A vocabulary must transfer
+The wire wins
+Never commit captures
+Glossary as you go
+canonical task
+Universal
+dsh-specific
+Missing
