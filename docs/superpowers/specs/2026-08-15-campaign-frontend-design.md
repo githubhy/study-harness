@@ -224,8 +224,15 @@ Two structural rules the renderer follows that are not fields:
 **`{{canonicalTask}}` is substituted inside `copy.standingOrders[].body`.** The source page quotes the
 canonical task *inside* the prose of its "The canonical task" rule rather than in a field of its own,
 so a dedicated slot could not position it. The token keeps one source of truth — `data.canonicalTask` —
-while letting the prose place it. It is the only token the renderer substitutes; a misspelled one
-would render literally, so the page must assert no `{{` survives rendering.
+while letting the prose place it. A misspelled token renders literally, so the page must assert no
+`{{` survives rendering.
+
+**`{{pinnedFull}}` is substituted inside the code fields**, for the same reason and by the same rule.
+Phase 0.1's command pins the checkout by the specimen's full SHA, which `specimen.pinnedFull` already
+holds; writing it into the command as well gave the same forty characters two homes, and
+`pinnedFull` had no reader at all. A token that cannot be resolved is left in place rather than
+replaced with an empty string — a visibly broken command that fails the no-`{{` assertion beats a
+plausible-looking wrong commit. These two are the only tokens the renderer substitutes.
 
 Code fields — `threads[].entry`, `phases[].pre`, and `phases[].halt.pre` — pass through `code()`
 rather than `esc()`. `code()` re-permits exactly `<span class="c">`, `<span class="k">`, and `</span>`,
@@ -263,6 +270,13 @@ by `id`, never by question text, so rewording a question cannot orphan it. A que
 written exactly once, in the entry that raised it.
 
 **Strip totals, board resume line, findings counts** — counted from the log.
+
+**Band ordering.** One list: each loop step with its thread letters, in `loopSteps` order,
+alphabetical within. Six surfaces have to agree — §2's stagerow, §4's bands, §8's census rows, the
+contents rail, the coverage strip, and the graph's node layout — and "same order as the roadmap's
+§4 bands" is a requirement of the strip below, not a coincidence to be re-derived per renderer. A
+band carries letters rather than threads, so it is an ordering and not a second copy of the
+content: each renderer maps the letters onto what it draws.
 
 **Graph edges.** One edge per `opened` entry, `thread → ask`, labelled with the question, plus one
 `thread → phase` edge per non-null `gates`.
@@ -307,13 +321,37 @@ node tools/build-campaign.mjs --all --check       # regenerate to memory, diff, 
 - a `log[].note` path does not exist on disk
 - a `thread.loop` names an unknown loop step
 - a date is unparseable
+- `surpriseBudget` is absent or is not a positive integer. It sizes every pip string and decides
+  when a thread goes dry, and its absence fails *silently* rather than loudly: `Math.min(run,
+  undefined)` is `NaN`, so pips render empty, and `run >= undefined` is never true, so nothing ever
+  goes dry. The campaign's central mechanic can disappear with the build still exiting 0
+- a `log[]` entry has no `opened` or `resolved` array. Appending a log entry is the only hand edit
+  in the update loop, which makes this the likeliest hand-edit error in the system
+- a thread has no `raisedBy`, or is census-raised with no `raisedBy.text`
+- `campaign.json` is missing or is not valid JSON. `JSON.parse` reports a byte offset and no
+  filename, so under `--all` the failure could not say which campaign it came from
+- `campaigns/board.json` is missing or malformed. It is read outside the per-campaign error
+  isolation, so it was the one failure that escaped as an uncaught exception
+
+Paths are resolved against the **module**, not the cwd, so the tool runs from any directory rather
+than throwing `ENOENT` on `campaigns` — and never writes its pages into whatever directory the
+shell was sitting in.
 
 Package names are deliberately **not** required to be unique across threads: `sdk` genuinely appears
 in both H and N, and `bundle` in both E and the infrastructure list.
 
 **Guaranteed by construction, not by review:** `<meta charset="utf-8">` first; the three-state theme
 blocks; no `<script>`, `<link>`, `@import`, or webfont; no `<details>`; `body` background from a
-token; every `href="#…"` matching an emitted `id`.
+token; every `href="#…"` matching an emitted `id`; every `id` unique.
+
+`checkHtml` runs on every rendered page in **both** the write and the `--check` path, and a page
+that fails a property is reported problem-by-problem and not written. Without that the properties
+held only for campaigns that happened to have a test — "by construction" has to mean the build
+enforces it, or it means by review after all.
+
+Each page also carries an HTML comment after the charset meta saying it is generated and naming the
+command that rebuilds it. The pages are committed HTML that opens from disk, so the first thing
+anyone does with one is open it.
 
 ---
 
@@ -345,9 +383,14 @@ not a budget one.
 **Frontier** — the open-questions queue, one line each: question, raising thread, answering thread.
 
 **Trail** — append-only, newest first. Thread, pips at that point, date, the finding, the questions it
-opened, the note path. Dry entries additionally show the abandonment and issue number, and dim.
+opened, the note path. Dry entries additionally show the abandonment and issue number, and dim. With
+an empty log it carries an empty state, as the frontier does — before the first finding that is the
+whole page's state, and a bare heading says it in silence.
 
-Anchors `#tA`–`#tO`, matching the roadmap, linked both ways.
+Anchors `#tA`–`#tO`, matching the roadmap, linked both ways. `#tX` sits on that thread's **newest
+trail entry**; a thread with no entries keeps a bare fallback anchor so the roadmap's link cannot
+dangle. Entry ids carry the entry's index within its thread's history, because thread + date is not
+unique — two findings on one thread on one day collide.
 
 ### `roadmap.html`
 
