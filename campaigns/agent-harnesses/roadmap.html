@@ -407,8 +407,6 @@ pnpm install --frozen-lockfile &amp;&amp; pnpm build
 
 <span class="c"># find the base-URL override — this is what lets you capture later</span>
 rg -n &#39;baseURL|baseUrl|base_url|BASE_URL&#39; packages/llm/ apps/ --type ts</pre>
-          
-          
           <div class="c-blocks">blocked by <b class="no">nothing</b><br>produces <b>LLM_BASE_URL_ENV</b> · <b>DSH_CMD</b><br>unblocks <b>Task 0.2</b></div>
         </article>
 
@@ -416,7 +414,6 @@ rg -n &#39;baseURL|baseUrl|base_url|BASE_URL&#39; packages/llm/ apps/ --type ts<
           <div class="c-top"><span class="c-id">Task 0.2</span></div>
           <div class="c-t">Build the capture proxy</div>
           <p>~70 lines of dependency-free Node. Tees SSE to disk without buffering the client's view, and redacts <code>authorization</code>, <code>x-api-key</code>, <code>api-key</code>, <code>cookie</code> before any write.</p>
-          
           <div class="halt">
             <div class="h-t">The one check you must not skip</div>
             <pre>rg -n &#39;sk-|Bearer&#39; captures/session-smoke.jsonl
@@ -447,7 +444,6 @@ rg -n &#39;baseURL|baseUrl|base_url|BASE_URL&#39; packages/llm/ apps/ --type ts<
         result = impls[call.name](call.args)
         messages.push({role:&#39;tool&#39;, tool_call_id,
           content: result<span class="k">.slice(0,4000)</span>})</pre>
-          
           <p><strong>Then break it deliberately:</strong></p>
           <ul><li><strong>Blow the truncation</strong> — read <code>package-lock.json</code> and list the dependencies.</li><li><strong>Blow the step cap</strong> — twelve sorting algorithms, each run and compared.</li><li><strong>Expose the missing permission layer</strong> — delete every <code>.tmp</code> under <code>/tmp</code>. The alarm you feel is <code>packages/guard</code>'s entire reason to exist.</li></ul>
           <p><strong>Deliverables:</strong> <code>experiments/minimal-harness/harness.mjs</code>, a capture of your own harness through the proxy, and <code>notes/01-what-my-harness-lacks.md</code> — the table that becomes §4 and §5. First real <code>CONTEXT.md</code> terms land here: loop, turn, step, tool call, tool result, context window.</p>
@@ -460,7 +456,6 @@ rg -n &#39;baseURL|baseUrl|base_url|BASE_URL&#39; packages/llm/ apps/ --type ts<
           <p>Capture dsh on the canonical task, then write <code>notes/02-baseline-behavior.md</code> recording <strong>only what was observable</strong>: round-trip count, tool order, when approval was requested, what displayed between steps, whether it verified its own work.</p>
           <pre>rg -n &#39;packages/&#39; notes/02-baseline-behavior.md
 <span class="c"># must print nothing</span></pre>
-          
           <p>That note is the control Thread B must later reconcile against, line by line. <strong>It only works if it was written before you read any source.</strong></p>
           <p>Then diff your toy against the specimen: same task, two harnesses, two captures. Every difference is a thread to pull.</p>
           <div class="c-blocks">blocked by <b class="yes">Phase 1</b><br>unblocks <b>Thread B · Threads A, C</b></div>
@@ -477,8 +472,6 @@ rg -n &#39;baseURL|baseUrl|base_url|BASE_URL&#39; packages/llm/ apps/ --type ts<
           <div class="c-top"><span class="c-id">Phase 3</span></div>
           <div class="c-t">One tool, two harnesses</div>
           <p>The same trivial tool built twice — as a dsh plugin and as an MCP server for Claude Code. <strong>The diff between the two integrations is the finding.</strong></p>
-          
-          
           <p><strong>Two things must be true, per harness:</strong> the tool was <em>offered</em>, and the model <em>called it</em>. Proving only the first is the classic false pass — it shows registration worked while the loop never closed around it.</p>
           <pre><span class="c"># offered (dsh, from the capture)</span>
 jq -r &#39;select(.dir==&quot;request&quot;) | .body.tools[]? | .function.name&#39; \
@@ -501,8 +494,6 @@ rg -c &#39;STUDY-MARKER-7f3a&#39; captures/session-plugin.jsonl</pre>
           <div class="c-top"><span class="c-id">Phase 4</span></div>
           <div class="c-t">Transfer test</div>
           <p>Commit predictions <em>before</em> opening the Claude Code transcripts already on disk, then score them. Sort every glossary term into universal, dsh-specific, or missing.</p>
-          
-          
           <p><strong>Predict first, and commit the prediction.</strong> From the dsh-derived model alone, write down which tools you expect, how results appear serialized, what stop reasons exist, how permissions are gated. A prediction made after looking tests nothing — so it goes in a commit before the first <code>jq</code> runs.</p>
           <p><strong>Three buckets, and two of them are the output:</strong></p>
           <ul><li><strong>Universal</strong> — explains both harnesses. Stays canonical in <code>CONTEXT.md</code>.</li><li><strong>dsh-specific</strong> — an implementation detail you mistook for a category concept.</li><li><strong>Missing</strong> — Claude Code does something your vocabulary can't name. <code>thinking</code> blocks, hooks, and sidechains are the likely candidates.</li></ul>

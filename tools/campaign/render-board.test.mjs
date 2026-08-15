@@ -18,6 +18,17 @@ test('shows the three roles', () => {
   assert.match(html, /other/)
 })
 
+test('the card itself carries the three role labels, not just the glossary below', () => {
+  // "Subject", "Specimen", and "Transfer specimen" already appear as headings in the Shared
+  // language section further down the page, so a page-wide match on those words would pass even
+  // if the card itself rendered its role values unlabelled. Scoping the check to the card's own
+  // markup makes it possible to fail on that specific regression.
+  const cardMatch = html.match(/<article class="card"[\s\S]*?<\/article>/)
+  assert.ok(cardMatch, 'expected a rendered campaign card')
+  for (const label of ['Subject', 'Specimen', 'Transfer specimen'])
+    assert.match(cardMatch[0], new RegExp(label))
+})
+
 test('shows the same totals wording as the worklog strip', () => {
   // The mini fixture has three threads (A/B/C); only A has ever been logged, so the totals are
   // 1 touched, 0 dry, 2 not started — not the 1-thread "1 not started" an earlier draft assumed.

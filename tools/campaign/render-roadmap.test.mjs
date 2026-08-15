@@ -153,3 +153,33 @@ test('the masthead kicker uses specimen.short while .facts keeps the full name',
   assert.match(html, /· sp @ abc1234 ·/)
   assert.match(html, /specimen <b>spec<\/b>/)
 })
+
+// The roadmap's template deliberately places a single blank line between two populated blocks in
+// several spots (e.g. the board's lede and its lane grid) — the same formatting convention the
+// pre-migration page used, and one render-worklog.mjs's template doesn't share. So the guard here
+// isn't "zero blank lines anywhere" (render-worklog.test.mjs's stricter version, which happens to
+// hold because that template has no such deliberate spacing) — it's "no *stacked* blank lines",
+// which is the concrete signature left behind when two adjacent optional fragments (a phase's
+// `pre`, `halt`, and `detail`, all independently nullable) are omitted at the same spot and each
+// leaves its own blank line, colliding into a run of two or more. That is exactly what shipped in
+// campaigns/agent-harnesses/roadmap.html: a phase with no `pre` and no `halt` produced
+// `${pre}\n          ${renderHalt(halt)}\n          ${details}` collapsing to two blank lines in a
+// row, invisible because the generator and the committed page agreed. Blank lines inside `<pre>`
+// are real code-block content, not a defect, so they're excluded before the check runs.
+const noStackedBlankLines = (rendered) => {
+  const withoutStyle = rendered.replace(/\n<style>[\s\S]*?<\/style>\n/, '\n')
+  const withoutPre = withoutStyle.replace(/<pre>[\s\S]*?<\/pre>/g, '<pre></pre>')
+  assert.doesNotMatch(withoutPre, /\n[ \t]*\n[ \t]*\n/)
+}
+
+test('an omitted optional phase field (pre, halt, or detail) leaves no blank-line trace', () => {
+  // Phase 3 in the mini fixture has pre: null, halt: null, and no detail array at all — the exact
+  // shape that produced the shipped defect — so this fixture alone already exercises the worst
+  // case (all three collapsing together) without needing a synthetic mutation.
+  noStackedBlankLines(html)
+})
+
+test('the real campaign roadmap also has no stacked blank lines', () => {
+  const real = renderRoadmap(loadCampaign('campaigns/agent-harnesses'))
+  noStackedBlankLines(real)
+})

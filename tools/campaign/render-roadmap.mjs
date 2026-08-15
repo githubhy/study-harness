@@ -80,13 +80,15 @@ const sLoop = (data) => {
       ${claims.map((c) => `<div class="cell"><h3>${rich(c.title)}</h3><p>${rich(c.body)}</p></div>`).join('\n      ')}
     </div>`
     : ''
+  // Original spacing was asymmetric — a single line between the lede and the fixed loop figure,
+  // a blank line before the (optional) claims block — so that's preserved here rather than
+  // uniformly double-spacing every joint.
+  const top = [lede, LOOP_SVG].filter(Boolean).join('\n    ')
+  const body = [top, claimsBlock].filter(Boolean).join('\n\n    ')
   return `<section id="s1">
     <span class="snum">§ 1</span>
     <h2 class="sec">The loop everything else is filed under</h2>
-    ${lede}
-    ${LOOP_SVG}
-
-    ${claimsBlock}
+    ${body}
   </section>`
 }
 
@@ -147,12 +149,11 @@ const sMap = (data) => {
     </figure>`
     : ''
 
+  const body = [lede, figure].filter(Boolean).join('\n\n    ')
   return `<section id="s2">
     <span class="snum">§ 2</span>
     <h2 class="sec">The map · what blocks what</h2>
-    ${lede}
-
-    ${figure}
+    ${body}
   </section>`
 }
 
@@ -170,10 +171,10 @@ const renderHalt = (halt) => {
   if (!halt) return ''
   const pre = halt.pre ? `<pre>${code(halt.pre)}</pre>` : ''
   const body = halt.body ? `<p>${rich(halt.body)}</p>` : ''
+  const inner = [pre, body].filter(Boolean).join('\n            ')
   return `<div class="halt">
             <div class="h-t">${esc(halt.title ?? 'The one check you must not skip')}</div>
-            ${pre}
-            ${body}
+            ${inner}
           </div>`
 }
 
@@ -206,13 +207,12 @@ const renderCard = (phase) => {
   const dataS = LANES[phase.lane]?.dataS ?? 'go'
   const pre = phase.pre ? `<pre>${code(phase.pre)}</pre>` : ''
   const details = (phase.detail ?? []).map(renderPhaseDetail).join('\n          ')
+  const body = [`<p>${rich(phase.body)}</p>`, pre, renderHalt(phase.halt), details]
+    .filter(Boolean).join('\n          ')
   return `<article class="card" data-s="${attr(dataS)}">
           <div class="c-top"><span class="c-id">${esc(phase.id)}</span></div>
           <div class="c-t">${esc(phase.title)}</div>
-          <p>${rich(phase.body)}</p>
-          ${pre}
-          ${renderHalt(phase.halt)}
-          ${details}
+          ${body}
           <div class="c-blocks">${renderBlocks(phase)}</div>
         </article>`
 }
@@ -234,7 +234,7 @@ const sBoard = (data) => {
 
         ${phases.map(renderCard).join('\n\n        ')}
       </div>`
-  }).join('\n\n      ')
+  }).filter(Boolean).join('\n\n      ')
 
   return `<section id="s3">
     <span class="snum">§ 3</span>
@@ -326,11 +326,11 @@ const sMenu = (data, derived) => {
     </div>`
   }).join('\n\n    ')
 
+  const top = [lede, legend].filter(Boolean).join('\n    ')
   return `<section id="s4">
     <span class="snum">§ 4</span>
     <h2 class="sec">The menu · ${spell(data.threads.length)} threads</h2>
-    ${lede}
-    ${legend}
+    ${top}
 
     ${bands}
   </section>`
@@ -363,19 +363,20 @@ const sWhy = (data) => {
     censusRow = `<tr><td colspan="2" style="color:var(--ink-faint)">${esc(label)} came from the package census in §8 instead — the toy could not have suggested ${pronoun}.</td><td class="ref" style="color:var(--ink-faint)">${esc(letters.join(' · '))}</td></tr>`
   }
 
-  return `<section id="s5">
-    <span class="snum">§ 5</span>
-    <h2 class="sec">Why these ${spell(data.threads.length)}</h2>
-    ${lede}
-    <div class="tw">
+  const rows = [toyRows, censusRow].filter(Boolean).join('\n          ')
+  const table = `<div class="tw">
       <table>
         <thead><tr><th>What the toy does</th><th>The question it raises</th><th>Thread</th></tr></thead>
         <tbody>
-          ${toyRows}
-          ${censusRow}
+          ${rows}
         </tbody>
       </table>
-    </div>
+    </div>`
+  const body = [lede, table].filter(Boolean).join('\n    ')
+  return `<section id="s5">
+    <span class="snum">§ 5</span>
+    <h2 class="sec">Why these ${spell(data.threads.length)}</h2>
+    ${body}
   </section>`
 }
 
@@ -387,19 +388,20 @@ const sTransfer = (data) => {
     `<tr><td>${rich(r.q)}</td><td class="${r.available ? 'y' : 'n'}">${r.available ? 'yes' : 'no'}</td><td>${rich(r.source)}</td></tr>`
   ).join('\n          ')
 
-  return `<section id="s6">
-    <span class="snum">§ 6</span>
-    <h2 class="sec">What the transfer test can and can't see</h2>
-    ${lede}
-    <div class="tw">
+  const table = `<div class="tw">
       <table>
         <thead><tr><th>Question</th><th>In transcripts?</th><th>Where it comes from</th></tr></thead>
         <tbody>
           ${rows}
         </tbody>
       </table>
-    </div>
-    ${data.copy.transferPull ? `<p class="pull">${rich(data.copy.transferPull)}</p>` : ''}
+    </div>`
+  const pull = data.copy.transferPull ? `<p class="pull">${rich(data.copy.transferPull)}</p>` : ''
+  const body = [lede, table, pull].filter(Boolean).join('\n    ')
+  return `<section id="s6">
+    <span class="snum">§ 6</span>
+    <h2 class="sec">What the transfer test can and can't see</h2>
+    ${body}
   </section>`
 }
 
@@ -427,11 +429,11 @@ const sOrders = (data) => {
     </div>`
     : ''
 
+  const sectionBody = [lede, grid].filter(Boolean).join('\n    ')
   return `<section id="s7">
     <span class="snum">§ 7</span>
     <h2 class="sec">Standing orders</h2>
-    ${lede}
-    ${grid}
+    ${sectionBody}
   </section>`
 }
 
@@ -458,20 +460,24 @@ while read -r p; do rg -q "$p" campaigns/${data.campaign}/roadmap.html \\
   || echo "UNCOVERED: $p"; done < /tmp/pkgs.txt`)}</pre>`
     : ''
 
-  return `<section id="s8">
-    <span class="snum">§ 8</span>
-    <h2 class="sec">Package census · all ${total} accounted for</h2>
-    <p class="lede">Breadth is checkable, not claimed. If a package isn't listed, that's a gap in the plan — add a thread rather than skipping it.</p>
-    <div class="tw">
+  const tbodyRows = [rows, infraRow].filter(Boolean).join('\n          ')
+  const table = `<div class="tw">
       <table>
         <thead><tr><th>Loop step</th><th>Thread</th><th>Needs</th><th>Packages</th></tr></thead>
         <tbody>
-          ${rows}
-          ${infraRow}
+          ${tbodyRows}
         </tbody>
       </table>
-    </div>
-    ${recheck}
+    </div>`
+  const sectionBody = [
+    `<p class="lede">Breadth is checkable, not claimed. If a package isn't listed, that's a gap in the plan — add a thread rather than skipping it.</p>`,
+    table,
+    recheck,
+  ].filter(Boolean).join('\n    ')
+  return `<section id="s8">
+    <span class="snum">§ 8</span>
+    <h2 class="sec">Package census · all ${total} accounted for</h2>
+    ${sectionBody}
   </section>`
 }
 
@@ -556,5 +562,5 @@ export function renderRoadmap({ data, derived }) {
     sWhy(data), sTransfer(data), sOrders(data), sCensus(derived, data),
     footer(data),
     '</main></div></div>',
-  ].join('\n')
+  ].filter(Boolean).join('\n')
 }

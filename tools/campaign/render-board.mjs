@@ -3,9 +3,14 @@ import { esc, rich, attr } from './html.mjs'
 
 // ---------- one card per campaign ----------
 
-// The hand-written board's `.roles` dl (Subject/Specimen/Transfer specimen) has no counterpart in
-// theme.mjs, so the three roles are folded into a `.facts` row instead — the same mono-label
-// pattern the roadmap masthead already uses for its own specimen/pinned/packages facts.
+// The hand-written board's `.roles` dl (`<dt>Subject</dt>`/`<dt>Specimen</dt>`/
+// `<dt>Transfer specimen</dt>`, each above its value) has no counterpart in theme.mjs. The nearest
+// equivalent is `.n-id` + `.n-t` — the map figure's small-caps label over a bold mono value, whose
+// CSS (mono, uppercase, letter-spacing .14em, ink-faint) is nearly byte-identical to the old
+// `.role dt` rule. Three label/value stacks sit inside `.facts`, the same flex-row container the
+// roadmap masthead already uses for its own specimen/pinned/packages facts.
+const role = (label, value) => `<div><div class="n-id">${esc(label)}</div><div class="n-t">${value}</div></div>`
+
 const card = ({ data, derived }) => {
   const { touched, dry, notStarted } = derived.totals
   const newest = derived.trail[0]
@@ -22,9 +27,9 @@ const card = ({ data, derived }) => {
       </div>
       <p class="lede">${rich(data.copy.standfirst)}</p>
       <div class="facts">
-        <span>subject <b>${esc(data.subject)}</b></span>
-        <span>specimen <b>${esc(data.specimen.name)}</b> @ <b>${esc(data.specimen.pinned)}</b></span>
-        <span>transfer <b>${esc(data.transferSpecimen.name)}</b> · <b>${esc(data.transferSpecimen.via)}</b></span>
+        ${role('Subject', `<b>${esc(data.subject)}</b>`)}
+        ${role('Specimen', `<b>${esc(data.specimen.name)}</b> @ <b>${esc(data.specimen.pinned)}</b>`)}
+        ${role('Transfer specimen', `<b>${esc(data.transferSpecimen.name)}</b> · <b>${esc(data.transferSpecimen.via)}</b>`)}
       </div>
       <p class="mono" data-role="resume">${resume}</p>
       <p class="mono" data-role="totals">${touched} touched · ${dry} dry · ${notStarted} not started</p>
