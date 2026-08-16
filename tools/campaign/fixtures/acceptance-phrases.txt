@@ -1,7 +1,7 @@
 47f943859bef60e4160492346772ded9b24f765a
 corepack enable
-sk-|Bearer
-session-smoke.jsonl
+leak-check.mjs
+captures/*.jsonl
 STUDY-MARKER-7f3a
 hello_study
 02-baseline-behavior.md

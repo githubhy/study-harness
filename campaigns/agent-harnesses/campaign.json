@@ -11,7 +11,10 @@
     "repo": "deepseek-ai/deepseek-harness",
     "packageCount": 49
   },
-  "transferSpecimen": { "name": "Claude Code", "via": "transcripts" },
+  "transferSpecimen": {
+    "name": "Claude Code",
+    "via": "transcripts"
+  },
   "surpriseBudget": 2,
   "canonicalTask": "Create a file called fizzbuzz.js that prints FizzBuzz for 1..20, then run it with node and show me the output.",
   "copy": {
@@ -84,7 +87,11 @@
           "sub": "Write down what you saw <em>before</em> reading any source. This is the control Thread B reconciles against."
         }
       ],
-      "links": ["produces the instrument", "produces the question list", "opens the menu — 15 threads, no order"],
+      "links": [
+        "produces the instrument",
+        "produces the question list",
+        "opens the menu — 15 threads, no order"
+      ],
       "outputs": [
         {
           "id": "Phase 3 · gated on Thread D alone",
@@ -144,7 +151,10 @@
       "detail": [],
       "blocks": "nothing",
       "note": null,
-      "produces": ["LLM_BASE_URL_ENV", "DSH_CMD"],
+      "produces": [
+        "LLM_BASE_URL_ENV",
+        "DSH_CMD"
+      ],
       "unblocks": "Task 0.2",
       "consumes": null
     },
@@ -156,8 +166,8 @@
       "pre": null,
       "halt": {
         "title": "The one check you must not skip",
-        "pre": "rg -n 'sk-|Bearer' captures/session-smoke.jsonl\n<span class=\"c\"># must print nothing</span>",
-        "body": "A leaked key in a capture is the single unrecoverable mistake in this study. If that prints anything, stop and fix <code>redact()</code> before going further."
+        "pre": "node tools/capture-proxy/leak-check.mjs captures/*.jsonl\n<span class=\"c\"># must print: clean: N captures, no credential found</span>",
+        "body": "A leaked key in a capture is the single unrecoverable mistake in this study. The check runs two ways, because they fail differently: <b>structurally</b>, every sensitive header must read <code>&lt;redacted&gt;</code>, which catches a redaction bug even for a credential format nobody anticipated; and <b>by shape</b>, key-like strings are hunted anywhere in the file, including bodies, where a model may have echoed a secret the proxy never saw as a header. If it reports a leak, stop, fix <code>redact()</code>, and treat the key as burned — rotate it rather than deleting the file, because it existed on disk in that state."
       },
       "detail": [
         "<strong>Deliverables:</strong> <code>.gitignore</code>, <code>tools/capture-proxy/server.mjs</code>, and <code>notes/00-orientation.md</code> holding the pinned SHA, the package map, and the two discovered values every later task consumes by name."
@@ -261,8 +271,14 @@
       "name": "Prompt & presentation",
       "loop": "assemble",
       "question": "What actually belongs in a system prompt, and how much behaviour is bought with prose rather than code?",
-      "raisedBy": { "kind": "toy" },
-      "packages": ["core/system-prompt", "agent-tool-presentation", "preset"],
+      "raisedBy": {
+        "kind": "toy"
+      },
+      "packages": [
+        "core/system-prompt",
+        "agent-tool-presentation",
+        "preset"
+      ],
       "needs": "capture",
       "gates": null,
       "comparison": false,
@@ -277,8 +293,14 @@
       "name": "The agent loop",
       "loop": "control",
       "question": "What legitimately terminates a loop? Your toy just used a hard step cap of ten.",
-      "raisedBy": { "kind": "toy" },
-      "packages": ["core/agent-loop", "core/agent", "agent-default-model"],
+      "raisedBy": {
+        "kind": "toy"
+      },
+      "packages": [
+        "core/agent-loop",
+        "core/agent",
+        "agent-default-model"
+      ],
       "needs": "note-2.0",
       "gates": null,
       "comparison": false,
@@ -293,8 +315,15 @@
       "name": "Context & compaction",
       "loop": "assemble",
       "question": "What should be dropped when the context fills, and is the decision positional, semantic, or size-based?",
-      "raisedBy": { "kind": "toy" },
-      "packages": ["compaction/*", "context", "spill", "core/session"],
+      "raisedBy": {
+        "kind": "toy"
+      },
+      "packages": [
+        "compaction/*",
+        "context",
+        "spill",
+        "core/session"
+      ],
       "needs": "capture",
       "gates": null,
       "comparison": false,
@@ -309,8 +338,15 @@
       "name": "Tools & permission",
       "loop": "execute",
       "question": "What must a harness be told about a tool, and where does the permission boundary sit?",
-      "raisedBy": { "kind": "toy" },
-      "packages": ["core/tools", "fs", "guard", "web"],
+      "raisedBy": {
+        "kind": "toy"
+      },
+      "packages": [
+        "core/tools",
+        "fs",
+        "guard",
+        "web"
+      ],
       "needs": "source",
       "gates": "Phase 3",
       "comparison": false,
@@ -325,8 +361,15 @@
       "name": "Plugin architecture",
       "loop": "around",
       "question": "Where should a harness's extension boundary sit, and what does “everything is a plugin” make hard?",
-      "raisedBy": { "kind": "toy" },
-      "packages": ["core/scope", "boot", "extensions", "bundle"],
+      "raisedBy": {
+        "kind": "toy"
+      },
+      "packages": [
+        "core/scope",
+        "boot",
+        "extensions",
+        "bundle"
+      ],
       "needs": "source",
       "gates": null,
       "comparison": false,
@@ -341,8 +384,16 @@
       "name": "Delegation & sub-agents",
       "loop": "execute",
       "question": "When does a harness spawn <em>another</em> harness, and what does the child inherit?",
-      "raisedBy": { "kind": "toy" },
-      "packages": ["subagent", "plan", "goal", "jobs", "schedule"],
+      "raisedBy": {
+        "kind": "toy"
+      },
+      "packages": [
+        "subagent",
+        "plan",
+        "goal",
+        "jobs",
+        "schedule"
+      ],
       "needs": "source",
       "gates": null,
       "comparison": true,
@@ -357,8 +408,17 @@
       "name": "Execution & sandboxing",
       "loop": "execute",
       "question": "Where does model-authored code actually run, and what contains it?",
-      "raisedBy": { "kind": "toy" },
-      "packages": ["sandbox", "e2b", "code-runtime", "shell", "subprocess", "terminal"],
+      "raisedBy": {
+        "kind": "toy"
+      },
+      "packages": [
+        "sandbox",
+        "e2b",
+        "code-runtime",
+        "shell",
+        "subprocess",
+        "terminal"
+      ],
       "needs": "source",
       "gates": null,
       "comparison": false,
@@ -373,8 +433,15 @@
       "name": "Interop · MCP & ACP",
       "loop": "around",
       "question": "When a harness standardises its extension boundary, what does it give up?",
-      "raisedBy": { "kind": "toy" },
-      "packages": ["mcp", "acp", "api", "sdk"],
+      "raisedBy": {
+        "kind": "toy"
+      },
+      "packages": [
+        "mcp",
+        "acp",
+        "api",
+        "sdk"
+      ],
       "needs": "source",
       "gates": null,
       "comparison": true,
@@ -389,8 +456,16 @@
       "name": "Persistence & resumption",
       "loop": "control",
       "question": "What must be saved for a harness to resume a conversation it isn't currently holding in memory?",
-      "raisedBy": { "kind": "toy" },
-      "packages": ["session", "session-query", "settings", "storage", "workspace"],
+      "raisedBy": {
+        "kind": "toy"
+      },
+      "packages": [
+        "session",
+        "session-query",
+        "settings",
+        "storage",
+        "workspace"
+      ],
       "needs": "source",
       "gates": null,
       "comparison": true,
@@ -405,8 +480,15 @@
       "name": "Observability & cost",
       "loop": "around",
       "question": "How does a harness let someone outside the loop observe it — or interrupt it?",
-      "raisedBy": { "kind": "toy" },
-      "packages": ["hooks", "feedback", "runtime-diagnostics", "token-meter"],
+      "raisedBy": {
+        "kind": "toy"
+      },
+      "packages": [
+        "hooks",
+        "feedback",
+        "runtime-diagnostics",
+        "token-meter"
+      ],
       "needs": "source",
       "gates": null,
       "comparison": true,
@@ -421,8 +503,15 @@
       "name": "The host boundary",
       "loop": "around",
       "question": "Where does the harness end and the user interface begin? Could you drive it with no UI at all?",
-      "raisedBy": { "kind": "toy" },
-      "packages": ["host", "client", "interaction", "apps/"],
+      "raisedBy": {
+        "kind": "toy"
+      },
+      "packages": [
+        "host",
+        "client",
+        "interaction",
+        "apps/"
+      ],
       "needs": "source",
       "gates": null,
       "comparison": false,
@@ -437,8 +526,17 @@
       "name": "Provider abstraction",
       "loop": "call",
       "question": "What does it take to be model-agnostic, and where does the abstraction leak?",
-      "raisedBy": { "kind": "toy" },
-      "packages": ["llm/*", "llm-deepseek", "llm-pi-ai", "llm-retry", "credentials", "identity"],
+      "raisedBy": {
+        "kind": "toy"
+      },
+      "packages": [
+        "llm/*",
+        "llm-deepseek",
+        "llm-pi-ai",
+        "llm-retry",
+        "credentials",
+        "identity"
+      ],
       "needs": "source",
       "gates": null,
       "comparison": false,
@@ -454,8 +552,14 @@
       "name": "Inputs & code intelligence",
       "loop": "assemble",
       "question": "What does a harness feed the model besides text and tool results?",
-      "raisedBy": { "kind": "census", "text": "the package census — the toy never raised this one" },
-      "packages": ["attachment", "lsp"],
+      "raisedBy": {
+        "kind": "census",
+        "text": "the package census — the toy never raised this one"
+      },
+      "packages": [
+        "attachment",
+        "lsp"
+      ],
       "needs": "source",
       "gates": null,
       "comparison": false,
@@ -470,8 +574,16 @@
       "name": "Cross-language embedding",
       "loop": "around",
       "question": "Can a TypeScript harness be driven from Python, and what does that boundary force it to make explicit?",
-      "raisedBy": { "kind": "census", "text": "the package census — the toy never raised this one" },
-      "packages": ["python/", "native/", "sdk", "examples"],
+      "raisedBy": {
+        "kind": "census",
+        "text": "the package census — the toy never raised this one"
+      },
+      "packages": [
+        "python/",
+        "native/",
+        "sdk",
+        "examples"
+      ],
       "needs": "source",
       "gates": null,
       "comparison": false,
@@ -486,8 +598,14 @@
       "name": "Agent self-management",
       "loop": "execute",
       "question": "What tools does a harness give the model for managing its own process, rather than the user's task?",
-      "raisedBy": { "kind": "toy" },
-      "packages": ["todo", "skill", "workflow"],
+      "raisedBy": {
+        "kind": "toy"
+      },
+      "packages": [
+        "todo",
+        "skill",
+        "workflow"
+      ],
       "needs": "source",
       "gates": null,
       "comparison": true,
@@ -504,16 +622,53 @@
       ]
     }
   ],
-  "infrastructurePackages": ["util", "typert", "test-support", "bundle"],
+  "infrastructurePackages": [
+    "util",
+    "typert",
+    "test-support",
+    "bundle"
+  ],
   "transferLedger": [
-    { "q": "Which tools exist and get called", "available": true, "source": "<code>tool_use</code> blocks" },
-    { "q": "How the loop terminates", "available": true, "source": "<code>stopReason</code>" },
-    { "q": "How permissions are gated", "available": true, "source": "<code>permission-mode</code>" },
-    { "q": "Whether hooks can block", "available": true, "source": "<code>preventedContinuation</code>" },
-    { "q": "Whether sub-agents fork context", "available": true, "source": "<code>isSidechain</code>" },
-    { "q": "Whether the model reasons before acting", "available": true, "source": "<code>thinking</code> blocks" },
-    { "q": "What the system prompt says", "available": false, "source": "not stored locally" },
-    { "q": "What the tool schemas declare", "available": false, "source": "not stored locally" }
+    {
+      "q": "Which tools exist and get called",
+      "available": true,
+      "source": "<code>tool_use</code> blocks"
+    },
+    {
+      "q": "How the loop terminates",
+      "available": true,
+      "source": "<code>stopReason</code>"
+    },
+    {
+      "q": "How permissions are gated",
+      "available": true,
+      "source": "<code>permission-mode</code>"
+    },
+    {
+      "q": "Whether hooks can block",
+      "available": true,
+      "source": "<code>preventedContinuation</code>"
+    },
+    {
+      "q": "Whether sub-agents fork context",
+      "available": true,
+      "source": "<code>isSidechain</code>"
+    },
+    {
+      "q": "Whether the model reasons before acting",
+      "available": true,
+      "source": "<code>thinking</code> blocks"
+    },
+    {
+      "q": "What the system prompt says",
+      "available": false,
+      "source": "not stored locally"
+    },
+    {
+      "q": "What the tool schemas declare",
+      "available": false,
+      "source": "not stored locally"
+    }
   ],
   "log": [],
   "questionIndex": [
@@ -521,79 +676,107 @@
       "shortcut": "<code>.slice(0, 4000)</code> on every tool result",
       "from": ".slice(0, 4000) on every tool result",
       "question": "What should be dropped when context fills, and how is that decided?",
-      "threads": ["C"]
+      "threads": [
+        "C"
+      ]
     },
     {
       "shortcut": "Runs every tool unchecked, including <code>rm</code>",
       "from": "running every tool unchecked, including rm",
       "question": "Where does a permission boundary belong, and what does it gate?",
-      "threads": ["D"]
+      "threads": [
+        "D"
+      ]
     },
     {
       "shortcut": "Hard-coded <code>MAX_STEPS = 10</code>",
       "from": "hard-coded MAX_STEPS = 10",
       "question": "What legitimately terminates a loop?",
-      "threads": ["B"]
+      "threads": [
+        "B"
+      ]
     },
     {
       "shortcut": "Two tools in an array literal",
       "from": "two tools in an array literal",
       "question": "How does a tool get registered and described at scale?",
-      "threads": ["D", "A"]
+      "threads": [
+        "D",
+        "A"
+      ]
     },
     {
       "shortcut": "One hard-coded system prompt string",
       "from": "one hard-coded system prompt string",
       "question": "What actually belongs in a system prompt?",
-      "threads": ["A"]
+      "threads": [
+        "A"
+      ]
     },
     {
       "shortcut": "Bare <code>execSync</code> on the host",
       "from": "bare execSync on the host",
       "question": "Where should model-authored code run, and what contains it?",
-      "threads": ["G"]
+      "threads": [
+        "G"
+      ]
     },
     {
       "shortcut": "One loop, one context, no fan-out",
       "from": "one loop, one context, no fan-out",
       "question": "When does a harness spawn another harness?",
-      "threads": ["F"]
+      "threads": [
+        "F"
+      ]
     },
     {
       "shortcut": "Loses everything on exit",
       "from": "losing everything on exit",
       "question": "What must be saved to resume a conversation?",
-      "threads": ["I"]
+      "threads": [
+        "I"
+      ]
     },
     {
       "shortcut": "No plugins, no extension points",
       "from": "no plugins, no extension points",
       "question": "Where should the extension boundary sit?",
-      "threads": ["E", "H"]
+      "threads": [
+        "E",
+        "H"
+      ]
     },
     {
       "shortcut": "Prints to stdout",
       "from": "printing to stdout",
       "question": "Where does the harness end and the interface begin?",
-      "threads": ["K"]
+      "threads": [
+        "K"
+      ]
     },
     {
       "shortcut": "Hard-codes one provider's wire format",
       "from": "hard-coding one provider's wire format",
       "question": "What does model-agnosticism cost, and where does it leak?",
-      "threads": ["L"]
+      "threads": [
+        "L"
+      ]
     },
     {
       "shortcut": "No way to observe or interrupt it",
       "from": "no way to observe or interrupt it",
       "question": "How does anyone outside the loop see in?",
-      "threads": ["J"]
+      "threads": [
+        "J"
+      ]
     },
     {
       "shortcut": "Model can't track its own plan",
       "from": "the model being unable to track its own plan",
       "question": "What tools manage the model's own process?",
-      "threads": ["O"]
+      "threads": [
+        "O"
+      ]
     }
   ]
 }

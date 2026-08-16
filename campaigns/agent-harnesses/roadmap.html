@@ -422,9 +422,9 @@ rg -n &#39;baseURL|baseUrl|base_url|BASE_URL&#39; packages/llm/ apps/ --type ts<
           <p>~70 lines of dependency-free Node. Tees SSE to disk without buffering the client's view, and redacts <code>authorization</code>, <code>x-api-key</code>, <code>api-key</code>, <code>cookie</code> before any write.</p>
           <div class="halt">
             <div class="h-t">The one check you must not skip</div>
-            <pre>rg -n &#39;sk-|Bearer&#39; captures/session-smoke.jsonl
-<span class="c"># must print nothing</span></pre>
-            <p>A leaked key in a capture is the single unrecoverable mistake in this study. If that prints anything, stop and fix <code>redact()</code> before going further.</p>
+            <pre>node tools/capture-proxy/leak-check.mjs captures/*.jsonl
+<span class="c"># must print: clean: N captures, no credential found</span></pre>
+            <p>A leaked key in a capture is the single unrecoverable mistake in this study. The check runs two ways, because they fail differently: <b>structurally</b>, every sensitive header must read <code>&amp;lt;redacted&amp;gt;</code>, which catches a redaction bug even for a credential format nobody anticipated; and <b>by shape</b>, key-like strings are hunted anywhere in the file, including bodies, where a model may have echoed a secret the proxy never saw as a header. If it reports a leak, stop, fix <code>redact()</code>, and treat the key as burned — rotate it rather than deleting the file, because it existed on disk in that state.</p>
           </div>
           <p><strong>Deliverables:</strong> <code>.gitignore</code>, <code>tools/capture-proxy/server.mjs</code>, and <code>notes/00-orientation.md</code> holding the pinned SHA, the package map, and the two discovered values every later task consumes by name.</p>
           <div class="c-blocks">blocked by <b class="yes">Task 0.1</b><br>unblocks <b>everything downstream</b></div>
