@@ -877,6 +877,36 @@
       "opened": [],
       "resolved": [],
       "issue": null
+    },
+    {
+      "thread": "I",
+      "date": "2026-08-16",
+      "finding": "Balance was never about tidiness. repair.ts manufactures the missing tool, step and turn boundaries on reload because they are “needed to resume with a provider-valid transcript” — a tool call with no matching result is invalid on the wire. The property is enforced three times by parties that do not trust each other: the loop’s finally blocks produce it, the token meter throws when it is violated, and repair reconstructs it after a crash.",
+      "surprising": true,
+      "note": "notes/I-persistence-and-resumption.md",
+      "opened": [
+        {
+          "id": "i-replay",
+          "q": "Repair reuses the last real event’s timestamp rather than reading a clock, so a repaired log is a pure function of the torn one. Is replay used for anything besides recovery — testing, or the projection cache?",
+          "ask": "E"
+        }
+      ],
+      "resolved": [
+        "b-replay",
+        "f-header",
+        "k-store"
+      ],
+      "issue": null
+    },
+    {
+      "thread": "I",
+      "date": "2026-08-16",
+      "finding": "Five of the session header’s nine fields describe where the session came from rather than what is in it. What must be saved is everything a scope chain would otherwise ask for at runtime, because at resume time there is no parent to ask. Appending is synchronous and validating — a bad event fails at the call site — while durability is write-behind, and a failed background write is reported without rejecting the producer.",
+      "surprising": true,
+      "note": "notes/I-persistence-and-resumption.md",
+      "opened": [],
+      "resolved": [],
+      "issue": null
     }
   ],
   "questionIndex": [
