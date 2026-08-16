@@ -1,5 +1,120 @@
 {
   "captures": {
+    "batch-code": {
+      "source": "captures/session-batch-code.jsonl",
+      "requests": 4,
+      "contextBytes": [
+        60407,
+        712,
+        74445,
+        76235
+      ],
+      "toolSchemaBytes": [
+        908,
+        0,
+        908,
+        908
+      ],
+      "requestBytes": [
+        61495,
+        854,
+        75533,
+        77323
+      ],
+      "messageCounts": [
+        5,
+        2,
+        8,
+        10
+      ],
+      "systemPromptBytes": 34259,
+      "toolsOffered": 1,
+      "toolResultSizes": [
+        643,
+        565
+      ],
+      "firstRequestRoles": [
+        "system",
+        "user",
+        "user",
+        "user",
+        "user"
+      ],
+      "firstRequestBytes": [
+        34259,
+        190,
+        16031,
+        480,
+        8342
+      ],
+      "models": [
+        "deepseek-v4-flash"
+      ],
+      "streamed": true
+    },
+    "batch-native": {
+      "source": "captures/session-batch-native.jsonl",
+      "requests": 5,
+      "contextBytes": [
+        29472,
+        712,
+        32101,
+        119484,
+        127675
+      ],
+      "toolSchemaBytes": [
+        26983,
+        0,
+        26983,
+        26983,
+        26983
+      ],
+      "requestBytes": [
+        56635,
+        854,
+        59264,
+        146647,
+        154838
+      ],
+      "messageCounts": [
+        5,
+        2,
+        7,
+        16,
+        18
+      ],
+      "systemPromptBytes": 4031,
+      "toolsOffered": 25,
+      "toolResultSizes": [
+        250,
+        320,
+        22220,
+        384,
+        33189,
+        3453,
+        3621,
+        12898,
+        1318
+      ],
+      "firstRequestRoles": [
+        "system",
+        "user",
+        "user",
+        "user",
+        "user"
+      ],
+      "firstRequestBytes": [
+        4031,
+        190,
+        16031,
+        480,
+        8342
+      ],
+      "models": [
+        "deepseek-v4-flash"
+      ],
+      "streamed": true
+    },
     "dsh-canonical": {
       "source": "captures/session-dsh-canonical.jsonl",
       "requests": 4,

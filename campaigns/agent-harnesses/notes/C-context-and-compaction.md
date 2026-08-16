@@ -156,6 +156,45 @@ smaller.
 The honest summary: **Code Mode is a capability, not a behaviour.** Offering one tool does not make a
 model batch its work, and the encoding change alone is close to cost-neutral.
 
+### Second run: a task that permits batching
+
+The confound above was worth fixing rather than leaving. Same two modes, same six files, but phrased
+without the per-file constraint — *"For each .ts file in `packages/core/agent-loop/src`, report its path,
+its line count, and how many exported symbols it declares"* — so each mode was free to batch however it
+liked.
+
+| | native | Code Mode |
+|---|---|---|
+| loop steps | 4 | **3** |
+| tool calls | 9 | **2** |
+| first request | 56,635 B | 61,495 B |
+| last request | 154,838 B | **77,323 B** |
+| **total sent** | **417,384 B** | **214,351 B** |
+
+```chart
+kind: bars
+title: Total bytes sent, same task, both presentation modes
+unit: bytes
+caption: The unconstrained task, first and final loop request in each mode. Index 1 of each capture is the detached title call and is skipped. Code Mode's floor is higher — its first request is larger — but two run_code calls replace nine tool calls, and its final request is half the size.
+bar: native · first | @batch-native.requestBytes.0
+bar: native · final | @batch-native.requestBytes.4
+bar: code mode · first | @batch-code.requestBytes.0
+bar: code mode · final | @batch-code.requestBytes.3
+```
+
+**Code Mode sent 48.6% less — a 1.95× reduction.** Both halves of the original prediction are now settled,
+and they point opposite ways:
+
+- **The floor is higher**, always. The schemas move into the prompt rather than disappearing, so Code
+  Mode's first request was larger in both experiments (61,495 vs 56,635 here; 61,627 vs 56,767 before).
+- **The slope is much lower**, but only when the model can batch. Two `run_code` calls replaced nine tool
+  calls, and the final request was **half** the size.
+
+Which resolves the earlier result rather than overturning it. Code Mode loses on a task that forces
+per-item work and wins roughly twofold on one that does not — and the deciding factor is not the harness
+at all, it is whether the task lets a program loop. Native's batching mechanism, incidentally, is the
+shell: it reached for `wc -l` unprompted and still needed nine calls to finish.
+
 ## The pruner never fired, and that corrects this note
 
 The final requests carried tool results of **33,189** and **30,348** bytes — far above the pruner's

@@ -1279,6 +1279,18 @@
       "opened": [],
       "resolved": [],
       "issue": null
+    },
+    {
+      "thread": "D",
+      "date": "2026-08-16",
+      "finding": "Re-ran the Code Mode comparison without the per-file constraint that invalidated the first attempt. Code Mode sent 48.6% less — 214 KB against 417 KB, two run_code calls replacing nine tool calls, final request half the size. Both halves now settle and point opposite ways: the floor is always higher because schemas move into the prompt, the slope is much lower when the model can batch. The deciding factor is not the harness, it is whether the task lets a program loop.",
+      "surprising": true,
+      "note": "notes/C-context-and-compaction.md",
+      "opened": [],
+      "resolved": [
+        "c-batch"
+      ],
+      "issue": null
     }
   ],
   "questionIndex": [
