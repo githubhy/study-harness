@@ -54,7 +54,7 @@ shell (`bash`), and then whole categories my toy has no concept of — goals (`c
 `subagent_fork`, `list_agents`, `send_message`, `interrupt_agent`), and process tooling (`todo_write`,
 `skill`, `workflow`, `exit_plan_mode`). One name, `ralph`, I cannot guess from its name at all.
 
-**A 4,113-byte system prompt**, against my 130. It opens *"You are an AI agent powered by DeepSeek
+**A 4,113-byte system prompt**, against my 129. It opens *"You are an AI agent powered by DeepSeek
 Harness."*
 
 ## The user turn is three messages, not one
@@ -72,10 +72,10 @@ kind: stack
 title: What the first request is actually made of
 unit: bytes
 caption: The four messages of request 1, to scale. The task is the sliver on the right.
-part: system prompt | 4113
-part: skills reminder | 4423
-part: runtime context | 562
-part: the task itself | 110
+part: system prompt | @dsh-canonical.firstRequestBytes.0
+part: skills reminder | @dsh-canonical.firstRequestBytes.3
+part: runtime context | @dsh-canonical.firstRequestBytes.2
+part: the task itself | @dsh-canonical.firstRequestBytes.1
 ```
 
 **The task is 1.2% of the request.** Ninety-nine percent of what the model reads before its first token
@@ -123,7 +123,7 @@ The `write` result is not free text: it came back as `<path>…`, some structure
 |---|---|---|
 | Round trips for the task | 3 | 3 loop + 1 auxiliary |
 | Tools offered | 2 | 25 |
-| System prompt | 130 B | 4,113 B |
+| System prompt | 129 B | 4,113 B |
 | First request | 300 B | 9,382 B |
 | Last request | 1,290 B | 11,068 B |
 | Growth across the run | ×4.3 | ×1.18 |

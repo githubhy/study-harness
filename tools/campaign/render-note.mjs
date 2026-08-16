@@ -41,7 +41,7 @@ const isTableRule = (line) => isTableRow(line) && cells(line).every((c) => /^:?-
 const isBlockStart = (line) =>
   line.startsWith('```') || /^#{1,4}\s/.test(line) || isTableRow(line) || /^\s*[-*]\s+/.test(line)
 
-export function renderNoteBody(markdown) {
+export function renderNoteBody(markdown, measurements) {
   const lines = markdown.split('\n')
   const out = []
   let index = 0
@@ -58,7 +58,9 @@ export function renderNoteBody(markdown) {
       // A `chart` fence is data, not sample code: it renders. Everything else is
       // shown verbatim. A malformed spec throws rather than emitting a broken
       // figure — a chart that silently draws nothing is worse than a build error.
-      out.push(info === 'chart' ? renderChart(body.join('\n')) : `<pre>${esc(body.join('\n'))}</pre>`)
+      out.push(info === 'chart'
+        ? renderChart(body.join('\n'), measurements)
+        : `<pre>${esc(body.join('\n'))}</pre>`)
       continue
     }
 
@@ -112,7 +114,7 @@ export function renderNoteBody(markdown) {
 }
 
 /** A full page for one note. `back` links to the roadmap that cites it. */
-export function renderNote({ markdown, campaign, title, back = 'roadmap.html' }) {
+export function renderNote({ markdown, campaign, title, back = 'roadmap.html', measurements }) {
   return [
     '<meta charset="utf-8">',
     GENERATED_MARKER,
@@ -120,7 +122,7 @@ export function renderNote({ markdown, campaign, title, back = 'roadmap.html' })
     CSS,
     '<div class="page"><main>',
     `<header class="mast"><p class="kick">Note · ${esc(campaign)}</p></header>`,
-    renderNoteBody(markdown),
+    renderNoteBody(markdown, measurements),
     `<footer><span><a href="${attr(back)}">← roadmap</a></span>`
       + `<span><a href="worklog.html">worklog</a></span>`
       + `<span><a href="../index.html">all campaigns</a></span></footer>`,

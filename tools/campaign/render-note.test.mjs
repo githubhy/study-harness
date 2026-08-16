@@ -54,8 +54,17 @@ test('links render with an escaped href', () => {
 
 test('a rendered real note passes every HTML property check', () => {
   const markdown = readFileSync('campaigns/agent-harnesses/notes/01-what-my-harness-lacks.md', 'utf8')
-  const html = renderNote({ markdown, campaign: 'agent-harnesses', title: 'What my harness lacks' })
+  // Charts cite measurements by reference, so the renderer needs them — exactly
+  // as the build supplies them. Omitting them must throw, not draw an empty chart.
+  const measurements = JSON.parse(readFileSync('campaigns/agent-harnesses/measurements.json', 'utf8'))
+  const html = renderNote({ markdown, campaign: 'agent-harnesses', title: 'What my harness lacks', measurements })
   assert.deepEqual(checkHtml(html), [])
   assert.doesNotMatch(html, /undefined/)
   assert.match(html, /href="roadmap\.html"/)
+})
+
+test('a chart citing a measurement fails loudly when none is supplied', () => {
+  // Better a stopped build than a page with a blank figure nobody notices.
+  assert.throws(() => renderNoteBody('```chart\nkind: series\nseries: a | @run.contextBytes\n```'),
+    /no capture "run"/)
 })

@@ -57,18 +57,10 @@ appears five times to the byte is not data; it is a ceiling.
 kind: bars
 title: Every tool result the run produced
 unit: bytes
-highlight: clipped
+highlightValue: 4000
 highlightLabel: clipped at the 4,000-byte cap
-caption: Measured from the final request, which carries each result exactly once.
-bar: 1 | 25
-bar: 2 | 84
-bar: 3 | 1476
-bar: 4 | 2365
-bar: 5 · clipped | 4000
-bar: 6 · clipped | 4000
-bar: 7 · clipped | 4000
-bar: 8 · clipped | 4000
-bar: 9 · clipped | 4000
+caption: In call order, from the final request, which carries each result exactly once. Derived from the capture, not transcribed.
+bars: result | @toy-truncation.toolResultSizes
 ```
 
 Context grew every step, because nothing is ever dropped:
@@ -78,9 +70,9 @@ kind: series
 title: Context sent per request
 x: request
 caption: Bytes of the serialized message array. Three real runs, same axis.
-series: toy · canonical | 300, 911, 1290
-series: toy · truncation | 276, 2157, 6669, 11214, 11798, 15350, 21137, 21872, 27611, 33074
-series: dsh · canonical | 9382, 632, 10624, 11068
+series: toy · canonical | @toy-canonical.contextBytes
+series: toy · truncation | @toy-truncation.contextBytes
+series: dsh · canonical | @dsh-canonical.contextBytes
 ```
 
 The last call sent 10,416 prompt tokens to answer a question the first call could have answered with

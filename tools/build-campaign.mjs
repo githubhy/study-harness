@@ -8,6 +8,7 @@ import { loadCampaign, fromRoot } from './campaign/model.mjs'
 import { renderRoadmap } from './campaign/render-roadmap.mjs'
 import { renderWorklog } from './campaign/render-worklog.mjs'
 import { renderNote } from './campaign/render-note.mjs'
+import { measureCampaign } from './capture-proxy/measure.mjs'
 import { renderBoard } from './campaign/render-board.mjs'
 import { checkHtml } from './campaign/checks.mjs'
 
@@ -54,6 +55,24 @@ function main() {
       const dir = join('campaigns', name)
       const model = loadCampaign(dir)
       models.push(model)
+      // Facts the notes cite come from measurements.json, which is committed; the
+      // captures behind it are gitignored, so the build must work without them.
+      const measurePath = join(dir, 'measurements.json')
+      const measurements = existsSync(fromRoot(measurePath))
+        ? JSON.parse(readFileSync(fromRoot(measurePath), 'utf8'))
+        : { captures: {} }
+
+      // When the captures ARE present, re-derive and compare: a re-taken capture
+      // must not leave a note quietly citing the old numbers.
+      if (existsSync(fromRoot(join(dir, 'captures')))) {
+        const derived = JSON.stringify(measureCampaign(fromRoot(dir)), null, 2) + '\n'
+        const committed = existsSync(fromRoot(measurePath)) ? readFileSync(fromRoot(measurePath), 'utf8') : ''
+        if (derived !== committed) {
+          if (check) { console.error(`drift: ${measurePath} does not match its captures`); drifted++ }
+          else { writeFileSync(fromRoot(measurePath), derived); console.log(`wrote ${measurePath}`) }
+        }
+      }
+
       // Every note gets a page rendered from its Markdown, so the prose has one home.
       const notesDir = join(dir, 'notes')
       const notePages = (existsSync(fromRoot(notesDir)) ? readdirSync(fromRoot(notesDir)) : [])
@@ -63,7 +82,7 @@ function main() {
           const markdown = readFileSync(fromRoot(join(notesDir, name)), 'utf8')
           const title = (markdown.match(/^#\s+(.*)$/m)?.[1] ?? name).replace(/^\d+\s*·\s*/, '')
           return [join('notes', name.replace(/\.md$/, '.html')),
-                  renderNote({ markdown, campaign: name0(dir), title, back: '../roadmap.html' })]
+                  renderNote({ markdown, campaign: name0(dir), title, back: '../roadmap.html', measurements })]
         })
 
       for (const [file, html] of [

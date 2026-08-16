@@ -1,0 +1,181 @@
+{
+  "captures": {
+    "dsh-canonical": {
+      "source": "captures/session-dsh-canonical.jsonl",
+      "requests": 4,
+      "contextBytes": [
+        9382,
+        632,
+        10624,
+        11068
+      ],
+      "messageCounts": [
+        4,
+        2,
+        6,
+        8
+      ],
+      "systemPromptBytes": 4113,
+      "toolsOffered": 25,
+      "toolResultSizes": [
+        198,
+        77
+      ],
+      "firstRequestRoles": [
+        "system",
+        "user",
+        "user",
+        "user"
+      ],
+      "firstRequestBytes": [
+        4113,
+        110,
+        562,
+        4423
+      ],
+      "models": [
+        "deepseek-v4-flash"
+      ],
+      "streamed": true
+    },
+    "smoke": {
+      "source": "captures/session-smoke.jsonl",
+      "requests": 1,
+      "contextBytes": [
+        106
+      ],
+      "messageCounts": [
+        2
+      ],
+      "systemPromptBytes": 30,
+      "toolsOffered": 1,
+      "toolResultSizes": [],
+      "firstRequestRoles": [
+        "system",
+        "user"
+      ],
+      "firstRequestBytes": [
+        30,
+        15
+      ],
+      "models": [
+        "deepseek-chat"
+      ],
+      "streamed": false
+    },
+    "toy-canonical": {
+      "source": "captures/session-toy-canonical.jsonl",
+      "requests": 3,
+      "contextBytes": [
+        300,
+        911,
+        1290
+      ],
+      "messageCounts": [
+        2,
+        4,
+        6
+      ],
+      "systemPromptBytes": 129,
+      "toolsOffered": 2,
+      "toolResultSizes": [
+        17,
+        77
+      ],
+      "firstRequestRoles": [
+        "system",
+        "user"
+      ],
+      "firstRequestBytes": [
+        129,
+        110
+      ],
+      "models": [
+        "deepseek-chat"
+      ],
+      "streamed": false
+    },
+    "toy-permission": {
+      "source": "captures/session-toy-permission.jsonl",
+      "requests": 2,
+      "contextBytes": [
+        238,
+        526
+      ],
+      "messageCounts": [
+        2,
+        4
+      ],
+      "systemPromptBytes": 129,
+      "toolsOffered": 2,
+      "toolResultSizes": [
+        11
+      ],
+      "firstRequestRoles": [
+        "system",
+        "user"
+      ],
+      "firstRequestBytes": [
+        129,
+        48
+      ],
+      "models": [
+        "deepseek-chat"
+      ],
+      "streamed": false
+    },
+    "toy-truncation": {
+      "source": "captures/session-toy-truncation.jsonl",
+      "requests": 10,
+      "contextBytes": [
+        276,
+        2157,
+        6669,
+        11214,
+        11798,
+        15350,
+        21137,
+        21872,
+        27611,
+        33074
+      ],
+      "messageCounts": [
+        2,
+        4,
+        6,
+        8,
+        10,
+        12,
+        14,
+        16,
+        18,
+        20
+      ],
+      "systemPromptBytes": 129,
+      "toolsOffered": 2,
+      "toolResultSizes": [
+        1476,
+        4000,
+        4000,
+        84,
+        2365,
+        4000,
+        25,
+        4000,
+        4000
+      ],
+      "firstRequestRoles": [
+        "system",
+        "user"
+      ],
+      "firstRequestBytes": [
+        129,
+        86
+      ],
+      "models": [
+        "deepseek-chat"
+      ],
+      "streamed": false
+    }
+  }
+}

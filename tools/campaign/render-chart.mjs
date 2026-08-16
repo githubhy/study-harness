@@ -14,6 +14,7 @@
 // as theme tokens so both modes are selected rather than flipped.
 
 import { esc, attr } from './html.mjs'
+import { resolveMeasure } from '../capture-proxy/measure.mjs'
 
 const PALETTE = ['var(--series-1)', 'var(--series-2)', 'var(--series-3)']
 const AXIS = 'var(--rule)'
@@ -26,8 +27,12 @@ const fmt = (n) => n.toLocaleString('en-US')
  * Deliberately line-based so the Markdown source stays readable as text — the
  * note is the source of truth and has to survive being read without a browser.
  */
-export function parseChartSpec(body) {
+export function parseChartSpec(body, measurements) {
   const spec = { series: [], bars: [], parts: [] }
+  /** `@capture.field` pulls the numbers from measurements.json instead of the note. */
+  const numbers = (raw) => raw.trim().startsWith('@')
+    ? [resolveMeasure(raw.trim(), measurements)].flat()
+    : raw.split(',').map((n) => Number(n.trim().replace(/_/g, '')))
   for (const raw of body.split('\n')) {
     const line = raw.trim()
     if (!line || line.startsWith('#')) continue
@@ -35,15 +40,24 @@ export function parseChartSpec(body) {
     if (at === -1) continue
     const key = line.slice(0, at).trim()
     const value = line.slice(at + 1).trim()
+    // `bars` expands one array reference into a numbered bar per element, so a
+    // nine-element measurement is not nine hand-written lines that can drift.
+    if (key === 'bars') {
+      const bar = value.indexOf('|')
+      const prefix = bar === -1 ? '' : value.slice(0, bar).trim()
+      const values = numbers(bar === -1 ? value : value.slice(bar + 1))
+      values.forEach((v, i) => spec.bars.push({ label: `${prefix} ${i + 1}`.trim(), value: v }))
+      continue
+    }
     if (key === 'series' || key === 'bar' || key === 'part') {
       const bar = value.indexOf('|')
       if (bar === -1) continue
       const label = value.slice(0, bar).trim()
-      const numbers = value.slice(bar + 1).split(',').map((n) => Number(n.trim().replace(/_/g, '')))
-      if (numbers.some(Number.isNaN)) throw new Error(`chart: "${label}" has a non-numeric value`)
-      if (key === 'series') spec.series.push({ label, values: numbers })
-      else if (key === 'bar') spec.bars.push({ label, value: numbers[0] })
-      else spec.parts.push({ label, value: numbers[0] })
+      const values = numbers(value.slice(bar + 1))
+      if (values.some(Number.isNaN)) throw new Error(`chart: "${label}" has a non-numeric value`)
+      if (key === 'series') spec.series.push({ label, values })
+      else if (key === 'bar') spec.bars.push({ label, value: values[0] })
+      else spec.parts.push({ label, value: values[0] })
     } else {
       spec[key] = value
     }
@@ -122,7 +136,10 @@ function bars(spec) {
   const rows = spec.bars.map((b, i) => {
     const yTop = T + i * ROW
     const width = Math.max(2, ((W - L - R) * b.value) / max)
-    const highlight = spec.highlight && b.label.includes(spec.highlight)
+    // Highlight by value, not by label: the point of the figure is that a number
+    // recurring to the byte is a ceiling, and that must be read off the data.
+    const highlight = (spec.highlight && b.label.includes(spec.highlight))
+      || (spec.highlightValue !== undefined && b.value === Number(spec.highlightValue))
     return `<text x="${L - 12}" y="${yTop + ROW / 2 + 4}" text-anchor="end" font-size="11" fill="${INK}"`
       + ` font-family="ui-monospace, Menlo, monospace">${esc(b.label)}</text>`
       + `<rect x="${L}" y="${yTop + GAP}" width="${width}" height="${ROW - GAP * 2}" rx="4"`
@@ -133,7 +150,8 @@ function bars(spec) {
   }).join('')
 
   const svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${attr(spec.title ?? 'bar chart')}">${rows}</svg>`
-  const key = spec.highlight ? [swatch(PALETTE[1], spec.highlightLabel ?? spec.highlight)] : []
+  const marked = spec.highlight ?? spec.highlightValue
+  const key = marked !== undefined ? [swatch(PALETTE[1], spec.highlightLabel ?? String(marked))] : []
   return frame(spec, svg, key)
 }
 
@@ -162,8 +180,8 @@ function stack(spec) {
   return frame(spec, svg, key)
 }
 
-export function renderChart(body) {
-  const spec = parseChartSpec(body)
+export function renderChart(body, measurements) {
+  const spec = parseChartSpec(body, measurements)
   if (spec.kind === 'series') return series(spec)
   if (spec.kind === 'bars') return bars(spec)
   if (spec.kind === 'stack') return stack(spec)
