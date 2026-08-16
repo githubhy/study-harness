@@ -1183,6 +1183,16 @@
       "opened": [],
       "resolved": [],
       "issue": null
+    },
+    {
+      "thread": "H",
+      "date": "2026-08-16",
+      "finding": "Phase 4 predictions committed before any transcript was opened, each labelled RECALL or INFERENCE — because I am the transfer specimen, and a recall test measures nothing about transfer. Six of eight rows are recall; two are predicted unscoreable because transcripts do not carry system prompts or tool schemas. The uncontaminated deliverable is the glossary sort, which asks whether dsh-built vocabulary fits a second harness rather than asking me to guess facts.",
+      "surprising": false,
+      "note": "notes/04-transfer-predictions.md",
+      "opened": [],
+      "resolved": [],
+      "issue": null
     }
   ],
   "questionIndex": [
