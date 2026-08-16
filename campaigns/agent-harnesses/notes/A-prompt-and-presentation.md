@@ -118,4 +118,6 @@ where the attribution lands.
 
 Source read at `47f9438`. Section names and orders from `rg` over the registration call sites; the
 verification sweep covered every `prompt*.ts` under `packages/*/*/src`. The 4,113-byte figure is from the
-committed `measurements.json`, derived from the Task 2.0 capture. No new capture taken.
+committed `measurements.json`, derived from the Task 2.0 capture. The verification test took one further
+capture (`unasked`), through the redacting proxy and gitignored; the tool-call sequence quoted above is
+from its final request.
