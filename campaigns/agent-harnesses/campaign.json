@@ -799,6 +799,50 @@
       "opened": [],
       "resolved": [],
       "issue": null
+    },
+    {
+      "thread": "F",
+      "date": "2026-08-16",
+      "finding": "A child joins its parent’s composition by scope-chain link rather than copy, so it inherits tools, prompt sections and plugins live; per-child restriction intersects on top and can only narrow. Policy is the opposite — captured synchronously before the child’s first await, so a parent that loosens its sandbox afterwards does not loosen the child.",
+      "surprising": true,
+      "note": "notes/F-delegation-and-subagents.md",
+      "opened": [
+        {
+          "id": "f-foreign",
+          "q": "A foreign child runs on its own policy engine. What does dsh actually get back from a Claude Code child — just text, or structured events it can audit?",
+          "ask": "H"
+        },
+        {
+          "id": "f-header",
+          "q": "Depth is persisted in the session header because runtime options cannot be trusted after a resume. What else is load-bearing in that header?",
+          "ask": "I"
+        }
+      ],
+      "resolved": [
+        "d-inherit",
+        "j-inherit"
+      ],
+      "issue": null
+    },
+    {
+      "thread": "F",
+      "date": "2026-08-16",
+      "finding": "Delegation is the one recursion budget in a harness with no step cap: maxDepth defaults to 3, 0 forbids it, and depth is monotone because a resumed child counting from zero could delegate as if top-level. A delegated child’s approval policy is pinned to never, so a sub-agent can never ask a human — you cannot widen permissions by delegating.",
+      "surprising": true,
+      "note": "notes/F-delegation-and-subagents.md",
+      "opened": [],
+      "resolved": [],
+      "issue": null
+    },
+    {
+      "thread": "F",
+      "date": "2026-08-16",
+      "finding": "dsh spawns the real Claude Code Agent SDK and codex app-server as sub-agents. The inheritance guarantees stop at the process boundary — the foreign drivers seed no delegated policy — and the config surface says so: maxDepth accepts provider-managed, and a numeric cap against a provider without a depthLimit capability fails at mount rather than silently.",
+      "surprising": true,
+      "note": "notes/F-delegation-and-subagents.md",
+      "opened": [],
+      "resolved": [],
+      "issue": null
     }
   ],
   "questionIndex": [
