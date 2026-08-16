@@ -1093,6 +1093,44 @@
       "opened": [],
       "resolved": [],
       "issue": null
+    },
+    {
+      "thread": "E",
+      "date": "2026-08-16",
+      "finding": "Nothing stops a profile mounting contradictory plugins at runtime because nothing needs to: collisions are startup errors. A duplicate tool name throws, a duplicate subagent provider throws, a second implementation of a cordis service throws, and reserved names like run_code cannot be registered or shadowed. Same shape as restrict() rejecting unknown tools and a depth cap failing at mount — a composition that would be ambiguous does not boot.",
+      "surprising": false,
+      "note": "notes/E-plugin-architecture.md",
+      "opened": [],
+      "resolved": [
+        "m-conflict"
+      ],
+      "issue": null
+    },
+    {
+      "thread": "G",
+      "date": "2026-08-16",
+      "finding": "Confinement is real OS-level wrapping — bwrap then Landlock, Seatbelt, Windows restricted tokens — selected by functionally probing candidates rather than detecting the platform, and missing or unusable confinement fails closed rather than returning the original argv. Escalation only ever widens, resolves through approval before anything executes, and shares one implementation across bash and fs so their orderings and error texts cannot drift.",
+      "surprising": true,
+      "note": "notes/G-execution-and-sandboxing.md",
+      "opened": [
+        {
+          "id": "g-persist",
+          "q": "The escalation ladder is strictly-wider and approval precedes execution. Does a granted escalation persist for the session, or is it one-shot like every other grant at that seam?",
+          "ask": "D"
+        }
+      ],
+      "resolved": [],
+      "issue": null
+    },
+    {
+      "thread": "G",
+      "date": "2026-08-16",
+      "finding": "A sub-agent cannot widen its sandbox: approval policy never means every ask resolves rejected, and a delegated child is pinned to never. But rejected maps to the message “the user rejected tool X” when no user was consulted — so the distinction Thread D praised, between a human refusing and no channel existing, collapses for the one caller least able to find out. The honest unavailable branch exists and this path does not use it.",
+      "surprising": true,
+      "note": "notes/G-execution-and-sandboxing.md",
+      "opened": [],
+      "resolved": [],
+      "issue": null
     }
   ],
   "questionIndex": [

@@ -647,7 +647,7 @@ rg -c &#39;STUDY-MARKER-7f3a&#39; captures/session-plugin.jsonl</pre>
           <pre>rg -n &#39;unsafe|escape|host|local|bypass&#39; packages/sandbox --type ts</pre>
           <p class="d">Six packages here against your toy's bare <code>execSync</code> — that alone says the answer isn't obvious. Distinguish the layers: is <code>code-runtime</code> the abstraction, <code>sandbox</code> the local implementation, <code>e2b</code> a remote provider?</p>
           <p class="d">Then find the escape hatch — is there a path where code runs unsandboxed, and what gates it? Map the isolation strategies (none / subprocess / container / remote VM) and what each costs in latency and fidelity.</p>
-          <p class="t-from">→ <a href="worklog.html#tG">worklog</a></p>
+          <p class="t-from">→ <a href="worklog.html#tG">worklog</a> · <a href="notes/G-execution-and-sandboxing.html">G-execution-and-sandboxing.md</a></p>
         </article>
 
         <article class="thread" data-need="source" id="tO">
