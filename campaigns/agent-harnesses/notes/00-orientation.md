@@ -76,10 +76,38 @@ a `pnpm mock:llm` script. If it speaks the same `/chat/completions` shape, a cap
 with **no API key and no spend at all** — which would change what Phase 2 costs and would let Threads A
 and C start without the DeepSeek key. Not yet verified; worth ten minutes before building the proxy.
 
-## Not yet done
+## Task 0.2 — the capture proxy
 
-Task 0.2 — the capture proxy — and its one non-negotiable check:
+`tools/capture-proxy/server.mjs`, ~120 lines, no dependencies. Reads `CAPTURE_PORT`,
+`CAPTURE_UPSTREAM` and `CAPTURE_FILE`; forwards each chunk to the client the moment it arrives while
+keeping its own copy, so the capture never delays what the harness sees.
+
+Redaction happens **before** the write, for `authorization`, `x-api-key`, `api-key`, `cookie`,
+`set-cookie` and `proxy-authorization`, on both request and response headers. A file that has ever
+held a key is compromised, because it existed on disk in that state.
+
+Verified by `tools/capture-proxy/smoke.test.mjs` against a **stub upstream**, so it needs no API key
+and costs nothing. The test plants `sk-SMOKETEST…` in an `Authorization` header, an `X-Api-Key`, and
+the stub's `Set-Cookie`, then asserts none of it reaches disk. Five tests, all passing.
+
+The check the plan calls non-negotiable, run as written:
 
 ```
-rg -n 'sk-|Bearer' captures/session-smoke.jsonl     # must print nothing
+rg -n 'sk-|Bearer' captures/session-smoke.jsonl     # printed nothing
 ```
+
+All three of the roadmap's `jq` commands were then run against that capture and return what they
+should — the system prompt for Thread A, the offered tool names for Phase 3, and the
+`id / message-count / byte-length` triple Thread C's growth curve needs. The capture format and the
+queries that read it were checked against each other, not assumed to agree.
+
+### One thing the test taught me about the proxy
+
+The first version of the smoke test used an HTTP `HEAD /` as its readiness probe — **through the
+proxy**. The proxy dutifully captured it, so the probe became record #1, and three assertions read the
+probe instead of the request under test. The proxy was correct; the test polluted its own evidence.
+It now probes with a bare TCP connect.
+
+Worth remembering for real captures: **anything that touches the proxy is in the data**, including
+health checks, retries, and stray clients. Task 2.0's baseline capture has to be a clean run or its
+round-trip count is fiction.
