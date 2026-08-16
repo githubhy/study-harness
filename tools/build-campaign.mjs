@@ -110,9 +110,16 @@ function main() {
     // The board sits outside the per-campaign try/catch above, so a missing or malformed
     // board.json used to throw an uncaught ENOENT with a stack trace — the one failure in this
     // tool that did not name its own path.
+    // `null` had to be rejected explicitly too: it was previously both "not loaded" and a legal
+    // parse result, so a board.json containing `null` (or `0`, or `false`) skipped the board and
+    // exited 0 — a build that silently produced no index and reported success.
     let board = null
     try {
-      board = JSON.parse(readFileSync(fromRoot('campaigns/board.json'), 'utf8'))
+      const parsed = JSON.parse(readFileSync(fromRoot('campaigns/board.json'), 'utf8'))
+      if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        throw new Error('must be a JSON object')
+      }
+      board = parsed
     } catch (err) {
       console.error(`campaigns/board.json: ${err.code === 'ENOENT' ? 'does not exist' : err.message}`)
       failed++

@@ -21,26 +21,52 @@ The cycle a harness repeats: assemble context, call the model, parse tool calls,
 results. Every harness has one; they differ in what they do at each part.
 
 **Step**:
-One iteration of the loop — one model call plus whatever tool executions it requests. The unit a
-harness's stop conditions count. Observed: the toy caps steps at ten and counts nothing else, so a
-step costing 300 tokens and one costing 10,416 are indistinguishable to it.
+One iteration of the loop — one model call plus whatever tool executions it requests. **Not** the unit a
+harness's stop conditions count: neither specimen counts steps at all. The toy caps them at ten, which is
+the toy's design and not the category's, and that cap was the reason its measured run ended with no answer.
 _Avoid_: Turn, iteration, cycle
 
 **Turn**:
 One exchange between a person and the harness — a task in, an answer out. A turn contains one or more
 steps. The canonical task was one turn and three steps. Kept distinct from **step** because they are
-routinely conflated and the difference is where stop conditions live.
+routinely conflated. The concept transfers between harnesses; its *observability* does not — dsh commits
+explicit `turn/start`/`turn/end` events with a closed set of six end reasons, while the transfer specimen
+records only a `turn_duration` metadatum and no boundary pair.
 
 **Tool call**:
 The model's request to run a named function with arguments, arriving on the assistant message rather
 than through any separate channel.
 
 **Tool result**:
-What the harness appends after executing a tool call. Observed to be **just another message** — role
-`tool`, carrying the `tool_call_id` it answers. It occupies the same context as everything else and
-competes with it for room, which is why truncating results is a context decision and not an I/O one.
+What the harness appends after executing a tool call. **Just another message**, competing for the same
+context as everything else — which is why truncating results is a context decision and not an I/O one.
+The *role* is wire-format-specific and does not transfer: dsh uses OpenAI's role `tool` carrying a
+`tool_call_id`; the transfer specimen returns results as `user` records carrying `tool_result` content.
+A tool result is also not what the tool returned — see **projection**.
 
 **Context window**:
-The complete message list sent on **every** call. Re-sent in full each step; there is no server-side
-session accumulating it. This is why growth compounds: step ten pays for step one again.
+The message list sent on **every** call. There is no server-side session accumulating it, so growth
+compounds: step ten pays for step one again. It is a **projection** of history rather than history itself —
+tool-result pruning replaces the middle of an oversized result, and compaction replaces a whole range with
+a summary, so what is re-sent is not what was recorded.
 _Avoid_: History, conversation, session (which name what is *kept*, not what is *sent*)
+
+**Projection**:
+The relationship between what is durably recorded and what any consumer reads. A tool body returns a
+canonical value; a pure function renders it into the blocks a model sees. Compaction, pruning and the
+token meter are all folds over the same log rather than edits to it. Both specimens work this way; only
+one names it.
+_Avoid_: View, formatting, serialization
+
+**Sidechain**:
+Delegated work recorded inside the delegating session's own log rather than in a separate one. Legible
+delegation. The transfer specimen names it and marks every record with a boolean; the specimen has the
+thing — in-process children — without a word for it. Opacity tracks the **process** boundary, not the
+delegation boundary.
+_Avoid_: Sub-agent (which names the worker, not where its record lives)
+
+**Presentation mode**:
+How many tools, and in what form, a scope offers the model. Not a property of a harness: the same
+registry can present twenty-five tool schemas or a single `run_code` transport. Any claim of the form
+"this harness offers N tools" is a claim about a mode.
+_Avoid_: Tool set, tool list

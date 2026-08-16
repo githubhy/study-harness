@@ -636,7 +636,7 @@ rg -c &#39;STUDY-MARKER-7f3a&#39; captures/session-plugin.jsonl</pre>
   packages/subagent packages/jobs --type ts</pre>
           <p class="d">The design question is what a child inherits — tools? history? permissions? — and how its result re-enters the parent's context.</p>
           <p class="d"><strong>One of the sharpest comparison surfaces in the study.</strong> Claude Code has the same feature: sub-agent invocations appear in transcripts as <code>Task</code>/<code>Agent</code> tool calls, and <code>isSidechain</code> marks the child sessions.</p>
-          <p class="t-from">→ <a href="worklog.html#tF">worklog</a> · <a href="notes/F-delegation-and-subagents.html">F-delegation-and-subagents.md</a></p>
+          <p class="t-from">→ <a href="worklog.html#tF">worklog</a> · <a href="notes/05-transfer-scored.html">05-transfer-scored.md</a> · <a href="notes/F-delegation-and-subagents.html">F-delegation-and-subagents.md</a></p>
         </article>
 
         <article class="thread" data-need="source" id="tG">
@@ -680,7 +680,7 @@ rg -c &#39;STUDY-MARKER-7f3a&#39; captures/session-plugin.jsonl</pre>
 pnpm vitest run packages/core/agent-loop --reporter=verbose</pre>
           <p class="d">Mark the line where each of the five phases happens, then record <strong>every</strong> termination condition in precedence order — no tool calls emitted, step cap, token budget, user interrupt.</p>
           <p class="d">The tests are executable spec: an invariant you wouldn't have predicted marks a gap in your model. Then reconcile every observation in <code>notes/02-baseline-behavior.md</code> against a specific line, or list it as open — <strong>which is why this one waits for Task 2.0.</strong></p>
-          <p class="t-from">→ <a href="worklog.html#tB">worklog</a> · <a href="notes/B-agent-loop.html">B-agent-loop.md</a></p>
+          <p class="t-from">→ <a href="worklog.html#tB">worklog</a> · <a href="notes/05-transfer-scored.html">05-transfer-scored.md</a> · <a href="notes/B-agent-loop.html">B-agent-loop.md</a></p>
         </article>
 
         <article class="thread" data-need="source" id="tI">
@@ -726,7 +726,7 @@ rg -n &#39;ctx\.(plugin|on|set|inject)&#39; packages/core --type ts</pre>
           <pre>cat packages/acp/README.md   <span class="c"># Agent Client Protocol — what connects to what?</span></pre>
           <p class="d">Thread E covers the <em>native</em> extension boundary. This covers the <em>standard</em> one — and both harnesses under study speak MCP, making it the one integration surface you can compare directly.</p>
           <p class="d"><strong>The question that matters:</strong> which capabilities can a native plugin express that an MCP server cannot? That gap is precisely why native plugin systems still exist alongside MCP.</p>
-          <p class="t-from">→ <a href="worklog.html#tH">worklog</a> · <a href="notes/04-transfer-predictions.html">04-transfer-predictions.md</a> · <a href="notes/03-one-tool-two-harnesses.html">03-one-tool-two-harnesses.md</a> · <a href="notes/H-interop.html">H-interop.md</a></p>
+          <p class="t-from">→ <a href="worklog.html#tH">worklog</a> · <a href="notes/05-transfer-scored.html">05-transfer-scored.md</a> · <a href="notes/04-transfer-predictions.html">04-transfer-predictions.md</a> · <a href="notes/03-one-tool-two-harnesses.html">03-one-tool-two-harnesses.md</a> · <a href="notes/H-interop.html">H-interop.md</a></p>
         </article>
 
         <article class="thread" data-need="source" id="tJ">

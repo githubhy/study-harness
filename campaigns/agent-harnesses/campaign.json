@@ -1193,6 +1193,36 @@
       "opened": [],
       "resolved": [],
       "issue": null
+    },
+    {
+      "thread": "H",
+      "date": "2026-08-16",
+      "finding": "Phase 4 scored across 4,019 transcripts. Both fully-scoreable RECALL rows came out wrong — I named four tools that do not exist and missed twenty that do, and predicted sub-agent internals would be absent when sidechain records outnumber main-thread ones 126,557 to 92,701. Both INFERENCE rows held. The model I built by reading someone else’s harness beat my model of myself.",
+      "surprising": true,
+      "note": "notes/05-transfer-scored.md",
+      "opened": [],
+      "resolved": [],
+      "issue": null
+    },
+    {
+      "thread": "B",
+      "date": "2026-08-16",
+      "finding": "The no-step-cap finding transfers. Assistant turns per transcript run median 8, p90 47, p99 153, max 11,118, with no clustering at any round number — three orders of magnitude of spread and no ceiling, observed from outside a second harness. It is the one architectural question transcripts could answer that source could not.",
+      "surprising": true,
+      "note": "notes/05-transfer-scored.md",
+      "opened": [],
+      "resolved": [],
+      "issue": null
+    },
+    {
+      "thread": "F",
+      "date": "2026-08-16",
+      "finding": "Thread H over-generalised: opacity tracks the process boundary, not the delegation boundary. The transfer specimen records delegated work in the delegating session’s own log with an isSidechain flag, exactly as dsh’s in-process children keep their log inside dsh’s. Only out-of-process foreign runtimes are opaque. Glossary gains sidechain, projection and presentation mode; step, turn, tool result and context window all needed revision.",
+      "surprising": false,
+      "note": "notes/05-transfer-scored.md",
+      "opened": [],
+      "resolved": [],
+      "issue": null
     }
   ],
   "questionIndex": [

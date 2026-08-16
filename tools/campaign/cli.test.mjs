@@ -144,3 +144,19 @@ test('--all processes good campaigns and reports bad ones', () => {
   assert.throws(() => run(['--all'], { cwd }), /zzz-broken.*campaign\.json/)
   assert.match(readFileSync(join(cwd, 'campaigns/mini/roadmap.html'), 'utf8'), /<meta charset="utf-8">/)
 })
+
+test('a board.json that parses to a non-object fails the build instead of skipping the board', () => {
+  // `let board = null` was both "not loaded" and a legal parse result, so a board.json holding
+  // `null` skipped the board and exited 0 — a build that produced no index and called it success.
+  for (const body of ['null', '0', 'false', '[]', '"x"']) {
+    const cwd = sandbox()
+    writeFileSync(join(cwd, 'campaigns/board.json'), body)
+    assert.throws(() => run(['--all'], { cwd }), (err) => {
+      assert.match(err.message, /campaigns\/board\.json: must be a JSON object/)
+      assert.doesNotMatch(err.message, /at \w+ \(/, 'expected a named error, not a stack trace')
+      return true
+    }, `expected failure for board.json = ${body}`)
+    // And the campaign pages are still written: one bad repo-level file does not lose the rest.
+    assert.match(readFileSync(join(cwd, 'campaigns/mini/roadmap.html'), 'utf8'), /<meta charset="utf-8">/)
+  }
+})
