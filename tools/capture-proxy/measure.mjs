@@ -33,6 +33,15 @@ export function measureCapture(text) {
   const requests = lines.filter((l) => l.dir === 'request' && Array.isArray(l.body?.messages))
   if (requests.length === 0) return null
 
+  // A run that never got a successful response is not evidence of anything, and measuring it is
+  // worse than ignoring it: the build re-derives measurements.json from whatever captures exist,
+  // so a failed run left on disk silently rewrites every number every note cites. Observed live —
+  // an out-of-credit run returned 402 twice and the drift check caught measurements.json being
+  // rewritten from it. The gate caught that one; this stops it being generated at all.
+  const responses = lines.filter((l) => l.dir === 'response')
+  const ok = responses.filter((l) => typeof l.status !== 'number' || (l.status >= 200 && l.status < 300))
+  if (responses.length > 0 && ok.length === 0) return null
+
   const first = requests[0]
   const last = requests[requests.length - 1]
   const system = first.body.messages.find((m) => m.role === 'system')

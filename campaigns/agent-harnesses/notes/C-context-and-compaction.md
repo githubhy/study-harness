@@ -103,6 +103,26 @@ Two things, and I would rather leave them open than guess.
 Both are one experiment: the canonical task made long enough to trigger compaction, run twice, once per
 presentation mode. That is the next capture this campaign should take.
 
+> **Attempted 2026-08-16; blocked on account credit.** The DeepSeek key returns HTTP **402 Insufficient
+> Balance**, so no long run could be captured. Three things were established anyway, and the experiment is
+> now a single command when credit exists:
+>
+> - **The A/B is one variable.** The headless profile already wires presentation mode to an environment
+>   variable — `config: { mode: !!js process.env.DSH_TOOLS_MODE }` on the `tools` row — and mounts
+>   `code-runtime` by default. So `DSH_TOOLS_MODE=code` is the whole difference between the two legs; no
+>   patch file, no second profile.
+> - **The instrument still works.** The proxy round-tripped a real request to `api.deepseek.com` and wrote
+>   `authorization: <redacted>` to disk; leak-check clean. Headless offered **25 tools** on
+>   `deepseek-v4-flash`, matching note 02.
+> - **The detached title call fired anyway**, independently of the failing main call — Thread B's
+>   `void this.track(run)` finding, observed rather than read.
+>
+> It also exposed a real defect in this campaign's own tooling, now fixed: the build re-derives
+> `measurements.json` from whatever captures are on disk, and a failed run is still a capture. The 402 run
+> made `--check` report drift; had it been a plain build, every number in every note would have been
+> silently rewritten from a run that never got an answer. `measureCapture` now returns `null` for a
+> capture whose every response failed, while still measuring a run where only some calls failed.
+
 ## Questions this opens
 
 - `retainRatio` keeps recent history and summarises the rest, so the system prompt and the injected

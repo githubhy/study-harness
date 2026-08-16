@@ -67,3 +67,25 @@ test('a campaign with no captures measures to an empty set, so the build still r
   // Captures are gitignored; a fresh clone has none and must still build.
   assert.deepEqual(measureCampaign('tools/campaign/fixtures/mini'), { captures: {} })
 })
+
+test('a capture whose every response failed measures to nothing', () => {
+  // The build re-derives measurements.json from whatever captures are on disk, so a failed run
+  // left there silently rewrites every number every note cites. This happened: an out-of-credit
+  // run captured two 402s, and only the --check gate caught measurements.json being rewritten.
+  const failed = [
+    JSON.stringify({ id: '1', dir: 'request', body: { messages: [{ role: 'user', content: 'hi' }] } }),
+    JSON.stringify({ id: '1', dir: 'response', status: 402, body: { error: { message: 'Insufficient Balance' } } }),
+  ].join('\n')
+  assert.equal(measureCapture(failed), null)
+})
+
+test('a run that succeeded is still measured when a single call failed', () => {
+  // Retries are normal; one bad response must not discard a real run.
+  const mixed = [
+    JSON.stringify({ id: '1', dir: 'request', body: { messages: [{ role: 'user', content: 'hi' }] } }),
+    JSON.stringify({ id: '1', dir: 'response', status: 500, body: {} }),
+    JSON.stringify({ id: '2', dir: 'request', body: { messages: [{ role: 'user', content: 'hi' }] } }),
+    JSON.stringify({ id: '2', dir: 'response', status: 200, body: {} }),
+  ].join('\n')
+  assert.equal(measureCapture(mixed).requests, 2)
+})

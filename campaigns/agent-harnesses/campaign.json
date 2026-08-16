@@ -1223,6 +1223,16 @@
       "opened": [],
       "resolved": [],
       "issue": null
+    },
+    {
+      "thread": "C",
+      "date": "2026-08-16",
+      "finding": "The capture experiment is blocked on account credit — the DeepSeek key returns HTTP 402 Insufficient Balance. The attempt was not wasted: the proxy round-tripped a real request correctly with authorization redacted on disk, headless was confirmed to offer 25 tools on deepseek-v4-flash, the detached title call fired independently of the failing main call as Thread B predicted, and DSH_TOOLS_MODE was found already wired into the headless profile, so the Code Mode A/B is a one-variable change when credit exists.",
+      "surprising": false,
+      "note": "notes/C-context-and-compaction.md",
+      "opened": [],
+      "resolved": [],
+      "issue": null
     }
   ],
   "questionIndex": [
