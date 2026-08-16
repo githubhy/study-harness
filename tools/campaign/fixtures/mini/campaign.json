@@ -45,6 +45,7 @@
       "blocks": "nothing",
       "unblocks": null,
       "produces": [],
+      "writeup": { "href": "notes/A-alpha.html", "label": "A · Alpha" },
       "halt": { "title": "Do not skip", "pre": "grep -n 'x' .", "body": "Halt body <b>bold</b>." }
     },
     {

@@ -173,8 +173,13 @@ const sMap = (data, derived) => {
 
 // ---------- §3 the board: 4 lanes of phase cards, NO state chips ----------
 
+// A lane says what *blocked* a card, which is a property of the plan and never changes. It used to
+// be titled as if it were also status — "Ready now", under a heading promising what you can start —
+// so the board printed the same thing on the first day and the last, and handed a reader
+// clone-and-build instructions for work forty-six log entries prove is finished. State is a second
+// axis, derived from whether the phase produced its report, and it rides on a chip per card.
 const LANES = {
-  ready: { dataS: 'go', title: 'Ready now', sub: 'Nothing blocks these. No API key required.' },
+  ready: { dataS: 'go', title: 'Blocked by nothing', sub: 'Needs only a terminal. No API key required.' },
   next: { dataS: 'next', title: 'Unlocked by Phase 0', sub: 'The control, then the blind baseline. In that order.' },
   gate: { dataS: 'gate', title: 'Gated on a finding', sub: 'Not gated on a phase — gated on one specific thread landing.' },
   last: { dataS: 'last', title: 'Last by design', sub: "Doing this early doesn't speed the study up — it invalidates it." },
@@ -204,9 +209,12 @@ const renderBlocks = (phase) => {
   if (phase.produces?.length) lines.push(`produces ${phase.produces.map((p) => `<b>${esc(p)}</b>`).join(' · ')}`)
   if (phase.unblocks) lines.push(`unblocks <b>${esc(phase.unblocks)}</b>`)
   if (phase.consumes) lines.push(`consumes <b>${esc(phase.consumes)}</b>`)
-  // The written record for this phase, rendered from its Markdown source.
-  if (phase.writeup) {
-    lines.push(`report <a href="${attr(phase.writeup.href)}">${esc(phase.writeup.label)}</a>`)
+  // The written record for this phase, rendered from its Markdown source. Phase 4 has two — the
+  // predictions committed blind and the scoring — and listing only the first would hide the half
+  // that makes the other worth anything.
+  const reports = phase.reports ?? []
+  if (reports.length) {
+    lines.push(`report ${reports.map((w) => `<a href="${attr(w.href)}">${esc(w.label)}</a>`).join(' · ')}`)
   }
   return lines.join('<br>')
 }
@@ -227,26 +235,32 @@ const renderCard = (phase, data) => {
   const details = (phase.detail ?? []).map((d) => renderPhaseDetail(d, data)).join('\n          ')
   const body = [`<p>${rich(phase.body)}</p>`, pre, renderHalt(phase.halt, data), details]
     .filter(Boolean).join('\n          ')
+  const state = `<span class="c-state" data-done="${phase.done ? 'yes' : 'no'}">`
+              + `${phase.done ? 'landed' : 'not written up'}</span>`
   return `<article class="card" data-s="${attr(dataS)}">
-          <div class="c-top"><span class="c-id">${esc(phase.id)}</span></div>
+          <div class="c-top"><span class="c-id">${esc(phase.id)}</span>${state}</div>
           <div class="c-t">${esc(phase.title)}</div>
           ${body}
           <div class="c-blocks">${renderBlocks(phase)}</div>
         </article>`
 }
 
-const sBoard = (data) => {
+const sBoard = (data, derived) => {
+  const { done, total } = derived.phaseTotals
   const lede = `<p class="lede">
-      The same five phases as the map, sorted by <strong>what is blocking each card</strong> rather than by phase number.
-      The left lane needs nothing but a terminal; the right lane must stay last or the study invalidates itself.
+      The same phases as the map, in lanes by <strong>what blocked each one</strong> rather than by phase number —
+      an entry condition, not a status. The left lane needs nothing but a terminal; the right lane must stay last or
+      the study invalidates itself. <strong>Whether a phase has landed is the second axis</strong>, and the only
+      evidence for it here is whether the phase produced its report: ${done} of ${total} have.
     </p>`
   const lanes = LANE_ORDER.map((key) => {
-    const phases = data.phases.filter((p) => p.lane === key)
+    const phases = derived.phases.filter((p) => p.lane === key)
     if (!phases.length) return ''
     const meta = LANES[key]
+    const landed = phases.filter((p) => p.done).length
     return `<div class="lane" data-s="${attr(meta.dataS)}">
         <div class="lane-h">
-          <div class="lane-t"><span>${esc(meta.title)}</span><span>${phases.length}</span></div>
+          <div class="lane-t"><span>${esc(meta.title)}</span><span class="done">${landed}/${phases.length} landed</span></div>
           <div class="lane-s">${esc(meta.sub)}</div>
         </div>
 
@@ -256,7 +270,7 @@ const sBoard = (data) => {
 
   return `<section id="s3">
     <span class="snum">§ 3</span>
-    <h2 class="sec">The board · what you can start now</h2>
+    <h2 class="sec">The board · where every phase stands</h2>
     ${lede}
 
     <div class="board">
@@ -608,7 +622,7 @@ export function renderRoadmap({ data, derived }) {
     '<div class="page"><div class="cols">',
     nav(data, derived), '<main>',
     masthead(data, derived),
-    sLoop(data), sMap(data, derived), sBoard(data), sMenu(data, derived),
+    sLoop(data), sMap(data, derived), sBoard(data, derived), sMenu(data, derived),
     sWhy(data), sTransfer(data), sOrders(data), sCensus(derived, data),
     footer(data),
     '</main></div></div>',

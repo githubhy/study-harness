@@ -27,44 +27,56 @@ const frontier = (derived) => derived.frontier.length === 0
   : `<ul class="frontier">${derived.frontier.map((q) =>
       `<li>${rich(q.q)} <span class="mono">from ${esc(q.from)} → ask ${esc(q.ask)}</span></li>`).join('')}</ul>`
 
+const entry = (e, group, derived) => {
+  const newest = e === group.entries[0]
+  const state = group.state === 'dry' && newest ? 'dry' : 'live'
+  const opened = e.opened.map((o) => `→ opened: ${rich(o.q)} (${esc(o.ask)})`).join('<br>')
+  // A resolution names the question it closed and the thread that asked it. Both halves of the
+  // graph render, so the trail shows a question being answered rather than quietly vanishing
+  // from the frontier.
+  const answered = e.resolved
+    .map((id) => derived.questions.get(id))
+    .filter(Boolean)
+    .map((q) => `→ answered ${esc(q.from)}: ${rich(q.q)}`).join('<br>')
+  const marks = [opened, answered].filter(Boolean).join('<br>')
+  const issue = e.issue != null ? ` · filed #${esc(String(e.issue))}` : ''
+  // Thread plus date is not unique: two findings on one thread on one day collide. The index is
+  // the entry's position in its own thread's history, so appending a finding never renumbers the
+  // entries already published. Counted from the oldest, so it survives the newest-first display.
+  const n = group.entries.length - 1 - group.entries.indexOf(e)
+  return `<div class="entry" data-state="${attr(state)}" id="e-${attr(`${e.thread}${e.date}-${n}`)}">`
+       + `<span class="mono">${esc(e.pips)} ${esc(e.date)}</span><br>${rich(e.finding)}<br>`
+       + `<span class="mono">${marks}${marks ? ' · ' : ''}${esc(e.note)}${issue}</span></div>`
+}
+
+// One block per thread, in the same band order as the coverage strip above and the roadmap's §4,
+// so a pip and the section it jumps to are in agreement. The trail used to be flat and
+// chronological, which sounds like the neutral choice and was not: every entry in this campaign
+// carries the same date, so the ordering sorted nothing, and the thread letter — the axis a reader
+// actually navigates by — was present only as a repeated label. Anyone after one thread's findings
+// read all forty-six.
+//
 // An empty log left the Trail as a bare heading with nothing under it, while the frontier directly
 // above it said so in words. Before the first finding lands that is the whole page's state, so it
 // is worth a sentence rather than a silence.
-const trail = (data, derived) => derived.trail.length === 0
+const trail = (data, derived) => derived.trailByThread.length === 0
   ? '<p class="lede">Nothing logged yet. The first finding starts the trail.</p>'
-  : derived.trail.map((e) => {
-    const t = derived.threads.get(e.thread)
-    const newest = e === t.entries.at(-1)
-    const state = t.state === 'dry' && newest ? 'dry' : 'live'
-    // Where #tX lands. Every letter in the coverage strip and every roadmap.html#tX link points at
-    // the thread's newest trail entry — the spec's "every letter anchors to its trail entries".
-    // The anchor rides inside the entry rather than on it because an element carries one id and the
-    // entry keeps its own, which the id-uniqueness check below relies on.
-    const anchor = newest ? `<span id="t${attr(e.thread)}"></span>` : ''
-    const opened = e.opened.map((o) => `→ opened: ${rich(o.q)} (${esc(o.ask)})`).join('<br>')
-    // A resolution names the question it closed and the thread that asked it. Both halves of the
-    // graph render, so the trail shows a question being answered rather than quietly vanishing
-    // from the frontier.
-    const answered = e.resolved
-      .map((id) => derived.questions.get(id))
-      .filter(Boolean)
-      .map((q) => `→ answered ${esc(q.from)}: ${rich(q.q)}`).join('<br>')
-    const marks = [opened, answered].filter(Boolean).join('<br>')
-    const issue = e.issue != null ? ` · filed #${esc(String(e.issue))}` : ''
-    // Thread plus date is not unique: two findings on one thread on one day collide. The index is
-    // the entry's position in its own thread's history, so appending a finding never renumbers the
-    // entries already published.
-    const n = t.entries.indexOf(e)
-    return `<div class="entry" data-state="${attr(state)}" id="e-${attr(`${e.thread}${e.date}-${n}`)}">${anchor}`
-         + `<b><a href="roadmap.html#t${esc(e.thread)}">${esc(e.thread)} · ${esc(t.name)}</a></b> `
-         + `<span class="mono">${esc(e.pips)} ${esc(e.date)}</span><br>${rich(e.finding)}<br>`
-         + `<span class="mono">${marks}${marks ? ' · ' : ''}${esc(e.note)}${issue}</span></div>`
+  : derived.trailByThread.map((g) => {
+    const n = g.entries.length
+    // Where #tX lands: the thread's own heading, which is now the top of everything it found.
+    // Previously it pointed at the newest single entry, since that was the only place in a flat
+    // chronological list where a thread could be said to begin.
+    return `<section class="tgroup" data-state="${attr(g.state)}" id="t${attr(g.letter)}">`
+         + `<h3 class="tgroup-h"><b><a href="roadmap.html#t${esc(g.letter)}">`
+         + `${esc(g.letter)} · ${esc(g.name)}</a></b>`
+         + `<span class="mono">${esc(g.pips)} · ${n} finding${n === 1 ? '' : 's'}`
+         + `${g.state === 'dry' ? ' · dry' : ''}</span></h3>`
+         + g.entries.map((e) => entry(e, g, derived)).join('\n')
+         + '</section>'
     }).join('\n')
 
-// Only threads with no trail entry: those have nowhere in the trail to anchor, and without a
-// fallback the strip's own pip link and the roadmap's → worklog link would both dangle. A thread
-// that has entries is anchored on its newest one instead, so emitting a bare anchor for it here
-// would put #tX back at the top of the section — which is the whole defect.
+// Only threads with no trail entry: those get no group above, and without a fallback the strip's
+// own pip link and the roadmap's → worklog link would both dangle.
 const anchors = (data, derived) => data.threads
   .filter((t) => derived.threads.get(t.letter).entries.length === 0)
   .map((t) => `<span id="t${attr(t.letter)}"></span>`).join('')

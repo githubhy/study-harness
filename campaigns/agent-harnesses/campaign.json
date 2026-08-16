@@ -253,7 +253,11 @@
       "note": "— it does <em>not</em> wait for the other fourteen",
       "produces": [],
       "unblocks": null,
-      "consumes": "D's “what a new tool must provide” checklist"
+      "consumes": "D's “what a new tool must provide” checklist",
+      "writeup": {
+        "href": "notes/03-one-tool-two-harnesses.html",
+        "label": "03 · One tool, two harnesses"
+      }
     },
     {
       "id": "Phase 4",
@@ -278,7 +282,17 @@
       "note": "· see §6 for what transcripts can and can't show",
       "produces": [],
       "unblocks": null,
-      "consumes": null
+      "consumes": null,
+      "writeup": [
+        {
+          "href": "notes/04-transfer-predictions.html",
+          "label": "04 · Transfer predictions"
+        },
+        {
+          "href": "notes/05-transfer-scored.html",
+          "label": "05 · Transfer scored"
+        }
+      ]
     }
   ],
   "threads": [

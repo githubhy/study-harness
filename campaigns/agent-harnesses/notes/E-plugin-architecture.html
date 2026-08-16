@@ -267,12 +267,34 @@
     line-height:1.5; max-width:62ch; }
   .synth a { color:var(--ink); text-decoration:none; }
   .synth a:hover, .synth a:focus-visible { text-decoration:underline; }
+
+  /* --- cross-thread references ------------------------------------------------
+     A "Thread D" inside running prose is a link, but it is also still a sentence:
+     a full underline on 128 of them would shred the page. Dotted underneath keeps
+     it findable and quiet, and it goes solid on hover so the affordance is real. */
+  a.tref { color:inherit; text-decoration:underline dotted var(--rule); text-decoration-thickness:1px; }
+  a.tref:hover, a.tref:focus-visible { color:var(--specimen); text-decoration:underline solid; }
+
+  /* --- worklog: one block per thread ------------------------------------------ */
+  .tgroup { margin:26px 0 0; }
+  .tgroup-h { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;
+    border-bottom:1px solid var(--rule); padding-bottom:6px; margin-bottom:2px; }
+  .tgroup-h b { font-size:15px; font-weight:600; letter-spacing:-.01em; }
+  .tgroup-h .mono { font-size:11px; color:var(--ink-faint); }
+  .tgroup[data-state="dry"] .tgroup-h { border-bottom-color:var(--ink-faint); }
+
+  /* --- board: what has landed -------------------------------------------------
+     Only the "landed" modifier: .c-state's base rule is already up in the frozen
+     block, and .c-top is already a flexbox that puts the chip on the right, so
+     redeclaring either here would be a second home for the same style.          */
+  .c-state[data-done="yes"] { border-color:var(--specimen); color:var(--specimen); }
+  .lane-t .done { font-family:var(--mono); font-size:11px; color:var(--ink-faint); font-weight:400; }
 </style>
 <div class="page"><main>
 <header class="mast"><p class="kick">Note · agent-harnesses</p></header>
 <h1>E · Plugin architecture</h1>
 <p class="lede">Thread E asked what the extension boundary is. It arrived carrying two questions — K&#39;s, whether <code>tool-cordis</code> publishing dsh&#39;s own API is for plugin authors or for the model; and I&#39;s, whether replay is used for anything besides crash recovery. Both answers turn out to be larger than the questions.</p>
-<p class="lede">Read against source at <code>47f9438</code>. This thread should probably have been pulled first: note 00 observed from the outside that dsh boots <em>profiles</em>, and Thread K found <code>apps/cli</code> to be six files that resolve one and start a plugin graph. This is what they are graphs of.</p>
+<p class="lede">Read against source at <code>47f9438</code>. This thread should probably have been pulled first: note 00 observed from the outside that dsh boots <em>profiles</em>, and <a class="tref" href="K-the-host-boundary.html">Thread K</a> found <code>apps/cli</code> to be six files that resolve one and start a plugin graph. This is what they are graphs of.</p>
 <h2 class="sec">The model writes plugins</h2>
 <p class="lede"><code>packages/extensions/tool-cordis</code> is 5,984 lines, and its module docstring is one line:</p>
 <p class="lede">&gt; <strong>Model-facing</strong> Cordis runtime/package inspection, define, run, stop, and remove tools.</p>
@@ -280,7 +302,7 @@
 <p class="lede">The gate is placed carefully, and not where I expected:</p>
 <div class="tw"><table><thead><tr><th>Tool</th><th>Gate</th></tr></thead><tbody><tr><td><code>cordis_define</code></td><td><em>&quot;does not request approval, execute apply, or change currentPackageId&quot;</em></td></tr><tr><td><code>cordis_run</code></td><td><em>&quot;An unauthorized Client Package creates an approval request and returns awaiting-approval; an authorized Package returns starting&quot;</em></td></tr></tbody></table></div>
 <p class="lede"><strong>Defining is free; running is gated.</strong> Writing code is inert, executing it is the risk, and the boundary sits exactly there. The model is told to <em>&quot;correct the same Plugin and retry autonomously. Do not request approval again after&quot;</em> a failure it can fix itself.</p>
-<p class="lede">Authorization can extend to later versions of the same plugin — but <strong>not automatically</strong>: Thread O found that <code>approve()</code> takes a required <code>approveFutureVersions</code> boolean threaded from the approval UI, with no default. The human decides at that moment whether they are approving this version or the plugin.</p>
+<p class="lede">Authorization can extend to later versions of the same plugin — but <strong>not automatically</strong>: <a class="tref" href="O-agent-self-management.html">Thread O</a> found that <code>approve()</code> takes a required <code>approveFutureVersions</code> boolean threaded from the approval UI, with no default. The human decides at that moment whether they are approving this version or the plugin.</p>
 <h3 class="sec">What that composes to</h3>
 <p class="lede">This is where four threads meet, and no one of them could have said it alone:</p>
 <ul><li>The model may define a plugin freely, but running an unauthorized one raises an <strong>approval request</strong> (E)</li><li>Approval is a seam that <strong>fails closed</strong> with no answerer, and grants are one-shot (K)</li><li>The headless profile mounts <strong>no answerer</strong>, so the request denies with a reason naming the missing</li></ul>
@@ -288,7 +310,7 @@
 <ul><li>A delegated child&#39;s approval policy is **pinned to <code>never</code>** regardless of its parent&#39;s (F)</li></ul>
 <p class="lede">Therefore: <strong>the model can extend the harness only where a human is present to say yes, and a sub-agent can never do it at all.</strong> That is a real security property of the composition, and it is assembled from four packages that do not reference each other.</p>
 <h2 class="sec">Replay is the computation model, not a recovery path</h2>
-<p class="lede">Thread I found <code>repair.ts</code> reconstructing a torn log and asked whether replay was used anywhere else. It is not a recovery mechanism that happens to exist. It is <strong>how everything outside the loop computes.</strong></p>
+<p class="lede"><a class="tref" href="I-persistence-and-resumption.html">Thread I</a> found <code>repair.ts</code> reconstructing a torn log and asked whether replay was used anywhere else. It is not a recovery mechanism that happens to exist. It is <strong>how everything outside the loop computes.</strong></p>
 <figure class="viz"><p class="viz-t">The event log is the only authority</p><svg viewBox="0 0 674 120" role="img" aria-label="Domain plugins contribute pure init/apply/view; the framework owns subscription, the watermark cache and change notification, and neither side knows the other. The token meter, session titles, stats and the permissions view are all the same shape."><defs><marker id="dg-3lht6m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs><g style="color:var(--ink)"><line x1="132" y1="48" x2="184" y2="48" stroke="currentColor" stroke-width="1.25" marker-end="url(#dg-3lht6m)"/><text x="159" y="15" text-anchor="middle" font-size="10" fill="currentColor" opacity=".62" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">committed events</text><line x1="310" y1="48" x2="362" y2="48" stroke="currentColor" stroke-width="1.25" marker-end="url(#dg-3lht6m)"/><text x="337" y="15" text-anchor="middle" font-size="10" fill="currentColor" opacity=".62" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">driven forward</text><line x1="488" y1="48" x2="540" y2="48" stroke="currentColor" stroke-width="1.25" marker-end="url(#dg-3lht6m)"/><text x="515" y="15" text-anchor="middle" font-size="10" fill="currentColor" opacity=".62" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">snapshot + change feed</text><rect x="12" y="22" width="116" height="52" rx="3" fill="none" stroke="currentColor" stroke-width="1.25"/><text x="70" y="43" text-anchor="middle" font-size="12" fill="currentColor" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">session event</text><text x="70" y="56" text-anchor="middle" font-size="12" fill="currentColor" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">log</text><text x="70" y="61" text-anchor="middle" font-size="10" fill="currentColor" opacity=".62" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">the only authority</text><rect x="190" y="22" width="116" height="52" rx="3" fill="none" stroke="currentColor" stroke-width="1.25"/><text x="248" y="43" text-anchor="middle" font-size="12" fill="currentColor" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">projection units</text><text x="248" y="61" text-anchor="middle" font-size="10" fill="currentColor" opacity=".62" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">pure init · apply · view</text><rect x="368" y="22" width="116" height="52" rx="3" fill="none" stroke="currentColor" stroke-width="1.25"/><text x="426" y="43" text-anchor="middle" font-size="12" fill="currentColor" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">watermark cache</text><text x="426" y="61" text-anchor="middle" font-size="10" fill="currentColor" opacity=".62" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">a fold shortcut</text><rect x="546" y="22" width="116" height="52" rx="3" fill="none" stroke="currentColor" stroke-width="1.25"/><text x="604" y="43" text-anchor="middle" font-size="12" fill="currentColor" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">carriers</text><text x="604" y="61" text-anchor="middle" font-size="10" fill="currentColor" opacity=".62" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">meter · titles · UI</text><line x1="426" y1="74" x2="426" y2="84" stroke="var(--specimen)" stroke-width="1.25"/><text x="426" y="97" text-anchor="middle" font-size="10" fill="var(--specimen)" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">stale, never wrong</text></g></svg><figcaption>Domain plugins contribute pure init/apply/view; the framework owns subscription, the watermark cache and change notification, and neither side knows the other. The token meter, session titles, stats and the permissions view are all the same shape.</figcaption></figure>
 <p class="lede"><code>session-projection</code> is *&quot;the <code>ctx.sessionProjections</code> registry that DRIVES every registered unit forward eagerly over committed session events. Domain host plugins contribute <strong>pure mathematics (init/apply/view)</strong>; the framework owns the subscription, the per-session watermark cache, and change notification... Neither side knows the other.&quot;*</p>
 <p class="lede">And the cache invariant is stated as cleanly as I have seen it written anywhere:</p>
@@ -303,8 +325,8 @@
 <p class="lede"><strong>What is the authority, and is everything else a fold over it?</strong> A harness whose truth is in-memory objects with a log written alongside for debugging will differ from this one at every point the table above lists — and those differences will look like unrelated bugs rather than one decision.</p>
 <h2 class="sec">Questions this opens</h2>
 <ul><li><code>cordis_run</code> gates on an <em>authorized Client Package</em>, and authorization is plugin-wide across versions.</li></ul>
-<p class="lede">  What is the identity of a plugin such that a later version inherits the grant? → <strong>O</strong></p>
+<p class="lede">  What is the identity of a plugin such that a later version inherits the grant? → <a class="tref" href="O-agent-self-management.html"><strong>O</strong></a></p>
 <h2 class="sec">Provenance</h2>
 <p class="lede">Source read at <code>47f9438</code>. Tool names enumerated from <code>tool-cordis/src/index.ts</code>; quoted docstrings from <code>session-projection</code>, <code>session-projection-cache</code>, and <code>cordis-host-runner</code>. No capture required.</p>
-<footer><span><a href="../roadmap.html">← roadmap</a></span><span><a href="worklog.html">worklog</a></span><span><a href="../index.html">all campaigns</a></span></footer>
+<footer><span><a href="../roadmap.html">← roadmap</a></span><span><a href="../worklog.html">worklog</a></span><span><a href="../../index.html">all campaigns</a></span></footer>
 </main></div>

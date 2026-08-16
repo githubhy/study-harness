@@ -267,11 +267,33 @@
     line-height:1.5; max-width:62ch; }
   .synth a { color:var(--ink); text-decoration:none; }
   .synth a:hover, .synth a:focus-visible { text-decoration:underline; }
+
+  /* --- cross-thread references ------------------------------------------------
+     A "Thread D" inside running prose is a link, but it is also still a sentence:
+     a full underline on 128 of them would shred the page. Dotted underneath keeps
+     it findable and quiet, and it goes solid on hover so the affordance is real. */
+  a.tref { color:inherit; text-decoration:underline dotted var(--rule); text-decoration-thickness:1px; }
+  a.tref:hover, a.tref:focus-visible { color:var(--specimen); text-decoration:underline solid; }
+
+  /* --- worklog: one block per thread ------------------------------------------ */
+  .tgroup { margin:26px 0 0; }
+  .tgroup-h { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;
+    border-bottom:1px solid var(--rule); padding-bottom:6px; margin-bottom:2px; }
+  .tgroup-h b { font-size:15px; font-weight:600; letter-spacing:-.01em; }
+  .tgroup-h .mono { font-size:11px; color:var(--ink-faint); }
+  .tgroup[data-state="dry"] .tgroup-h { border-bottom-color:var(--ink-faint); }
+
+  /* --- board: what has landed -------------------------------------------------
+     Only the "landed" modifier: .c-state's base rule is already up in the frozen
+     block, and .c-top is already a flexbox that puts the chip on the right, so
+     redeclaring either here would be a second home for the same style.          */
+  .c-state[data-done="yes"] { border-color:var(--specimen); color:var(--specimen); }
+  .lane-t .done { font-family:var(--mono); font-size:11px; color:var(--ink-faint); font-weight:400; }
 </style>
 <div class="page"><main>
 <header class="mast"><p class="kick">Note · agent-harnesses</p></header>
 <h1>02 · Baseline behaviour</h1>
-<p class="lede">What <code>dsh</code> did on the canonical task, recorded <strong>before reading any source</strong>. Only what was observable from the terminal and the capture. Where something suggests an explanation, it is written as a question, because a guess recorded as a fact is worse than no note. Thread B reconciles every line of this against the code later; that only means anything if this was written blind.</p>
+<p class="lede">What <code>dsh</code> did on the canonical task, recorded <strong>before reading any source</strong>. Only what was observable from the terminal and the capture. Where something suggests an explanation, it is written as a question, because a guess recorded as a fact is worse than no note. <a class="tref" href="B-agent-loop.html">Thread B</a> reconciles every line of this against the code later; that only means anything if this was written blind.</p>
 <p class="lede">Run 2026-08-16, specimen at <code>47f9438</code>, through the capture proxy. Task, verbatim: <em>&quot;Create a file called fizzbuzz.js that prints FizzBuzz for 1..20, then run it with node and show me the output.&quot;</em></p>
 <h2 class="sec">The shape of the run</h2>
 <p class="lede">Exit 0 in <strong>5 seconds</strong>. It created <code>fizzbuzz.js</code>, ran it, and printed the output. Correct answer.</p>
@@ -322,5 +344,5 @@ web_search  workflow  write</pre>
 <p class="lede">Left in place rather than edited, because this note&#39;s value is that it was written blind, and rewriting its numbers would destroy the only thing that makes it evidence. See <code>notes/C-context-and-compaction.md</code> for the experiment that found it and <code>tools/capture-proxy/measure.mjs</code> for the fix.</p>
 <h2 class="sec">Provenance</h2>
 <p class="lede">Written from the terminal output and <code>captures/session-dsh-canonical.jsonl</code> alone, with no source reading between the run and this file. The blind-observation check and the leak check both live in the roadmap&#39;s Phase 2 card and were run against this note and every capture; deliberately not quoted here, because a note that contains the pattern its own check forbids fails that check on itself.</p>
-<footer><span><a href="../roadmap.html">← roadmap</a></span><span><a href="worklog.html">worklog</a></span><span><a href="../index.html">all campaigns</a></span></footer>
+<footer><span><a href="../roadmap.html">← roadmap</a></span><span><a href="../worklog.html">worklog</a></span><span><a href="../../index.html">all campaigns</a></span></footer>
 </main></div>

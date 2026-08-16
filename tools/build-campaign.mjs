@@ -81,15 +81,35 @@ function main() {
         .map((name) => {
           const markdown = readFileSync(fromRoot(join(notesDir, name)), 'utf8')
           const title = (markdown.match(/^#\s+(.*)$/m)?.[1] ?? name).replace(/^\d+\s*·\s*/, '')
+          // A thread note is named for its letter; the numbered reports belong to no thread and
+          // pass `self: undefined`, so every reference in them links.
+          const self = /^([A-O])-/.exec(name)?.[1]
           return [join('notes', name.replace(/\.md$/, '.html')),
-                  renderNote({ markdown, campaign: name0(dir), title, back: '../roadmap.html', measurements })]
+                  renderNote({ markdown, campaign: name0(dir), title, measurements,
+                               notes: model.derived.noteFor, self })]
         })
 
-      for (const [file, html] of [
+      const pages = [
         ['roadmap.html', renderRoadmap(model)],
         ['worklog.html', renderWorklog(model)],
         ...notePages,
-      ]) {
+      ]
+      // Resolve every relative link against where the page will actually sit. checkHtml sees only a
+      // string, so it can prove an `href="#x"` lands somewhere on the same page but knows nothing
+      // about the filesystem — which is exactly the gap two hardcoded footer links fell through,
+      // shipping 44 dead links across the note pages while every test and check passed. Pages
+      // written by this same run count as existing: on a fresh checkout none of them are on disk yet.
+      const planned = new Set(pages.map(([file]) => join(dir, file)).concat('campaigns/index.html'))
+      for (const [file, html] of pages) {
+        for (const m of html.matchAll(/href="([^"#][^"]*?)(?:#[^"]*)?"/g)) {
+          if (/^(https?:|mailto:|data:)/.test(m[1])) continue
+          const target = join(dir, file, '..', m[1])
+          if (!planned.has(target) && !existsSync(fromRoot(target)))
+            { console.error(`${join(dir, file)}: link ${m[1]} resolves to ${target}, which does not exist`); failed++ }
+        }
+      }
+
+      for (const [file, html] of pages) {
         const path = join(dir, file)
         if (!gate(path, html)) { failed++; continue }
         if (check) {

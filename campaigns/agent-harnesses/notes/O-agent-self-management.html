@@ -267,6 +267,28 @@
     line-height:1.5; max-width:62ch; }
   .synth a { color:var(--ink); text-decoration:none; }
   .synth a:hover, .synth a:focus-visible { text-decoration:underline; }
+
+  /* --- cross-thread references ------------------------------------------------
+     A "Thread D" inside running prose is a link, but it is also still a sentence:
+     a full underline on 128 of them would shred the page. Dotted underneath keeps
+     it findable and quiet, and it goes solid on hover so the affordance is real. */
+  a.tref { color:inherit; text-decoration:underline dotted var(--rule); text-decoration-thickness:1px; }
+  a.tref:hover, a.tref:focus-visible { color:var(--specimen); text-decoration:underline solid; }
+
+  /* --- worklog: one block per thread ------------------------------------------ */
+  .tgroup { margin:26px 0 0; }
+  .tgroup-h { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;
+    border-bottom:1px solid var(--rule); padding-bottom:6px; margin-bottom:2px; }
+  .tgroup-h b { font-size:15px; font-weight:600; letter-spacing:-.01em; }
+  .tgroup-h .mono { font-size:11px; color:var(--ink-faint); }
+  .tgroup[data-state="dry"] .tgroup-h { border-bottom-color:var(--ink-faint); }
+
+  /* --- board: what has landed -------------------------------------------------
+     Only the "landed" modifier: .c-state's base rule is already up in the frozen
+     block, and .c-top is already a flexbox that puts the chip on the right, so
+     redeclaring either here would be a second home for the same style.          */
+  .c-state[data-done="yes"] { border-color:var(--specimen); color:var(--specimen); }
+  .lane-t .done { font-family:var(--mono); font-size:11px; color:var(--ink-faint); font-weight:400; }
 </style>
 <div class="page"><main>
 <header class="mast"><p class="kick">Note · agent-harnesses</p></header>
@@ -276,7 +298,7 @@
 <p class="lede">Note 02, written blind, listed 25 tool names and said of one: *&quot;<code>ralph</code>, I cannot guess from its name at all.&quot;* This is where that gets settled.</p>
 <h2 class="sec">The process tools are ordinary capability seams</h2>
 <div class="tw"><table><thead><tr><th>Capability</th><th>Seam</th><th>Model-facing tool</th></tr></thead><tbody><tr><td>Goals</td><td><code>goal/goal</code> (1,288)</td><td><code>tool-goal</code> (517)</td></tr><tr><td>Skills</td><td><code>skill/skill</code> (898)</td><td><code>tool-skill</code> (461)</td></tr><tr><td>Workflows</td><td><code>workflow/workflow</code> (519)</td><td><code>tool-workflow</code> (566)</td></tr><tr><td>Ralph loops</td><td>— (rides workflow + subagent)</td><td><code>tool-ralph</code> (509)</td></tr><tr><td>Todos</td><td><strong>none</strong></td><td><code>tool-todo</code> (326)</td></tr></tbody></table></div>
-<p class="lede">The shape is the one Thread D and Thread K found for tools and approval: a <strong>capability seam</strong> with a service definition, plus a thin model-facing adapter that exposes it as tools. The model&#39;s process-management tools are not a privileged category — they are ordinary plugins over ordinary seams, which is why they can be restricted per scope (Thread D) and inherited by a child (Thread F) like anything else.</p>
+<p class="lede">The shape is the one <a class="tref" href="D-tools-and-permission.html">Thread D</a> and <a class="tref" href="K-the-host-boundary.html">Thread K</a> found for tools and approval: a <strong>capability seam</strong> with a service definition, plus a thin model-facing adapter that exposes it as tools. The model&#39;s process-management tools are not a privileged category — they are ordinary plugins over ordinary seams, which is why they can be restricted per scope (<a class="tref" href="D-tools-and-permission.html">Thread D</a>) and inherited by a child (<a class="tref" href="F-delegation-and-subagents.html">Thread F</a>) like anything else.</p>
 <p class="lede">The exception proves it. <strong>Todos have no service at all</strong>, because the data model does not need one:</p>
 <p class="lede">&gt; Deliberately minimal: a human-readable <code>content</code> line and a three-state <code>status</code>. No id, priority, or &gt; <code>activeForm</code> — the list is <strong>replaced wholesale on every write (last-write-wins)</strong>, so entries need no &gt; stable identity.</p>
 <p class="lede">A capability that is genuinely a single mutable value gets a tool and nothing else. That restraint is easier to admire than to practise.</p>
@@ -284,23 +306,23 @@
 <h2 class="sec"><code>ralph</code>, answered</h2>
 <p class="lede">&gt; Model-facing foreground <strong>Ralph loop</strong> over the workflow and subagent seams. A fixed script starts <strong>one &gt; fresh structured-output child per round</strong>, carrying only the immutable objective and the previous bounded &gt; handoff between them.</p>
 <figure class="viz"><p class="viz-t">The Ralph loop: context management by delegation</p><svg viewBox="0 0 496 166" role="img" aria-label="Each round is a fresh child agent. The only things that cross a round boundary are the unchanging objective and a bounded handoff, so the context a model sees stops growing — without compacting anything."><defs><marker id="dg-14dffwz" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs><g style="color:var(--ink)"><line x1="132" y1="48" x2="184" y2="48" stroke="currentColor" stroke-width="1.25" marker-end="url(#dg-14dffwz)"/><text x="159" y="15" text-anchor="middle" font-size="10" fill="currentColor" opacity=".62" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">given whole</text><line x1="310" y1="48" x2="362" y2="48" stroke="currentColor" stroke-width="1.25" marker-end="url(#dg-14dffwz)"/><text x="337" y="15" text-anchor="middle" font-size="10" fill="currentColor" opacity=".62" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">produces</text><rect x="12" y="22" width="116" height="52" rx="3" fill="none" stroke="currentColor" stroke-width="1.25"/><text x="70" y="43" text-anchor="middle" font-size="12" fill="currentColor" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">objective</text><text x="70" y="61" text-anchor="middle" font-size="10" fill="currentColor" opacity=".62" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">immutable, restated</text><rect x="190" y="22" width="116" height="52" rx="3" fill="none" stroke="currentColor" stroke-width="1.25"/><text x="248" y="43" text-anchor="middle" font-size="12" fill="currentColor" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">fresh child</text><text x="248" y="61" text-anchor="middle" font-size="10" fill="currentColor" opacity=".62" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">new context each round</text><rect x="368" y="22" width="116" height="52" rx="3" fill="none" stroke="currentColor" stroke-width="1.25"/><text x="426" y="43" text-anchor="middle" font-size="12" fill="currentColor" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">structured</text><text x="426" y="56" text-anchor="middle" font-size="12" fill="currentColor" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">output</text><text x="426" y="61" text-anchor="middle" font-size="10" fill="currentColor" opacity=".62" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">the bounded handoff</text><line x1="248" y1="74" x2="248" y2="84" stroke="var(--specimen)" stroke-width="1.25"/><text x="248" y="97" text-anchor="middle" font-size="10" fill="var(--specimen)" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">a subagent, so depth still applies</text><path d="M426,74 V134 H70 V78" fill="none" stroke="currentColor" stroke-width="1.25" stroke-dasharray="4 4" marker-end="url(#dg-14dffwz)"/><text x="248" y="148" text-anchor="middle" font-size="10" fill="currentColor" opacity=".62" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">the next round starts clean — nothing else carries over, so context never accumulates</text></g></svg><figcaption>Each round is a fresh child agent. The only things that cross a round boundary are the unchanging objective and a bounded handoff, so the context a model sees stops growing — without compacting anything.</figcaption></figure>
-<p class="lede">This is a genuinely different answer to the problem Thread C exists for. When a conversation grows past what is useful, the obvious move is to <strong>compact</strong> it — summarise the middle, drop the old. A Ralph loop does not compact, because there is nothing to compact: each round is a <em>new agent</em> whose context begins empty except for the objective and a small handoff. Growth is avoided rather than managed.</p>
+<p class="lede">This is a genuinely different answer to the problem <a class="tref" href="C-context-and-compaction.html">Thread C</a> exists for. When a conversation grows past what is useful, the obvious move is to <strong>compact</strong> it — summarise the middle, drop the old. A Ralph loop does not compact, because there is nothing to compact: each round is a <em>new agent</em> whose context begins empty except for the objective and a small handoff. Growth is avoided rather than managed.</p>
 <p class="lede">Two things follow from it being built on the subagent seam rather than on the loop:</p>
-<ul><li>The delegation depth cap applies (Thread F). A Ralph loop spends recursion budget, so it cannot nest</li></ul>
+<ul><li>The delegation depth cap applies (<a class="tref" href="F-delegation-and-subagents.html">Thread F</a>). A Ralph loop spends recursion budget, so it cannot nest</li></ul>
 <p class="lede">  arbitrarily even though it has no round cap of its own that I can see.</p>
 <ul><li>Each round&#39;s child is a full agent with its own session log, so the rounds are individually replayable</li></ul>
-<p class="lede">  and foldable (Thread E). A compaction step would have destroyed that; this preserves it.</p>
+<p class="lede">  and foldable (<a class="tref" href="E-plugin-architecture.html">Thread E</a>). A compaction step would have destroyed that; this preserves it.</p>
 <p class="lede">The cost is equally clear: <strong>anything not in the handoff is gone.</strong> Compaction degrades gracefully and loses detail; a Ralph loop loses everything not deliberately carried, and the quality of the run is exactly the quality of the handoff schema. That is a design where the interesting engineering has been moved into a schema, which is a reasonable place to put it.</p>
 <h2 class="sec">Plugin identity, for E</h2>
 <p class="lede">E found that <code>cordis_run</code> gates on an <em>authorized Client Package</em> and that <em>&quot;Plugin-wide authorization covers later versions&quot;</em>, and asked what identity makes that safe.</p>
 <p class="lede">The answer is that it is <strong>not automatic</strong>. Approval takes a required flag:</p>
 <pre>approve(requestId: ApprovalRequestId, approveFutureVersions: boolean): Promise&lt;void&gt;</pre>
 <p class="lede"><code>approveFutureVersions</code> is a required boolean threaded from the approval UI through the client runner to the host — <em>&quot;whether this decision covers later Packages of the same Plugin.&quot;</em> There is no default and no implicit trust: the human approving a model-written plugin decides, at that moment, whether they are approving this version or the plugin. Identity is the stable <code>pluginId</code>; the <em>scope</em> of the grant is a separate, explicit answer.</p>
-<p class="lede">Given Thread K&#39;s finding that grants at the approval seam are one-shot with no allow-always outcome, this is the one place a durable grant exists — and it is gated behind an explicit checkbox rather than a policy default.</p>
+<p class="lede">Given <a class="tref" href="K-the-host-boundary.html">Thread K</a>&#39;s finding that grants at the approval seam are one-shot with no allow-always outcome, this is the one place a durable grant exists — and it is gated behind an explicit checkbox rather than a policy default.</p>
 <h2 class="sec">Questions this opens</h2>
 <ul><li>A Ralph loop has no round cap of its own that I found, only the delegation depth it inherits. Combined</li></ul>
-<p class="lede">  with Thread J&#39;s unbounded Stop-hook continuation, is <em>any</em> dsh loop bounded by something other than a   human? → <strong>J</strong> (reopens)</p>
+<p class="lede">  with <a class="tref" href="J-observability-and-cost.html">Thread J</a>&#39;s unbounded Stop-hook continuation, is <em>any</em> dsh loop bounded by something other than a   human? → <a class="tref" href="J-observability-and-cost.html"><strong>J</strong></a> (reopens)</p>
 <h2 class="sec">Provenance</h2>
 <p class="lede">Source read at <code>47f9438</code>. Package line counts from <code>wc -l</code> over each <code>src</code>; the <code>approve</code> signature from <code>cordis-client-runner/src/client/index.ts:90</code>. No capture required.</p>
-<footer><span><a href="../roadmap.html">← roadmap</a></span><span><a href="worklog.html">worklog</a></span><span><a href="../index.html">all campaigns</a></span></footer>
+<footer><span><a href="../roadmap.html">← roadmap</a></span><span><a href="../worklog.html">worklog</a></span><span><a href="../../index.html">all campaigns</a></span></footer>
 </main></div>

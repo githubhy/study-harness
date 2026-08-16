@@ -267,12 +267,34 @@
     line-height:1.5; max-width:62ch; }
   .synth a { color:var(--ink); text-decoration:none; }
   .synth a:hover, .synth a:focus-visible { text-decoration:underline; }
+
+  /* --- cross-thread references ------------------------------------------------
+     A "Thread D" inside running prose is a link, but it is also still a sentence:
+     a full underline on 128 of them would shred the page. Dotted underneath keeps
+     it findable and quiet, and it goes solid on hover so the affordance is real. */
+  a.tref { color:inherit; text-decoration:underline dotted var(--rule); text-decoration-thickness:1px; }
+  a.tref:hover, a.tref:focus-visible { color:var(--specimen); text-decoration:underline solid; }
+
+  /* --- worklog: one block per thread ------------------------------------------ */
+  .tgroup { margin:26px 0 0; }
+  .tgroup-h { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;
+    border-bottom:1px solid var(--rule); padding-bottom:6px; margin-bottom:2px; }
+  .tgroup-h b { font-size:15px; font-weight:600; letter-spacing:-.01em; }
+  .tgroup-h .mono { font-size:11px; color:var(--ink-faint); }
+  .tgroup[data-state="dry"] .tgroup-h { border-bottom-color:var(--ink-faint); }
+
+  /* --- board: what has landed -------------------------------------------------
+     Only the "landed" modifier: .c-state's base rule is already up in the frozen
+     block, and .c-top is already a flexbox that puts the chip on the right, so
+     redeclaring either here would be a second home for the same style.          */
+  .c-state[data-done="yes"] { border-color:var(--specimen); color:var(--specimen); }
+  .lane-t .done { font-family:var(--mono); font-size:11px; color:var(--ink-faint); font-weight:400; }
 </style>
 <div class="page"><main>
 <header class="mast"><p class="kick">Note · agent-harnesses</p></header>
 <h1>G · Execution &amp; sandboxing</h1>
 <p class="lede">Thread G was raised by my toy&#39;s own shortcut — it ran <code>bash</code> with no gate and no confinement at all. The question is what a harness does instead. Read against source at <code>47f9438</code>.</p>
-<p class="lede">Thread D answered the <em>permission</em> half: a three-stage gate, defaulting to allow. This is the other half, and the two compose into something neither says alone.</p>
+<p class="lede"><a class="tref" href="D-tools-and-permission.html">Thread D</a> answered the <em>permission</em> half: a three-stage gate, defaulting to allow. This is the other half, and the two compose into something neither says alone.</p>
 <h2 class="sec">Confinement is real, and it fails closed</h2>
 <p class="lede"><code>packages/sandbox</code> is a <em>&quot;Service Definition for the same-world process-confinement capability seam: wrap exact subprocess argv under a host-path file policy.&quot;</em> Same-world is stated up front — <em>&quot;this service shares the host kernel and filesystem&quot;</em>, and containers or microVMs <em>&quot;replace the surrounding capability seam instead&quot;</em>. It does not pretend to be isolation it is not.</p>
 <p class="lede">What it does is OS-level, per platform (<code>sandbox-local</code>, 655 lines):</p>
@@ -285,26 +307,26 @@
 <p class="lede"><code>sandbox-policy</code> is <em>&quot;the single owner of the deployment&#39;s sandbox fallbacks plus per-session resolution&quot;</em>, and the docstring is explicit that it is the only such owner: <em>&quot;Enforcing filesystem, one-shot bash, and terminal backends read the SAME resolved policy here.&quot;</em> Three tool families, one resolution.</p>
 <p class="lede">And it closes a loop from note 02. That note recorded, blind, a 562-byte <code>user</code> message reading <em>&quot;Current runtime context. This snapshot supersedes earlier runtime-context snapshots.&quot;</em> Here is what puts things in it:</p>
 <p class="lede">&gt; Before each agent request, the owner also contributes the resolved policy to the cache-safe &gt; runtime-context snapshot. The agent loop logs that snapshot as model history, so <strong>replay reconstructs &gt; the same mode and root the enforcing consumers resolve without rewriting the stable system prompt.</strong></p>
-<p class="lede">So the message I measured without knowing its purpose is how a <em>replayed</em> session recovers the sandbox mode it was actually running under. The prompt stays stable and cacheable (Thread A); the varying policy rides in history where replay can find it (Thread E). Thread B found the mechanism that emits it only on change; this is why it exists.</p>
+<p class="lede">So the message I measured without knowing its purpose is how a <em>replayed</em> session recovers the sandbox mode it was actually running under. The prompt stays stable and cacheable (<a class="tref" href="A-prompt-and-presentation.html">Thread A</a>); the varying policy rides in history where replay can find it (<a class="tref" href="E-plugin-architecture.html">Thread E</a>). <a class="tref" href="B-agent-loop.html">Thread B</a> found the mechanism that emits it only on change; this is why it exists.</p>
 <h2 class="sec">Escalation, and where it composes with delegation</h2>
 <p class="lede">A sandboxed tool can ask for more. <code>sandbox/escalation.ts</code> owns *&quot;the escalation vocabulary and choreography shared by every sandbox-enforcing tool family (<code>tool-bash</code>, <code>tool-fs</code>): the <strong>strictly-wider ladder</strong>, the argument-pairing validation, the model-facing denial/hint markers, and <code>approveEscalation</code> — the ordered fail-closed sequence that resolves a <code>sandbox_permissions</code> request through a user-approval channel <strong>BEFORE anything executes</strong>.&quot;*</p>
 <p class="lede">Three properties in one sentence: escalation only ever widens, approval happens before execution rather than as a rollback, and both tool families share one implementation <em>&quot;to keep the two families&#39; approval ordering and verbatim error texts from drifting apart.&quot;</em></p>
 <p class="lede">The channel is taken as <em>&quot;a minimal STRUCTURAL function shape, not the approval service type&quot;</em> — the escalation module never imports approval; the tool layer closes over <code>ctx.approval.request(...)</code> and passes it in. The seam stays thin enough that the sandbox does not depend on the permission system at all.</p>
 <h3 class="sec">A sub-agent cannot widen its sandbox</h3>
-<p class="lede">Thread F found that a delegated child&#39;s approval policy is pinned to <code>&#39;never&#39;</code> regardless of its parent&#39;s. Here is what <code>&#39;never&#39;</code> means:</p>
+<p class="lede"><a class="tref" href="F-delegation-and-subagents.html">Thread F</a> found that a delegated child&#39;s approval policy is pinned to <code>&#39;never&#39;</code> regardless of its parent&#39;s. Here is what <code>&#39;never&#39;</code> means:</p>
 <pre>ApprovalPolicy = &#39;ask&#39; | &#39;never&#39;
   &#39;never&#39; — never prompt anyone: every ask resolves &#39;rejected&#39;</pre>
-<p class="lede">So a delegated child&#39;s escalation request is <strong>rejected before it reaches anyone</strong>. Combined: the parent&#39;s sandbox mode is captured at delegation, the child inherits it, and the child has no path to widen it. You cannot escape a sandbox by spawning someone to ask on your behalf. That is the real security property of this design, and it needed Thread F, Thread D, Thread K and this thread to see whole.</p>
+<p class="lede">So a delegated child&#39;s escalation request is <strong>rejected before it reaches anyone</strong>. Combined: the parent&#39;s sandbox mode is captured at delegation, the child inherits it, and the child has no path to widen it. You cannot escape a sandbox by spawning someone to ask on your behalf. That is the real security property of this design, and it needed <a class="tref" href="F-delegation-and-subagents.html">Thread F</a>, <a class="tref" href="D-tools-and-permission.html">Thread D</a>, <a class="tref" href="K-the-host-boundary.html">Thread K</a> and this thread to see whole.</p>
 <h2 class="sec">One thing that is wrong</h2>
-<p class="lede">Thread D praised <code>serviceAsk</code> for handing the model <em>distinguishable</em> denial reasons — <em>&quot;the three non-grants deny with distinct reasons so the model can tell a human &#39;no&#39; from an absent approval channel.&quot;</em> That precision breaks in exactly one place.</p>
+<p class="lede"><a class="tref" href="D-tools-and-permission.html">Thread D</a> praised <code>serviceAsk</code> for handing the model <em>distinguishable</em> denial reasons — <em>&quot;the three non-grants deny with distinct reasons so the model can tell a human &#39;no&#39; from an absent approval channel.&quot;</em> That precision breaks in exactly one place.</p>
 <p class="lede">Policy <code>&#39;never&#39;</code> resolves every ask to <code>&#39;rejected&#39;</code>, and <code>&#39;rejected&#39;</code> maps to:</p>
 <pre>`the user rejected tool &quot;${exec.name}&quot;`</pre>
 <p class="lede"><strong>No user was consulted.</strong> A delegated child — which is pinned to <code>&#39;never&#39;</code> by construction and can never be anything else — is told a human refused it, every time, when no human was asked. The <code>&#39;unavailable&#39;</code> branch exists and says the honest thing (<em>&quot;no approval channel is available&quot;</em>), and this path does not use it.</p>
-<p class="lede">It is a small thing with a real consequence: the distinction Thread D correctly identified as valuable (retry differently for a refusal than for a missing channel) is collapsed for the one caller least able to find out otherwise. A sub-agent that reasons &quot;the human said no, I should stop asking&quot; is reasoning from a false premise — which is, admittedly, the behaviour you want here, arrived at by the wrong route.</p>
+<p class="lede">It is a small thing with a real consequence: the distinction <a class="tref" href="D-tools-and-permission.html">Thread D</a> correctly identified as valuable (retry differently for a refusal than for a missing channel) is collapsed for the one caller least able to find out otherwise. A sub-agent that reasons &quot;the human said no, I should stop asking&quot; is reasoning from a false premise — which is, admittedly, the behaviour you want here, arrived at by the wrong route.</p>
 <h2 class="sec">Questions this opens</h2>
 <ul><li>The escalation ladder is strictly-wider and approval precedes execution. Does a granted escalation</li></ul>
-<p class="lede">  persist for the session, or is it one-shot like every other grant at that seam? → <strong>D</strong></p>
+<p class="lede">  persist for the session, or is it one-shot like every other grant at that seam? → <a class="tref" href="D-tools-and-permission.html"><strong>D</strong></a></p>
 <h2 class="sec">Provenance</h2>
 <p class="lede">Source read at <code>47f9438</code>. Quoted docstrings from <code>packages/sandbox/{sandbox,sandbox-local,sandbox-policy}</code> and <code>sandbox/src/escalation.ts</code>; <code>ApprovalPolicy</code> from <code>interaction/user-approval/src/index.ts:90-94</code>. No capture required.</p>
-<footer><span><a href="../roadmap.html">← roadmap</a></span><span><a href="worklog.html">worklog</a></span><span><a href="../index.html">all campaigns</a></span></footer>
+<footer><span><a href="../roadmap.html">← roadmap</a></span><span><a href="../worklog.html">worklog</a></span><span><a href="../../index.html">all campaigns</a></span></footer>
 </main></div>

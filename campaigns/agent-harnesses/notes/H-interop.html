@@ -267,6 +267,28 @@
     line-height:1.5; max-width:62ch; }
   .synth a { color:var(--ink); text-decoration:none; }
   .synth a:hover, .synth a:focus-visible { text-decoration:underline; }
+
+  /* --- cross-thread references ------------------------------------------------
+     A "Thread D" inside running prose is a link, but it is also still a sentence:
+     a full underline on 128 of them would shred the page. Dotted underneath keeps
+     it findable and quiet, and it goes solid on hover so the affordance is real. */
+  a.tref { color:inherit; text-decoration:underline dotted var(--rule); text-decoration-thickness:1px; }
+  a.tref:hover, a.tref:focus-visible { color:var(--specimen); text-decoration:underline solid; }
+
+  /* --- worklog: one block per thread ------------------------------------------ */
+  .tgroup { margin:26px 0 0; }
+  .tgroup-h { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;
+    border-bottom:1px solid var(--rule); padding-bottom:6px; margin-bottom:2px; }
+  .tgroup-h b { font-size:15px; font-weight:600; letter-spacing:-.01em; }
+  .tgroup-h .mono { font-size:11px; color:var(--ink-faint); }
+  .tgroup[data-state="dry"] .tgroup-h { border-bottom-color:var(--ink-faint); }
+
+  /* --- board: what has landed -------------------------------------------------
+     Only the "landed" modifier: .c-state's base rule is already up in the frozen
+     block, and .c-top is already a flexbox that puts the chip on the right, so
+     redeclaring either here would be a second home for the same style.          */
+  .c-state[data-done="yes"] { border-color:var(--specimen); color:var(--specimen); }
+  .lane-t .done { font-family:var(--mono); font-size:11px; color:var(--ink-faint); font-weight:400; }
 </style>
 <div class="page"><main>
 <header class="mast"><p class="kick">Note · agent-harnesses</p></header>
@@ -276,13 +298,13 @@
 <h2 class="sec">Interop is normalization</h2>
 <p class="lede">Every foreign protocol dsh speaks is translated into a dsh primitive at the edge, so that everything downstream works unchanged. Three instances, found across three threads:</p>
 <div class="tw"><table><thead><tr><th>Foreign thing</th><th>Normalized to</th><th>Found in</th></tr></thead><tbody><tr><td>Claude Code / Codex hook configs</td><td>listeners on cordis seams (<code>tools/pre-execute</code>, <code>agent/turn-stopping</code>, …)</td><td>J</td></tr><tr><td>Claude Code SDK / <code>codex app-server</code> children</td><td>one <code>SubagentResult</code></td><td>F</td></tr><tr><td>An external MCP server&#39;s tools</td><td>ordinary registrations on <code>ctx.tools</code></td><td>here</td></tr></tbody></table></div>
-<p class="lede"><code>mcp-client</code> (929 lines) *&quot;connects to an external MCP server and registers its tools on <code>ctx.tools</code> under server-qualified public names (<code>mcp__&lt;serverName&gt;__&lt;rawName&gt;</code>)&quot;*. That is the whole strategy in one line. An MCP tool is <strong>not a category</strong> in dsh. It is a tool. Which means, without a line of MCP-aware code anywhere else, it inherits everything Thread D found:</p>
+<p class="lede"><code>mcp-client</code> (929 lines) *&quot;connects to an external MCP server and registers its tools on <code>ctx.tools</code> under server-qualified public names (<code>mcp__&lt;serverName&gt;__&lt;rawName&gt;</code>)&quot;*. That is the whole strategy in one line. An MCP tool is <strong>not a category</strong> in dsh. It is a tool. Which means, without a line of MCP-aware code anywhere else, it inherits everything <a class="tref" href="D-tools-and-permission.html">Thread D</a> found:</p>
 <ul><li>it passes the same three-stage gate — <code>restrict</code>, the <code>tools/pre-execute</code> waterfall, then monotonic guards</li><li>it must declare an <code>output</code> with a schema, and its result reaches the model through <code>render()</code></li><li>it can be restricted per scope, so a delegated child can be given a narrower set of MCP tools than its</li></ul>
-<p class="lede">  parent (Thread F)</p>
+<p class="lede">  parent (<a class="tref" href="F-delegation-and-subagents.html">Thread F</a>)</p>
 <ul><li>it appears in Code Mode as a callable binding like any other</li></ul>
-<p class="lede">The namespacing is deliberate rather than cosmetic: *&quot;identical <code>serverName</code> reproduces identical public tool names&quot;<em>, and disposal </em>&quot;releases the <code>serverName</code> namespace reservation.&quot;* A tool&#39;s public name is stable across a hot reload, which matters because the name is what appears in a durable log that will be folded again later (Thread E).</p>
+<p class="lede">The namespacing is deliberate rather than cosmetic: *&quot;identical <code>serverName</code> reproduces identical public tool names&quot;<em>, and disposal </em>&quot;releases the <code>serverName</code> namespace reservation.&quot;* A tool&#39;s public name is stable across a hot reload, which matters because the name is what appears in a durable log that will be folded again later (<a class="tref" href="E-plugin-architecture.html">Thread E</a>).</p>
 <h2 class="sec">Direction matters, and it is not symmetric</h2>
-<div class="tw"><table><thead><tr><th>Protocol</th><th>dsh&#39;s role</th></tr></thead><tbody><tr><td>MCP</td><td><strong>client only</strong> — it consumes external tools; there is no MCP server</td></tr><tr><td>ACP</td><td><strong>server</strong> — <em>&quot;Automation-only Agent Client Protocol server over JSON-RPC stdio&quot;</em> (Thread K)</td></tr><tr><td>Claude Code / Codex</td><td><strong>host</strong> — it spawns their real runtimes as children (Thread F)</td></tr></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Protocol</th><th>dsh&#39;s role</th></tr></thead><tbody><tr><td>MCP</td><td><strong>client only</strong> — it consumes external tools; there is no MCP server</td></tr><tr><td>ACP</td><td><strong>server</strong> — <em>&quot;Automation-only Agent Client Protocol server over JSON-RPC stdio&quot;</em> (<a class="tref" href="K-the-host-boundary.html">Thread K</a>)</td></tr><tr><td>Claude Code / Codex</td><td><strong>host</strong> — it spawns their real runtimes as children (<a class="tref" href="F-delegation-and-subagents.html">Thread F</a>)</td></tr></tbody></table></div>
 <p class="lede">So dsh consumes tools, exposes itself for automation, and drives competitors. It does not offer itself as an MCP tool provider to someone else&#39;s agent.</p>
 <h2 class="sec">What comes back from a foreign child</h2>
 <p class="lede">F&#39;s question. <code>SubagentResult</code> has exactly three fields:</p>
@@ -292,12 +314,12 @@ stopReason: SubagentStopReason</pre>
 <p class="lede">*&quot;The child&#39;s final assistant output is the content of its last non-empty assistant message. Empty-content messages, including usage-only messages, are skipped. Without a non-empty message, the output is its accumulated assistant text stream, or <code>[]</code> when the child produced neither.&quot;* And a non-<code>completed</code> <code>stopReason</code> means the output may be partial — stated rather than left to be discovered.</p>
 <p class="lede"><strong>So: text, plus an optional schema-validated value, plus why it stopped.</strong> A Claude Code child&#39;s internal steps, its tool calls, its own permission decisions and its token usage never enter dsh&#39;s log. They are not lost because of an oversight; there is no representation for them, because normalization is the whole strategy and those things do not normalize.</p>
 <h3 class="sec">The delegation boundary is also the observability boundary</h3>
-<p class="lede">This completes a line that runs through three threads. Thread J found observation inside dsh is total — every consumer folds the same event log. Thread F found the <em>policy</em> guarantees stop at the process boundary, since you cannot seed a <code>sandbox/mode</code> event onto a session log a foreign process does not have. Thread H finds <em>observation</em> stops in the same place and for the same reason.</p>
-<p class="lede">An in-process child is fully legible: its session log is dsh&#39;s own, and every projection reads it. An out-of-process child is a black box that returns three fields. Both are called &quot;subagent&quot; through one seam, and that seam is honest about the difference in the one place it can be — <code>maxDepth: &#39;provider-managed&#39;</code>, the admission that the child&#39;s recursion budget is not dsh&#39;s to enforce (Thread F).</p>
+<p class="lede">This completes a line that runs through three threads. <a class="tref" href="J-observability-and-cost.html">Thread J</a> found observation inside dsh is total — every consumer folds the same event log. <a class="tref" href="F-delegation-and-subagents.html">Thread F</a> found the <em>policy</em> guarantees stop at the process boundary, since you cannot seed a <code>sandbox/mode</code> event onto a session log a foreign process does not have. Thread H finds <em>observation</em> stops in the same place and for the same reason.</p>
+<p class="lede">An in-process child is fully legible: its session log is dsh&#39;s own, and every projection reads it. An out-of-process child is a black box that returns three fields. Both are called &quot;subagent&quot; through one seam, and that seam is honest about the difference in the one place it can be — <code>maxDepth: &#39;provider-managed&#39;</code>, the admission that the child&#39;s recursion budget is not dsh&#39;s to enforce (<a class="tref" href="F-delegation-and-subagents.html">Thread F</a>).</p>
 <p class="lede">That is the cost of normalization, and it is worth naming plainly: <strong>a protocol boundary that makes foreign things usable also makes them opaque.</strong> The same translation that lets an MCP tool inherit the entire permission system is what stops a Claude Code child&#39;s decisions from ever being auditable.</p>
 <h2 class="sec">Questions this opens</h2>
 <p class="lede">None. F&#39;s question is answered and this thread raised nothing it could not settle from source — which is itself the signal that the surprise budget is close to spent here.</p>
 <h2 class="sec">Provenance</h2>
 <p class="lede">Source read at <code>47f9438</code>. <code>SubagentResult</code> from <code>subagent/src/types.ts:219</code>; the MCP naming rule from <code>mcp-client/src/index.ts</code>. No capture required.</p>
-<footer><span><a href="../roadmap.html">← roadmap</a></span><span><a href="worklog.html">worklog</a></span><span><a href="../index.html">all campaigns</a></span></footer>
+<footer><span><a href="../roadmap.html">← roadmap</a></span><span><a href="../worklog.html">worklog</a></span><span><a href="../../index.html">all campaigns</a></span></footer>
 </main></div>

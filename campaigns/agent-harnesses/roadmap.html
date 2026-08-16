@@ -267,6 +267,28 @@
     line-height:1.5; max-width:62ch; }
   .synth a { color:var(--ink); text-decoration:none; }
   .synth a:hover, .synth a:focus-visible { text-decoration:underline; }
+
+  /* --- cross-thread references ------------------------------------------------
+     A "Thread D" inside running prose is a link, but it is also still a sentence:
+     a full underline on 128 of them would shred the page. Dotted underneath keeps
+     it findable and quiet, and it goes solid on hover so the affordance is real. */
+  a.tref { color:inherit; text-decoration:underline dotted var(--rule); text-decoration-thickness:1px; }
+  a.tref:hover, a.tref:focus-visible { color:var(--specimen); text-decoration:underline solid; }
+
+  /* --- worklog: one block per thread ------------------------------------------ */
+  .tgroup { margin:26px 0 0; }
+  .tgroup-h { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;
+    border-bottom:1px solid var(--rule); padding-bottom:6px; margin-bottom:2px; }
+  .tgroup-h b { font-size:15px; font-weight:600; letter-spacing:-.01em; }
+  .tgroup-h .mono { font-size:11px; color:var(--ink-faint); }
+  .tgroup[data-state="dry"] .tgroup-h { border-bottom-color:var(--ink-faint); }
+
+  /* --- board: what has landed -------------------------------------------------
+     Only the "landed" modifier: .c-state's base rule is already up in the frozen
+     block, and .c-top is already a flexbox that puts the chip on the right, so
+     redeclaring either here would be a second home for the same style.          */
+  .c-state[data-done="yes"] { border-color:var(--specimen); color:var(--specimen); }
+  .lane-t .done { font-family:var(--mono); font-size:11px; color:var(--ink-faint); font-weight:400; }
 </style>
 <div class="page"><div class="cols">
 <nav aria-label="Contents">
@@ -418,22 +440,24 @@
   </section>
 <section id="s3">
     <span class="snum">§ 3</span>
-    <h2 class="sec">The board · what you can start now</h2>
+    <h2 class="sec">The board · where every phase stands</h2>
     <p class="lede">
-      The same five phases as the map, sorted by <strong>what is blocking each card</strong> rather than by phase number.
-      The left lane needs nothing but a terminal; the right lane must stay last or the study invalidates itself.
+      The same phases as the map, in lanes by <strong>what blocked each one</strong> rather than by phase number —
+      an entry condition, not a status. The left lane needs nothing but a terminal; the right lane must stay last or
+      the study invalidates itself. <strong>Whether a phase has landed is the second axis</strong>, and the only
+      evidence for it here is whether the phase produced its report: 6 of 6 have.
     </p>
 
     <div class="board">
 
       <div class="lane" data-s="go">
         <div class="lane-h">
-          <div class="lane-t"><span>Ready now</span><span>2</span></div>
-          <div class="lane-s">Nothing blocks these. No API key required.</div>
+          <div class="lane-t"><span>Blocked by nothing</span><span class="done">2/2 landed</span></div>
+          <div class="lane-s">Needs only a terminal. No API key required.</div>
         </div>
 
         <article class="card" data-s="go">
-          <div class="c-top"><span class="c-id">Task 0.1</span></div>
+          <div class="c-top"><span class="c-id">Task 0.1</span><span class="c-state" data-done="yes">landed</span></div>
           <div class="c-t">Pin the checkout</div>
           <p>Clone, detach at <code>47f9438</code>, install frozen, build. Then discover and record the base-URL override and the non-interactive run command.</p>
           <pre><span class="c"># pin the specimen</span>
@@ -451,7 +475,7 @@ rg -n &#39;baseURL|baseUrl|base_url|BASE_URL&#39; packages/llm/ apps/ --type ts<
         </article>
 
         <article class="card" data-s="go">
-          <div class="c-top"><span class="c-id">Task 0.2</span></div>
+          <div class="c-top"><span class="c-id">Task 0.2</span><span class="c-state" data-done="yes">landed</span></div>
           <div class="c-t">Build the capture proxy</div>
           <p>~70 lines of dependency-free Node. Tees SSE to disk without buffering the client's view, and redacts <code>authorization</code>, <code>x-api-key</code>, <code>api-key</code>, <code>cookie</code> before any write.</p>
           <div class="halt">
@@ -467,12 +491,12 @@ rg -n &#39;baseURL|baseUrl|base_url|BASE_URL&#39; packages/llm/ apps/ --type ts<
 
       <div class="lane" data-s="next">
         <div class="lane-h">
-          <div class="lane-t"><span>Unlocked by Phase 0</span><span>2</span></div>
+          <div class="lane-t"><span>Unlocked by Phase 0</span><span class="done">2/2 landed</span></div>
           <div class="lane-s">The control, then the blind baseline. In that order.</div>
         </div>
 
         <article class="card" data-s="next">
-          <div class="c-top"><span class="c-id">Phase 1 · the control</span></div>
+          <div class="c-top"><span class="c-id">Phase 1 · the control</span><span class="c-state" data-done="yes">landed</span></div>
           <div class="c-t">Write a harness from scratch</div>
           <p>~45 lines against the DeepSeek API: a message list, two tools, a loop, a step cap. <strong>The only harness whose every byte you can account for</strong> — and therefore the reference against which dsh's captures are read.</p>
           <pre>messages = [system, user]
@@ -491,7 +515,7 @@ rg -n &#39;baseURL|baseUrl|base_url|BASE_URL&#39; packages/llm/ apps/ --type ts<
         </article>
 
         <article class="card" data-s="next">
-          <div class="c-top"><span class="c-id">Task 2.0 · observation only</span></div>
+          <div class="c-top"><span class="c-id">Task 2.0 · observation only</span><span class="c-state" data-done="yes">landed</span></div>
           <div class="c-t">Baseline capture of dsh</div>
           <p>Capture dsh on the canonical task, then write <code>notes/02-baseline-behavior.md</code> recording <strong>only what was observable</strong>: round-trip count, tool order, when approval was requested, what displayed between steps, whether it verified its own work.</p>
           <pre>rg -n &#39;packages/&#39; notes/02-baseline-behavior.md
@@ -504,12 +528,12 @@ rg -n &#39;baseURL|baseUrl|base_url|BASE_URL&#39; packages/llm/ apps/ --type ts<
 
       <div class="lane" data-s="gate">
         <div class="lane-h">
-          <div class="lane-t"><span>Gated on a finding</span><span>1</span></div>
+          <div class="lane-t"><span>Gated on a finding</span><span class="done">1/1 landed</span></div>
           <div class="lane-s">Not gated on a phase — gated on one specific thread landing.</div>
         </div>
 
         <article class="card" data-s="gate">
-          <div class="c-top"><span class="c-id">Phase 3</span></div>
+          <div class="c-top"><span class="c-id">Phase 3</span><span class="c-state" data-done="yes">landed</span></div>
           <div class="c-t">One tool, two harnesses</div>
           <p>The same trivial tool built twice — as a dsh plugin and as an MCP server for Claude Code. <strong>The diff between the two integrations is the finding.</strong></p>
           <p><strong>Two things must be true, per harness:</strong> the tool was <em>offered</em>, and the model <em>called it</em>. Proving only the first is the classic false pass — it shows registration worked while the loop never closed around it.</p>
@@ -520,25 +544,25 @@ jq -r &#39;select(.dir==&quot;request&quot;) | .body.tools[]? | .function.name&#
 <span class="c"># called (either harness — grep the marker)</span>
 rg -c &#39;STUDY-MARKER-7f3a&#39; captures/session-plugin.jsonl</pre>
           <p><strong>Why this is the category exam:</strong> what <em>both</em> harnesses demand of a tool is essential to the category. What only one demands is incidental to its implementation. That intersection is the real model of “a tool” — and MCP versus a Cordis plugin is itself an answer to Thread E's question about where an extension boundary belongs.</p>
-          <div class="c-blocks">blocked by <b class="yes">Thread D only</b> — it does <em>not</em> wait for the other fourteen<br>consumes <b>D&#39;s “what a new tool must provide” checklist</b></div>
+          <div class="c-blocks">blocked by <b class="yes">Thread D only</b> — it does <em>not</em> wait for the other fourteen<br>consumes <b>D&#39;s “what a new tool must provide” checklist</b><br>report <a href="notes/03-one-tool-two-harnesses.html">03 · One tool, two harnesses</a></div>
         </article>
       </div>
 
       <div class="lane" data-s="last">
         <div class="lane-h">
-          <div class="lane-t"><span>Last by design</span><span>1</span></div>
+          <div class="lane-t"><span>Last by design</span><span class="done">1/1 landed</span></div>
           <div class="lane-s">Doing this early doesn&#39;t speed the study up — it invalidates it.</div>
         </div>
 
         <article class="card" data-s="last">
-          <div class="c-top"><span class="c-id">Phase 4</span></div>
+          <div class="c-top"><span class="c-id">Phase 4</span><span class="c-state" data-done="yes">landed</span></div>
           <div class="c-t">Transfer test</div>
           <p>Commit predictions <em>before</em> opening the Claude Code transcripts already on disk, then score them. Sort every glossary term into universal, dsh-specific, or missing.</p>
           <p><strong>Predict first, and commit the prediction.</strong> From the dsh-derived model alone, write down which tools you expect, how results appear serialized, what stop reasons exist, how permissions are gated. A prediction made after looking tests nothing — so it goes in a commit before the first <code>jq</code> runs.</p>
           <p><strong>Three buckets, and two of them are the output:</strong></p>
           <ul><li><strong>Universal</strong> — explains both harnesses. Stays canonical in <code>CONTEXT.md</code>.</li><li><strong>dsh-specific</strong> — an implementation detail you mistook for a category concept.</li><li><strong>Missing</strong> — Claude Code does something your vocabulary can't name. <code>thinking</code> blocks, hooks, and sidechains are the likely candidates.</li></ul>
           <p>Buckets two and three are what the study actually produced. Bucket one is just what survived.</p>
-          <div class="c-blocks">blocked by <b class="yes">all of Phase 2</b> · see §6 for what transcripts can and can't show</div>
+          <div class="c-blocks">blocked by <b class="yes">all of Phase 2</b> · see §6 for what transcripts can and can't show<br>report <a href="notes/04-transfer-predictions.html">04 · Transfer predictions</a> · <a href="notes/05-transfer-scored.html">05 · Transfer scored</a></div>
         </article>
       </div>
 
