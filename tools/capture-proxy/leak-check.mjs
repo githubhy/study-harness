@@ -14,7 +14,30 @@
 //   2. Shape — key-like strings anywhere in the file, including bodies, where a
 //      model may have echoed a secret the proxy never saw as a header.
 
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync, existsSync } from 'node:fs'
+import { join } from 'node:path'
+
+/**
+ * Every capture under `campaigns/&ast;/captures`, so the bare command checks something.
+ *
+ * With no arguments this script used to scan nothing and print "clean: 0 captures" — a pass that
+ * proved only that it had been run. It was invoked that way repeatedly during this campaign and
+ * reported clean every time, against captures it never opened. A check that cannot fail is worse
+ * than no check, and this is the one check whose false pass is unrecoverable.
+ */
+function defaultTargets() {
+  const root = 'campaigns'
+  if (!existsSync(root)) return []
+  const found = []
+  for (const campaign of readdirSync(root, { withFileTypes: true }).filter((d) => d.isDirectory())) {
+    const dir = join(root, campaign.name, 'captures')
+    if (!existsSync(dir)) continue
+    for (const name of readdirSync(dir)) {
+      if (name.endsWith('.jsonl')) found.push(join(dir, name))
+    }
+  }
+  return found
+}
 
 const SENSITIVE = new Set([
   'authorization', 'x-api-key', 'api-key', 'cookie', 'set-cookie', 'proxy-authorization',
@@ -36,7 +59,9 @@ const PATTERNS = [
 
 const problems = []
 
-for (const file of process.argv.slice(2)) {
+const targets = process.argv.length > 2 ? process.argv.slice(2) : defaultTargets()
+
+for (const file of targets) {
   let text
   try {
     text = readFileSync(file, 'utf8')
@@ -74,7 +99,11 @@ if (problems.length > 0) {
   console.error('LEAK — do not commit, and treat the key as burned:')
   for (const problem of problems) console.error(`  ${problem}`)
   process.exitCode = 1
+} else if (targets.length === 0) {
+  // Nothing scanned is not a pass. Exiting 0 here is how this check spent a whole campaign
+  // reporting clean without opening a file.
+  console.error('leak-check: no captures found to check — refusing to report clean')
+  process.exitCode = 1
 } else {
-  const files = process.argv.slice(2)
-  console.log(`clean: ${files.length} capture${files.length === 1 ? '' : 's'}, no credential found`)
+  console.log(`clean: ${targets.length} capture${targets.length === 1 ? '' : 's'} checked, no credential found`)
 }

@@ -9,6 +9,18 @@
         10624,
         11068
       ],
+      "toolSchemaBytes": [
+        26983,
+        0,
+        26983,
+        26983
+      ],
+      "requestBytes": [
+        36545,
+        774,
+        37787,
+        38231
+      ],
       "messageCounts": [
         4,
         2,
@@ -38,11 +50,176 @@
       ],
       "streamed": true
     },
+    "long-code": {
+      "source": "captures/session-long-code.jsonl",
+      "requests": 10,
+      "contextBytes": [
+        60539,
+        844,
+        63211,
+        65233,
+        75247,
+        76905,
+        108553,
+        112373,
+        116261,
+        128805
+      ],
+      "toolSchemaBytes": [
+        908,
+        0,
+        908,
+        908,
+        908,
+        908,
+        908,
+        908,
+        908,
+        908
+      ],
+      "requestBytes": [
+        61627,
+        986,
+        64299,
+        66321,
+        76335,
+        77993,
+        109641,
+        113461,
+        117349,
+        129893
+      ],
+      "messageCounts": [
+        5,
+        2,
+        7,
+        9,
+        12,
+        14,
+        16,
+        18,
+        20,
+        22
+      ],
+      "systemPromptBytes": 34259,
+      "toolsOffered": 1,
+      "toolResultSizes": [
+        147,
+        770,
+        2691,
+        241,
+        30348,
+        3148,
+        3265,
+        11718
+      ],
+      "firstRequestRoles": [
+        "system",
+        "user",
+        "user",
+        "user",
+        "user"
+      ],
+      "firstRequestBytes": [
+        34259,
+        322,
+        16031,
+        480,
+        8342
+      ],
+      "models": [
+        "deepseek-v4-flash"
+      ],
+      "streamed": true
+    },
+    "long-native": {
+      "source": "captures/session-long-native.jsonl",
+      "requests": 9,
+      "contextBytes": [
+        29604,
+        844,
+        32447,
+        64685,
+        65784,
+        100055,
+        103920,
+        107966,
+        121497
+      ],
+      "toolSchemaBytes": [
+        26983,
+        0,
+        26983,
+        26983,
+        26983,
+        26983,
+        26983,
+        26983,
+        26983
+      ],
+      "requestBytes": [
+        56767,
+        986,
+        59610,
+        91848,
+        92947,
+        127218,
+        131083,
+        135129,
+        148660
+      ],
+      "messageCounts": [
+        5,
+        2,
+        7,
+        10,
+        12,
+        14,
+        16,
+        18,
+        20
+      ],
+      "systemPromptBytes": 4031,
+      "toolsOffered": 25,
+      "toolResultSizes": [
+        770,
+        22220,
+        384,
+        33189,
+        3453,
+        3621,
+        12898
+      ],
+      "firstRequestRoles": [
+        "system",
+        "user",
+        "user",
+        "user",
+        "user"
+      ],
+      "firstRequestBytes": [
+        4031,
+        322,
+        16031,
+        480,
+        8342
+      ],
+      "models": [
+        "deepseek-v4-flash"
+      ],
+      "streamed": true
+    },
     "smoke": {
       "source": "captures/session-smoke.jsonl",
       "requests": 1,
       "contextBytes": [
         106
+      ],
+      "toolSchemaBytes": [
+        54
+      ],
+      "requestBytes": [
+        206
       ],
       "messageCounts": [
         2
@@ -70,6 +247,16 @@
         300,
         911,
         1290
+      ],
+      "toolSchemaBytes": [
+        492,
+        492,
+        492
+      ],
+      "requestBytes": [
+        838,
+        1449,
+        1828
       ],
       "messageCounts": [
         2,
@@ -101,6 +288,14 @@
       "contextBytes": [
         238,
         526
+      ],
+      "toolSchemaBytes": [
+        492,
+        492
+      ],
+      "requestBytes": [
+        776,
+        1064
       ],
       "messageCounts": [
         2,
@@ -138,6 +333,30 @@
         21872,
         27611,
         33074
+      ],
+      "toolSchemaBytes": [
+        492,
+        492,
+        492,
+        492,
+        492,
+        492,
+        492,
+        492,
+        492,
+        492
+      ],
+      "requestBytes": [
+        814,
+        2695,
+        7207,
+        11752,
+        12336,
+        15888,
+        21675,
+        22410,
+        28149,
+        33612
       ],
       "messageCounts": [
         2,

@@ -49,6 +49,13 @@ export function measureCapture(text) {
   return {
     requests: requests.length,
     contextBytes: requests.map((r) => JSON.stringify(r.body.messages).length),
+    // The tool schemas are context too. They are re-sent on every request exactly like the
+    // messages are, and in the measured native run they were 26% of everything on the wire —
+    // yet contextBytes counts only `messages`, so every figure this campaign quoted for a
+    // "request size" understated it by the whole tool array. Recorded separately rather than
+    // folded in, so the earlier numbers stay comparable and the omission stays visible.
+    toolSchemaBytes: requests.map((r) => (r.body.tools === undefined ? 0 : JSON.stringify(r.body.tools).length)),
+    requestBytes: requests.map((r) => JSON.stringify(r.body).length),
     messageCounts: requests.map((r) => r.body.messages.length),
     systemPromptBytes: system ? contentBytes(system) : 0,
     toolsOffered: first.body.tools?.length ?? 0,

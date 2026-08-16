@@ -89,3 +89,25 @@ test('a run that succeeded is still measured when a single call failed', () => {
   ].join('\n')
   assert.equal(measureCapture(mixed).requests, 2)
 })
+
+test('tool schemas are measured, because they are re-sent on every request', () => {
+  // contextBytes counted only `messages`, so a request carrying 25 tool schemas was reported at
+  // a third of its real size. In the measured Code Mode run the schemas moved into the system
+  // prompt rather than disappearing, which is invisible unless both fields are recorded.
+  const text = [
+    { id: '1', dir: 'request', body: { messages: [{ role: 'user', content: 'hi' }], tools: [{ a: 1 }, { b: 2 }] } },
+    { id: '1', dir: 'response', status: 200, body: {} },
+  ].map((l) => JSON.stringify(l)).join('\n')
+  const m = measureCapture(text)
+  assert.equal(m.toolSchemaBytes.length, 1)
+  assert.ok(m.toolSchemaBytes[0] > 0)
+  assert.ok(m.requestBytes[0] > m.contextBytes[0] + m.toolSchemaBytes[0] - 20)
+})
+
+test('a request with no tools array measures zero schema bytes, not undefined', () => {
+  const text = [
+    { id: '1', dir: 'request', body: { messages: [{ role: 'user', content: 'hi' }] } },
+    { id: '1', dir: 'response', status: 200, body: {} },
+  ].map((l) => JSON.stringify(l)).join('\n')
+  assert.deepEqual(measureCapture(text).toolSchemaBytes, [0])
+})

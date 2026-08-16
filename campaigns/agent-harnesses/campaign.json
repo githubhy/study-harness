@@ -1233,6 +1233,52 @@
       "opened": [],
       "resolved": [],
       "issue": null
+    },
+    {
+      "thread": "C",
+      "date": "2026-08-16",
+      "finding": "Code Mode did not flatten the context curve, it moved the cost. The 25 tool schemas left the tools array (26,983 → 908 B) and reappeared in the system prompt (4,063 → 34,998 B); both are re-sent every request, so across the run native sent 843 KB and Code Mode 817 KB — a 3% difference, with one more step. Code Mode is a change of encoding, not a reduction: a capability, not a behaviour.",
+      "surprising": true,
+      "note": "notes/C-context-and-compaction.md",
+      "opened": [
+        {
+          "id": "c-batch",
+          "q": "My task instructed per-file reads, so Code Mode’s batching was never exercised. Does it win on a task that permits one program to loop?",
+          "ask": "D"
+        }
+      ],
+      "resolved": [],
+      "issue": null
+    },
+    {
+      "thread": "C",
+      "date": "2026-08-16",
+      "finding": "Tool-result pruning is the first phase of compaction, not a standing policy. Results of 33,189 and 30,348 bytes sat unpruned above the 8,192 threshold because compaction never fired — the pruner is invoked from compaction-basic on context-overflow or pressure, so both mechanisms are gated behind the same event. This note had implied the threshold was a continuous trigger.",
+      "surprising": true,
+      "note": "notes/C-context-and-compaction.md",
+      "opened": [],
+      "resolved": [],
+      "issue": null
+    },
+    {
+      "thread": "J",
+      "date": "2026-08-16",
+      "finding": "The instrument was undercounting. measure.mjs computed contextBytes from body.messages alone, so the tool schemas — 26,983 B re-sent on every request, 26% of everything native put on the wire — were never counted. Note 02’s first request was 36,545 B not 9,382, its 31× was 43.6×, and its “the task is 1.2% of the request” was 0.3%. The qualitative reading survived and got more extreme; every number was wrong.",
+      "surprising": true,
+      "note": "notes/02-baseline-behavior.md",
+      "opened": [],
+      "resolved": [],
+      "issue": null
+    },
+    {
+      "thread": "J",
+      "date": "2026-08-16",
+      "finding": "leak-check.mjs took files as arguments, so the bare command scanned nothing and printed “clean: 0 captures” — a pass proving only that it had run. It was invoked that way repeatedly this campaign against captures it never opened. It now discovers every campaign capture by itself and treats zero-scanned as a failure. Run properly: 7 captures, no credential.",
+      "surprising": true,
+      "note": "notes/C-context-and-compaction.md",
+      "opened": [],
+      "resolved": [],
+      "issue": null
     }
   ],
   "questionIndex": [

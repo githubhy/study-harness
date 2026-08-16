@@ -103,25 +103,96 @@ Two things, and I would rather leave them open than guess.
 Both are one experiment: the canonical task made long enough to trigger compaction, run twice, once per
 presentation mode. That is the next capture this campaign should take.
 
-> **Attempted 2026-08-16; blocked on account credit.** The DeepSeek key returns HTTP **402 Insufficient
-> Balance**, so no long run could be captured. Three things were established anyway, and the experiment is
-> now a single command when credit exists:
->
-> - **The A/B is one variable.** The headless profile already wires presentation mode to an environment
->   variable — `config: { mode: !!js process.env.DSH_TOOLS_MODE }` on the `tools` row — and mounts
->   `code-runtime` by default. So `DSH_TOOLS_MODE=code` is the whole difference between the two legs; no
->   patch file, no second profile.
-> - **The instrument still works.** The proxy round-tripped a real request to `api.deepseek.com` and wrote
->   `authorization: <redacted>` to disk; leak-check clean. Headless offered **25 tools** on
->   `deepseek-v4-flash`, matching note 02.
-> - **The detached title call fired anyway**, independently of the failing main call — Thread B's
->   `void this.track(run)` finding, observed rather than read.
->
-> It also exposed a real defect in this campaign's own tooling, now fixed: the build re-derives
-> `measurements.json` from whatever captures are on disk, and a failed run is still a capture. The 402 run
-> made `--check` report drift; had it been a plain build, every number in every note would have been
-> silently rewritten from a run that never got an answer. `measureCapture` now returns `null` for a
-> capture whose every response failed, while still measuring a run where only some calls failed.
+## The experiment, run
+
+Two legs, same task, same profile, one variable: `DSH_TOOLS_MODE`. The headless profile already wires
+presentation mode to that environment variable and mounts `code-runtime` by default, so nothing else
+differed. The task forced repeated large file reads — *"read each of the six .ts files in
+`packages/core/agent-loop/src` one at a time using the read tool"* — and both legs returned the same
+correct answer.
+
+| | native | Code Mode |
+|---|---|---|
+| tools offered | 25 | **1** |
+| loop steps | 8 | 9 |
+| system prompt | 4,063 B | **34,998 B** |
+| tool schemas, per request | 26,983 B | 908 B |
+| **floor** (prompt + schemas) | 31,046 B | 35,906 B |
+| first request | 56,767 B | 61,627 B |
+| last request | 148,660 B | **129,893 B** |
+| growth | ×2.62 | ×2.11 |
+| **total sent across the run** | **843,262 B** | **816,919 B** |
+
+```chart
+kind: series
+title: What each request actually cost, step by step
+unit: bytes
+caption: Full request bodies, not just messages — the tool schemas are re-sent every step and belong in the total. Code Mode starts higher and ends lower, and the two runs cost within 3% of each other overall.
+series: native | @long-native.requestBytes
+series: code mode | @long-code.requestBytes
+```
+
+**Code Mode did not flatten the curve. It moved the cost.** The 25 tool schemas left the `tools` array
+(26,983 → 908 bytes) and reappeared in the system prompt (4,063 → 34,998 bytes). Both fields are re-sent
+on every request, so nothing was saved: across the whole run native sent 843 KB and Code Mode 817 KB, a
+**3% difference** — and Code Mode took one *more* step to get there.
+
+### Why the prediction failed, and what it was actually wrong about
+
+Thread D predicted: *"a run that would have been twelve tool results might be one. That should flatten the
+curve substantially."* Two separate errors.
+
+The first is mine to own as a **confound**: my task said *"read each file individually with the read tool.
+Do not use bash, grep, or glob"* — phrasing written for native mode. In Code Mode the model complied
+literally, calling `run_code` once per file (8 calls). So the *batching* half of the prediction was never
+tested. Whether Code Mode wins on a task that permits batching remains open, and it is now a
+well-specified question rather than an assumption.
+
+The second is a genuine correction. I assumed offering one schema instead of twenty-five makes the floor
+cheaper. It does not, because **the schemas do not disappear — they are rendered into the prompt as an SDK
+surface.** Code Mode is a change of *encoding*, not a reduction. Its floor here was 16% larger, not
+smaller.
+
+The honest summary: **Code Mode is a capability, not a behaviour.** Offering one tool does not make a
+model batch its work, and the encoding change alone is close to cost-neutral.
+
+## The pruner never fired, and that corrects this note
+
+The final requests carried tool results of **33,189** and **30,348** bytes — far above the pruner's
+8,192-character threshold. Nothing was pruned, and `tool-result-pruner` *is* mounted in the headless
+profile. Reading the caller explains it:
+
+```
+// compaction-basic/src/index.ts
+if (trigger === 'context-overflow') {
+  if (prune !== undefined) { prune.pruneSession(agent.session); measurement = meter.measure(...) }
+  const range = selectCompactableRange(...)
+  return this.compactRegion(...)
+}
+```
+
+**Pruning is the first phase of compaction, not a standing policy.** It runs when compaction runs —
+`context-overflow`, or `pressure` against the routed model's resolved capacity — and prunes oversized
+results as the cheap move before summarising. The section above describes the ordering correctly
+(*"cheap structural pruning first, expensive semantic summarization only when that is not enough"*) but
+implied the threshold was a continuous trigger. It is not: a 33 KB tool result sits in context untouched
+for as long as the window has room, and both mechanisms are gated behind the same event.
+
+Which also means this run never reached compaction at all. 129 KB of context did not cross
+`thresholdRatio` for this model, so **the growth curve above is the uncompacted curve** — the first of C's
+two open questions is answered only up to the point where compaction would begin.
+
+## The instrument was wrong, and note 02 with it
+
+The reason this took two attempts to read correctly: `measure.mjs` computed `contextBytes` from
+`body.messages` alone. The tool schemas — 26,983 bytes, re-sent on every one of eight requests, **26% of
+everything native put on the wire** — were never counted.
+
+That silently understated every request figure this campaign has quoted. Note 02's *"first request
+9,382 B"* was really **36,545 B**; its *"31× larger than the toy"* was **43.6×**; its *"the task is 1.2%
+of the request"* was **0.3%**. The qualitative reading held — it got *more* extreme, not less — but the
+numbers were wrong for a month of notes. `measure.mjs` now records `toolSchemaBytes` and `requestBytes`
+alongside `contextBytes`, and note 02 carries a dated correction rather than edited figures.
 
 ## Questions this opens
 

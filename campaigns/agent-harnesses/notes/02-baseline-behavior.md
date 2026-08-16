@@ -136,6 +136,32 @@ the run, where my toy starts tiny and quadruples. Most of dsh's context is fixed
 schemas, injected reminders — and the task itself barely moves it. On a three-step task that is free. The
 open question is what happens on a thirty-step one, which this run cannot answer.
 
+## Correction · 2026-08-16
+
+**Every byte figure above counts only `messages`. The tool schemas were never in them** — and the
+`tools` array is re-sent on every request exactly like the messages are. The instrument
+(`measure.mjs`) recorded `contextBytes` from `body.messages` alone, so every "request size" this note
+quotes understates the real request by the whole schema array. Found while running Phase 2's long-task
+experiment, then verified against this note's own capture, which was still on disk.
+
+The observations stand; the numbers do not. Recomputed from the same capture, with the schemas counted:
+
+| | this note said | actually |
+|---|---|---|
+| dsh first request | 9,382 B | **36,545 B** (9,382 messages + 26,983 schemas) |
+| toy first request | 300 B | **838 B** (300 + 492) |
+| dsh starts N× larger | 31× | **43.6×** |
+| dsh growth across the run | ×1.18 | **×1.05** |
+| toy growth across the run | ×4.3 | **×2.18** |
+
+The qualitative reading is unchanged and in fact stronger: dsh starts enormously larger and barely
+grows, the toy starts tiny and multiplies. But the sentence *"the task is 1.2% of the request"* is
+wrong twice over — against the true first request the 110-byte task is **0.3%**.
+
+Left in place rather than edited, because this note's value is that it was written blind, and rewriting
+its numbers would destroy the only thing that makes it evidence. See `notes/C-context-and-compaction.md`
+for the experiment that found it and `tools/capture-proxy/measure.mjs` for the fix.
+
 ## Provenance
 
 Written from the terminal output and `captures/session-dsh-canonical.jsonl` alone, with no source
