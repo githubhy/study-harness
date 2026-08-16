@@ -18,11 +18,27 @@ test('all three theme states are present', () => {
   assert.match(CSS, /:root\[data-theme="dark"\]/)
 })
 
-test('every token redefined in a dark block also exists in the bare :root', () => {
-  const bare = new Set([...CSS.match(/:root\s*\{([^}]*)\}/)[1].matchAll(/(--[a-z0-9-]+)\s*:/g)].map((m) => m[1]))
+test('every token redefined in a dark block also exists in a bare :root', () => {
+  // Every bare :root counts, not only the first. The stylesheet opens with a
+  // byte-verbatim copied block that must not be edited, so later tokens are
+  // appended in a second :root rather than folded into it.
+  const bare = new Set()
+  for (const block of CSS.matchAll(/(^|\n)\s*:root\s*\{([^}]*)\}/g))
+    for (const token of block[2].matchAll(/(--[a-z0-9-]+)\s*:/g)) bare.add(token[1])
+
   const after = CSS.slice(CSS.indexOf('@media'))
   for (const m of after.matchAll(/(--[a-z0-9-]+)\s*:/g))
-    assert.ok(bare.has(m[1]), `${m[1]} is redefined in a theme block but missing from the bare :root`)
+    assert.ok(bare.has(m[1]), `${m[1]} is redefined in a theme block but missing from every bare :root`)
+})
+
+test('the appended series tokens are defined for light and both dark selectors', () => {
+  // A colour defined only inside a theme block renders one mode's ink on the
+  // other mode's ground — the failure this whole three-state pattern prevents.
+  for (const token of ['--series-1', '--series-2', '--series-3']) {
+    assert.match(CSS, new RegExp(`:root \\{[^}]*${token}`), `${token} missing from a bare :root`)
+    assert.match(CSS, new RegExp(`:root:not\\(\\[data-theme="light"\\]\\)[^}]*${token}`), `${token} missing from the media block`)
+    assert.match(CSS, new RegExp(`:root\\[data-theme="dark"\\][^}]*${token}`), `${token} missing from the toggle block`)
+  }
 })
 
 test('every card state the generator emits has an accent-bar rule', () => {

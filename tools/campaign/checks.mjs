@@ -12,7 +12,10 @@ export function checkHtml(html, { anchors = true } = {}) {
   if (EXTERNAL.test(html)) problems.push('external reference found (script/link/@import/src/@font-face)')
   if (/<details\b/i.test(html)) problems.push('<details> element found; nothing may collapse')
 
-  // Tokens must be defined in the FIRST (bare) :root block (at depth 0, not inside @media/etc).
+  // Tokens must be defined in a bare `:root` block — at depth 0, never only inside an
+  // @media or [data-theme] block, which is the classic unreadable-artifact bug.
+  // EVERY depth-0 bare :root counts, not just the first: a stylesheet may append a
+  // second block of tokens after a region that must stay byte-verbatim.
   let defined = new Set()
   let depth = 0
   let i = 0
@@ -38,14 +41,14 @@ export function checkHtml(html, { anchors = true } = {}) {
         }
 
         const blockContent = html.slice(blockStart, k - 1)
-        defined = new Set([...blockContent.matchAll(/(--[a-z0-9-]+)\s*:/g)].map((m) => m[1]))
-        break
+        for (const token of blockContent.matchAll(/(--[a-z0-9-]+)\s*:/g)) defined.add(token[1])
+        i = k - 1 // continue past this block; later bare :root blocks count too
       }
     }
     i++
   }
   for (const m of html.matchAll(/var\((--[a-z0-9-]+)/g))
-    if (!defined.has(m[1])) problems.push(`token ${m[1]} used but not defined in the bare :root`)
+    if (!defined.has(m[1])) problems.push(`token ${m[1]} used but not defined in a bare :root`)
 
   if (!/body\s*\{[^}]*background\s*:\s*var\(--/.test(html))
     problems.push('body does not set background from a token')

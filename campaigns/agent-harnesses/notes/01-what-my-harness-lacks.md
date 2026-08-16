@@ -46,19 +46,46 @@ actually happened, asking it to list every dependency in a 680 KB, 19,808-line l
 stopped: hit the 10-step cap with no final answer
 ```
 
-**Truncation did not just lose data. It changed the model's strategy.** Every tool result came back
-clipped at exactly 4,000 characters, so the model started *searching* — narrower slices, then awk, then
-Python — and burned the step budget doing it. Twenty-two of the tool results were exactly 4,000
-characters long. The run ended at the step cap with no answer at all.
+**Truncation did not just lose data. It changed the model's strategy.** Results came back clipped, so
+the model started *searching* — narrower slices, then awk, then Python — and burned the step budget
+doing it. The run ended at the step cap with no answer at all.
 
-| Request | Messages | Bytes of context |
-|---|---|---|
-| 1 | 2 | 276 |
-| 5 | 10 | 11,798 |
-| 10 | 20 | 33,074 |
+Of the nine tool results the run produced, **five were clipped at exactly 4,000 bytes**. A value that
+appears five times to the byte is not data; it is a ceiling.
+
+```chart
+kind: bars
+title: Every tool result the run produced
+unit: bytes
+highlight: clipped
+highlightLabel: clipped at the 4,000-byte cap
+caption: Measured from the final request, which carries each result exactly once.
+bar: 1 | 25
+bar: 2 | 84
+bar: 3 | 1476
+bar: 4 | 2365
+bar: 5 · clipped | 4000
+bar: 6 · clipped | 4000
+bar: 7 · clipped | 4000
+bar: 8 · clipped | 4000
+bar: 9 · clipped | 4000
+```
+
+Context grew every step, because nothing is ever dropped:
+
+```chart
+kind: series
+title: Context sent per request
+x: request
+caption: Bytes of the serialized message array. Three real runs, same axis.
+series: toy · canonical | 300, 911, 1290
+series: toy · truncation | 276, 2157, 6669, 11214, 11798, 15350, 21137, 21872, 27611, 33074
+series: dsh · canonical | 9382, 632, 10624, 11068
+```
 
 The last call sent 10,416 prompt tokens to answer a question the first call could have answered with
-the right 200 bytes.
+the right 200 bytes. The `dsh` line is here for scale and is read properly in note 02 — its dip at
+request 2 is a different conversation, not a context that shrank.
 
 So **two shortcuts interacted**: the result cap (Thread C) and the step cap (Thread B). Neither failed
 on its own terms. Together they turned a one-step task into a ten-step search that failed. That

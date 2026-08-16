@@ -67,6 +67,20 @@ Request 1 carries `system`, then **three** `user` messages before any assistant 
 | 2 | 562 | *"Current runtime context. This snapshot supersedes earlier runtime-context snapshots."* |
 | 3 | 4,423 | A `<system-reminder>` block describing available skills |
 
+```chart
+kind: stack
+title: What the first request is actually made of
+unit: bytes
+caption: The four messages of request 1, to scale. The task is the sliver on the right.
+part: system prompt | 4113
+part: skills reminder | 4423
+part: runtime context | 562
+part: the task itself | 110
+```
+
+**The task is 1.2% of the request.** Ninety-nine percent of what the model reads before its first token
+was written by the harness, not by me.
+
 Two things stand out. The injected context arrives as **`user` messages, not `system`** — so from the
 model's side it is indistinguishable from something the human said. And message 2 announces that it
 *supersedes* earlier snapshots, which only makes sense if these are re-injected as the conversation grows.

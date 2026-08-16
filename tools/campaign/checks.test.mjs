@@ -74,3 +74,30 @@ test('the pre-migration snapshot passes every check', () => {
   const html = readFileSync('tools/campaign/fixtures/roadmap-premigration.html', 'utf8')
   assert.deepEqual(checkHtml(html), [])
 })
+
+test('tokens defined in a second bare :root are recognised', () => {
+  // The stylesheet opens with a byte-verbatim copied block that must not be
+  // edited, so later tokens are appended in a second :root. Reading only the
+  // first block reported them as undefined and blocked the build.
+  const page = [
+    '<meta charset="utf-8">',
+    '<style>:root{--ink:#111;--bg:#fff}',
+    '@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--ink:#eee;--bg:#111}}',
+    ':root[data-theme="dark"]{--ink:#eee;--bg:#111}',
+    ':root{--series-1:#2a78d6}',
+    'body{background:var(--bg);color:var(--ink)}',
+    '.s{fill:var(--series-1)}</style>',
+  ].join('\n')
+  assert.deepEqual(checkHtml(page, { anchors: false }), [])
+})
+
+test('a token defined in no bare :root is still reported', () => {
+  const page = [
+    '<meta charset="utf-8">',
+    '<style>:root{--ink:#111;--bg:#fff}',
+    '@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--only-dark:#eee}}',
+    'body{background:var(--bg);color:var(--ink)}',
+    '.s{fill:var(--only-dark)}</style>',
+  ].join('\n')
+  assert.ok(checkHtml(page, { anchors: false }).some((p) => /--only-dark/.test(p)))
+})

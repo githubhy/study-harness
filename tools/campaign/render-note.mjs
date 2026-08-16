@@ -8,6 +8,7 @@
 
 import { CSS } from './theme.mjs'
 import { esc, attr, GENERATED_MARKER } from './html.mjs'
+import { renderChart } from './render-chart.mjs'
 
 /**
  * Inline spans.
@@ -49,11 +50,15 @@ export function renderNoteBody(markdown) {
     const line = lines[index]
 
     if (line.startsWith('```')) {
+      const info = line.slice(3).trim()
       const body = []
       index++
       while (index < lines.length && !lines[index].startsWith('```')) body.push(lines[index++])
       index++ // the closing fence
-      out.push(`<pre>${esc(body.join('\n'))}</pre>`)
+      // A `chart` fence is data, not sample code: it renders. Everything else is
+      // shown verbatim. A malformed spec throws rather than emitting a broken
+      // figure — a chart that silently draws nothing is worse than a build error.
+      out.push(info === 'chart' ? renderChart(body.join('\n')) : `<pre>${esc(body.join('\n'))}</pre>`)
       continue
     }
 

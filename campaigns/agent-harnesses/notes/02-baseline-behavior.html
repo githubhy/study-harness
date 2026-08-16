@@ -234,6 +234,29 @@
      the generator derives from the fourth lane — so Phase 4's card was the only one on the board
      with no bar. Faint rather than coloured: "last by design" is not a state to draw the eye. */
   .card[data-s="last"] { box-shadow:inset 0 2px 0 var(--ink-faint); }
+
+  /* --- chart series ---------------------------------------------------------
+     Slots 1-3 of the validated categorical order (blue, orange, aqua). Verified
+     with the palette validator on both surfaces under --pairs all: chroma floor,
+     CVD separation and normal-vision floor all pass. Light-mode aqua sits at
+     2.74:1 against the surface, below the 3:1 bar, so every series carries a
+     visible direct label — the relief rule, not an optional nicety.
+     A second bare :root: the block above is a byte-verbatim copy and must not
+     be edited, so these are appended rather than folded in.                    */
+  :root { --series-1:#2a78d6; --series-2:#eb6834; --series-3:#1baf7a; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --series-1:#3987e5; --series-2:#d95926; --series-3:#199e70; }
+  }
+  :root[data-theme="dark"] { --series-1:#3987e5; --series-2:#d95926; --series-3:#199e70; }
+
+  /* --- chart marks --- */
+  figure.viz { margin:18px 0 0; border:1px solid var(--rule); background:var(--raised); padding:16px 18px 12px; overflow-x:auto; }
+  figure.viz svg { display:block; max-width:100%; height:auto; }
+  figure.viz figcaption { font-family:var(--mono); font-size:10.5px; color:var(--ink-faint); margin-top:10px; }
+  .viz-t { font-size:15px; font-weight:600; letter-spacing:-.01em; margin:0 0 2px; }
+  .viz-k { display:flex; flex-wrap:wrap; gap:4px 16px; font-family:var(--mono); font-size:10.5px; color:var(--ink-soft); margin:8px 0 0; }
+  .viz-k b { font-weight:500; }
+  .viz-sw { display:inline-block; width:9px; height:9px; margin-right:5px; vertical-align:-1px; }
 </style>
 <div class="page"><main>
 <header class="mast"><p class="kick">Note · agent-harnesses</p></header>
@@ -259,6 +282,8 @@ web_search  workflow  write</pre>
 <h2 class="sec">The user turn is three messages, not one</h2>
 <p class="lede">Request 1 carries <code>system</code>, then <strong>three</strong> <code>user</code> messages before any assistant reply:</p>
 <div class="tw"><table><thead><tr><th>#</th><th>Bytes</th><th>What it is</th></tr></thead><tbody><tr><td>1</td><td>110</td><td>The task, verbatim as typed</td></tr><tr><td>2</td><td>562</td><td><em>&quot;Current runtime context. This snapshot supersedes earlier runtime-context snapshots.&quot;</em></td></tr><tr><td>3</td><td>4,423</td><td>A <code>&lt;system-reminder&gt;</code> block describing available skills</td></tr></tbody></table></div>
+<figure class="viz"><p class="viz-t">What the first request is actually made of</p><svg viewBox="0 0 720 58" role="img" aria-label="What the first request is actually made of"><rect x="0" y="0" width="319.6072980017376" height="26" rx="4" fill="var(--series-1)"><title>system prompt · 4,113 (45%)</title></rect><rect x="321.6072980017376" y="0" width="343.8470894874023" height="26" rx="4" fill="var(--series-2)"><title>skills reminder · 4,423 (48%)</title></rect><rect x="667.4543874891399" y="0" width="41.94439617723719" height="26" rx="4" fill="var(--series-3)"><title>runtime context · 562 (6%)</title></rect><rect x="711.3987836663771" y="0" width="6.601216333622936" height="26" rx="4" fill="var(--series-1)"><title>the task itself · 110 (1%)</title></rect><text x="0" y="48" font-size="10" fill="var(--ink-faint)" font-family="ui-monospace, Menlo, monospace">9,208 bytes total</text></svg><p class="viz-k"><span><span class="viz-sw" style="background:var(--series-1)"></span><b>system prompt 4,113 · 45%</b></span><span><span class="viz-sw" style="background:var(--series-2)"></span><b>skills reminder 4,423 · 48%</b></span><span><span class="viz-sw" style="background:var(--series-3)"></span><b>runtime context 562 · 6%</b></span><span><span class="viz-sw" style="background:var(--series-1)"></span><b>the task itself 110 · 1%</b></span></p><figcaption>The four messages of request 1, to scale. The task is the sliver on the right.</figcaption></figure>
+<p class="lede"><strong>The task is 1.2% of the request.</strong> Ninety-nine percent of what the model reads before its first token was written by the harness, not by me.</p>
 <p class="lede">Two things stand out. The injected context arrives as **<code>user</code> messages, not <code>system</code>** — so from the model&#39;s side it is indistinguishable from something the human said. And message 2 announces that it <em>supersedes</em> earlier snapshots, which only makes sense if these are re-injected as the conversation grows.</p>
 <p class="lede"><em>Question for later:</em> if a superseding snapshot is added each turn, is the superseded one removed from the history, or does it accumulate? That is a compaction question and I cannot answer it from a 4-request run.</p>
 <h2 class="sec">The loop, as it appeared</h2>
