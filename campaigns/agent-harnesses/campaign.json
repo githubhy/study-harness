@@ -987,6 +987,18 @@
         "e-identity"
       ],
       "issue": null
+    },
+    {
+      "thread": "J",
+      "date": "2026-08-16",
+      "finding": "Swept every ceiling the repo defines rather than inferring absence from a failed search. All of them are per-unit: per tool call, per model call, per request, per step, per delegation chain, per payload. Not one bounds a run — no step cap, no turn cap, no session token budget, no wall-clock deadline, no Ralph round cap, no cost ceiling. Which is why TODO(stop-loop-guard) is not one hole in a fence; it is the fence.",
+      "surprising": true,
+      "note": "notes/J-observability-and-cost.md",
+      "opened": [],
+      "resolved": [
+        "o-bounded"
+      ],
+      "issue": null
     }
   ],
   "questionIndex": [

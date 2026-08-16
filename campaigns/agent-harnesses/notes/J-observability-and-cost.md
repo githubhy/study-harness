@@ -154,6 +154,33 @@ hook-initiated cancel. Only a user, a parent agent, or teardown. And the same ex
 cannot stop a run **can prevent one from ending**, without limit, from a config file written for a
 different harness. All of it is documented in-source; none of it is hidden.
 
+## Every bound is per-unit. None is cumulative.
+
+*Added 2026-08-16, answering the question Thread O reopened here: with no step cap, unbounded Stop-hook
+continuation, and Ralph loops carrying no round cap of their own, is any dsh loop bounded by anything
+other than a human?*
+
+Rather than fail to find a limit and infer absence, I swept the repo for every ceiling it defines. The
+complete list, by what each one governs:
+
+| Bounds | Constants |
+|---|---|
+| one tool call | `timeoutMs` (cooperative — the tool must honour `exec.signal`) |
+| one model call | `maxTokens`, `maxOutputTokens`, `DEFAULT_MAX_RETRIES` |
+| one request | `DEFAULT_MAX_USES` (`web_search` server-tool uses **per request**) |
+| one step | `maxParallelToolCalls` |
+| one delegation chain | `maxDepth` (default 3) |
+| one payload | `DEFAULT_MAX_*_BYTES` — request body, message, image, document, stderr, spill, result, source, reference |
+| concurrency | `DEFAULT_MAX_CONCURRENT_TASKS_PER_OWNER` |
+
+**Not one of them bounds a run.** There is no step cap, no turn cap, no session token budget, no
+wall-clock deadline, no Ralph round cap, and no cost ceiling. Every limit in the system governs the size
+of one unit of work or how many may be in flight; none governs how many units a run may consume.
+
+That is a deliberate and coherent position — it is the same position as "termination is semantic" from
+Thread B, applied to cost. It is also the reason the `TODO(stop-loop-guard)` above matters more than a
+missing guard normally would: it is not one hole in a fence, it is the fence.
+
 ## What this does to the transfer ledger
 
 The ledger's row *"whether hooks can block"* was to be answered by comparing dsh against Claude Code
