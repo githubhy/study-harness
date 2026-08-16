@@ -40,13 +40,36 @@ const entry = (e, group, derived) => {
     .map((q) => `→ answered ${esc(q.from)}: ${rich(q.q)}`).join('<br>')
   const marks = [opened, answered].filter(Boolean).join('<br>')
   const issue = e.issue != null ? ` · filed #${esc(String(e.issue))}` : ''
+  // The note holding this finding, as a link rather than the filename in plain text. The log stores
+  // the Markdown source, which is what the build validates exists; the page next to it is what a
+  // reader on the site can open.
+  const note = `<a href="${attr(e.note.replace(/\.md$/, '.html'))}">${esc(e.note)}</a>`
   // Thread plus date is not unique: two findings on one thread on one day collide. The index is
   // the entry's position in its own thread's history, so appending a finding never renumbers the
   // entries already published. Counted from the oldest, so it survives the newest-first display.
   const n = group.entries.length - 1 - group.entries.indexOf(e)
   return `<div class="entry" data-state="${attr(state)}" id="e-${attr(`${e.thread}${e.date}-${n}`)}">`
        + `<span class="mono">${esc(e.pips)} ${esc(e.date)}</span><br>${rich(e.finding)}<br>`
-       + `<span class="mono">${marks}${marks ? ' · ' : ''}${esc(e.note)}${issue}</span></div>`
+       + `<span class="mono">${marks}${marks ? ' · ' : ''}${note}${issue}</span></div>`
+}
+
+// Every note the campaign has written, in one place. The reports read in order; the thread notes are
+// the evidence each one argues from, so they carry their pips and finding count and sit in the same
+// band order as everything else on this page.
+const noteIndex = (derived) => {
+  const { reports, threads } = derived.noteIndex
+  if (reports.length === 0 && threads.length === 0) return ''
+  const order = derived.bands.flatMap((b) => b.letters)
+  const sorted = [...threads].sort((a, b) => order.indexOf(a.letter) - order.indexOf(b.letter))
+  return '<section><h2 class="sec">The notes</h2>'
+    + `<p class="lede">All ${reports.length + sorted.length}. The numbered reports read in order and`
+    + ' carry the study; the thread notes are the evidence they argue from.</p>'
+    + `<div class="notes-ix"><div><h3 class="nx-h">Reports</h3><ol class="nx">`
+    + reports.map((r) => `<li><a href="${attr(r.href)}">${esc(r.label)}</a></li>`).join('')
+    + `</ol></div><div><h3 class="nx-h">Threads</h3><ul class="nx">`
+    + sorted.map((t) => `<li><a href="${attr(t.href)}">${esc(t.letter)} · ${esc(t.name)}</a>`
+        + ` <span class="mono">${esc(t.pips)} ${t.findings}</span></li>`).join('')
+    + '</ul></div></div></section>'
 }
 
 // One block per thread, in the same band order as the coverage strip above and the roadmap's §4,
@@ -66,11 +89,15 @@ const trail = (data, derived) => derived.trailByThread.length === 0
     // Where #tX lands: the thread's own heading, which is now the top of everything it found.
     // Previously it pointed at the newest single entry, since that was the only place in a flat
     // chronological list where a thread could be said to begin.
+    // The thread's own note, at the head of everything it found — the one place a reader who has
+    // just read the findings would look for the long form.
+    const note = derived.noteFor.has(g.letter)
+      ? ` · <a href="notes/${attr(derived.noteFor.get(g.letter))}">read the note</a>` : ''
     return `<section class="tgroup" data-state="${attr(g.state)}" id="t${attr(g.letter)}">`
          + `<h3 class="tgroup-h"><b><a href="roadmap.html#t${esc(g.letter)}">`
          + `${esc(g.letter)} · ${esc(g.name)}</a></b>`
          + `<span class="mono">${esc(g.pips)} · ${n} finding${n === 1 ? '' : 's'}`
-         + `${g.state === 'dry' ? ' · dry' : ''}</span></h3>`
+         + `${g.state === 'dry' ? ' · dry' : ''}${note}</span></h3>`
          + g.entries.map((e) => entry(e, g, derived)).join('\n')
          + '</section>'
     }).join('\n')
@@ -92,6 +119,7 @@ export function renderWorklog({ data, derived }) {
     `<h1>${esc(data.title)} · what has happened</h1></header>`,
     strip(data, derived),
     renderGraph({ data, derived }),
+    noteIndex(derived),
     '<section><h2 class="sec">Open questions</h2>', frontier(derived), '</section>',
     '<section><h2 class="sec">Trail</h2>', anchors(data, derived), trail(data, derived), '</section>',
     `<footer><span><a href="roadmap.html">← roadmap</a></span>`,

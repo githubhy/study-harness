@@ -202,11 +202,33 @@ export function derive(data) {
   // update. Validation above guarantees every writeup names a note that exists.
   const phases = data.phases.map((p) => ({ ...p, reports: writeups(p), done: writeups(p).length > 0 }))
 
+  // Every note the campaign has written, as one list. All 22 were reachable before this existed —
+  // but only from the roadmap, scattered across §3's phase cards and §4's thread cards, with no page
+  // anywhere that simply listed them. "How do I read the notes?" had no answer better than "scan the
+  // roadmap". Built from data rather than a directory listing, so it cannot include a file the
+  // campaign never claims or miss one it does: the reports come from the phases' writeups, the
+  // synthesis from its own block, and the thread notes from the log via noteFor.
+  const seenHref = new Set()
+  const reports = [
+    ...data.phases.flatMap(writeups),
+    ...(data.synthesis ? [{ href: data.synthesis.href, label: data.synthesis.title }] : []),
+  ].filter((w) => !seenHref.has(w.href) && seenHref.add(w.href))
+
+  const noteIndex = {
+    reports,
+    threads: data.threads.filter((t) => noteFor.has(t.letter)).map((t) => {
+      const d = threads.get(t.letter)
+      return { letter: t.letter, name: t.name, href: `notes/${noteFor.get(t.letter)}`,
+               state: d.state, pips: d.pips, findings: d.entries.length }
+    }),
+  }
+
   const list = [...threads.values()]
   return {
     threads,
     bands,
     noteFor,
+    noteIndex,
     phases,
     phaseTotals: { done: phases.filter((p) => p.done).length, total: phases.length },
     totals: {

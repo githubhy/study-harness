@@ -271,6 +271,20 @@ export const CSS = `<style>
   a.tref { color:inherit; text-decoration:underline dotted var(--rule); text-decoration-thickness:1px; }
   a.tref:hover, a.tref:focus-visible { color:var(--specimen); text-decoration:underline solid; }
 
+  /* --- worklog: the note index -------------------------------------------------
+     Two columns where there is room, stacked below it. Reports are an ordered
+     list because they are meant to be read in order; threads are not.          */
+  .notes-ix { display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+    gap:8px 32px; margin:14px 0 0; }
+  .nx-h { font-family:var(--mono); font-size:10.5px; letter-spacing:.13em; text-transform:uppercase;
+    color:var(--ink-faint); font-weight:600; margin:0 0 6px; }
+  ol.nx, ul.nx { margin:0; padding:0; list-style:none; }
+  .nx li { padding:3px 0; border-bottom:1px solid var(--hair); font-size:14px; }
+  .nx li:last-child { border-bottom:0; }
+  .nx a { color:var(--ink); text-decoration:none; }
+  .nx a:hover, .nx a:focus-visible { text-decoration:underline; }
+  .nx .mono { font-size:10.5px; color:var(--ink-faint); float:right; }
+
   /* --- worklog: one block per thread ------------------------------------------ */
   .tgroup { margin:26px 0 0; }
   .tgroup-h { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;

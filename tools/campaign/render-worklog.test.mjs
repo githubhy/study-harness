@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import { loadCampaign, readCampaign, derive } from './model.mjs'
 import { renderWorklog } from './render-worklog.mjs'
 import { checkHtml } from './checks.mjs'
+import { readdirSync } from 'node:fs'
 
 const html = renderWorklog(loadCampaign('tools/campaign/fixtures/mini'))
 
@@ -249,4 +250,25 @@ test('an entry resolving nothing renders no answered line', () => {
       note: 'notes/B-agent-loop.md', opened: [], resolved: [], issue: null }],
   }
   assert.doesNotMatch(renderWorklog({ data, derived: derive(data) }), /answered/)
+})
+
+test('the note index reaches every note the campaign has written', () => {
+  // The real campaign, not the fixture: the invariant is about a directory of notes that grows by
+  // hand. All 22 were reachable before this section existed, but only from the roadmap, scattered
+  // across its phase and thread cards — there was no page that simply listed them, and the worklog
+  // named each note as plain text while linking none of it. A note added and never indexed is the
+  // failure this catches: it renders, it is cited in the log, and no page offers a way to open it.
+  const real = renderWorklog(loadCampaign('campaigns/agent-harnesses'))
+  const onDisk = readdirSync('campaigns/agent-harnesses/notes')
+    .filter((f) => f.endsWith('.md')).map((f) => f.replace(/\.md$/, '.html')).sort()
+  const linked = [...new Set([...real.matchAll(/href="notes\/([^"]+\.html)"/g)].map((m) => m[1]))].sort()
+  assert.deepEqual(linked, onDisk)
+  assert.ok(onDisk.length >= 20, `expected the real campaign's notes, got ${onDisk.length}`)
+})
+
+test('each finding links the note that holds it, rather than naming the file', () => {
+  const real = renderWorklog(loadCampaign('campaigns/agent-harnesses'))
+  // The log stores the Markdown source; the page beside it is what a reader can open.
+  assert.match(real, /<a href="notes\/A-prompt-and-presentation\.html">notes\/A-prompt-and-presentation\.md<\/a>/)
+  assert.doesNotMatch(real, /<span class="mono">notes\/[^<]*\.md<\/span>/)
 })
