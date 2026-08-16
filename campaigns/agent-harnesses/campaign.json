@@ -1131,6 +1131,38 @@
       "opened": [],
       "resolved": [],
       "issue": null
+    },
+    {
+      "thread": "D",
+      "date": "2026-08-16",
+      "finding": "Sandbox mode resolves on a three-level ladder: an approved explicit mode outranks the session’s last sandbox/mode event, which outranks the deployment default. So a granted escalation is per-call like every other grant at that seam, and only an explicit mode switch — recorded as a session event and therefore folded on replay — persists.",
+      "surprising": false,
+      "note": "notes/G-execution-and-sandboxing.md",
+      "opened": [],
+      "resolved": [
+        "g-persist"
+      ],
+      "issue": null
+    },
+    {
+      "thread": "L",
+      "date": "2026-08-16",
+      "finding": "There is no single provider seam, there are three separable ones: an adapter registry, a waterfall-interceptable call so a plugin can supply the model per request, and retry as its own plugin on the loop’s error hook — exactly the plugin Thread B predicted from the loop’s empty default resolver. Each scheduled retry is durable before its cancellable wait, so a crash during backoff resumes knowing a retry was owed.",
+      "surprising": false,
+      "note": "notes/L-provider-abstraction.md",
+      "opened": [],
+      "resolved": [],
+      "issue": null
+    },
+    {
+      "thread": "N",
+      "date": "2026-08-16",
+      "finding": "A Python client drives a bundled Node runtime over newline-delimited JSON-RPC on stdio, and the entire API is eleven operations with one domain verb — session_prompt — plus four serialisable types. The boundary forces three things a shared address space let my toy leave implicit: configuration cannot be defaulted, the harness must be able to call back (a closure becomes a protocol), and observation is literally the session event stream.",
+      "surprising": false,
+      "note": "notes/N-cross-language-embedding.md",
+      "opened": [],
+      "resolved": [],
+      "issue": null
     }
   ],
   "questionIndex": [

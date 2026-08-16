@@ -604,7 +604,7 @@ rg -c &#39;STUDY-MARKER-7f3a&#39; captures/session-plugin.jsonl</pre>
           <p class="d">Read the shared <code>llm</code> interface, then both implementations behind it. <strong>What sits in the interface that only one provider actually needs? That is where the abstraction leaks.</strong></p>
           <p class="d">Then <code>llm-retry</code>: which failures are retried, with what backoff, and is a retried call visible to the loop or hidden beneath it? A hidden retry changes what “one step” means.</p>
           <p class="d">The category question: can a harness be genuinely model-agnostic, given that prompt engineering, tool-call formats, and thinking blocks all differ per model?</p>
-          <p class="t-from">→ <a href="worklog.html#tL">worklog</a></p>
+          <p class="t-from">→ <a href="worklog.html#tL">worklog</a> · <a href="notes/L-provider-abstraction.html">L-provider-abstraction.md</a></p>
         </article>
       </div>
     </div>
@@ -624,7 +624,7 @@ rg -c &#39;STUDY-MARKER-7f3a&#39; captures/session-plugin.jsonl</pre>
           <pre>rg -n &#39;approve|permission|confirm|allow|deny&#39; packages/guard --type ts</pre>
           <p class="d">Trace the file-edit tool through <strong>six layers</strong>, each cited <code>path:line</code>: schema → registration → presentation → dispatch → permission → result serialization.</p>
           <p class="d">Then answer: is approval per-call, per-tool, per-session, or path-scoped — and what's the default posture? Output is a harness-neutral checklist, “what a new tool must provide,” which Phase 3 consumes directly.</p>
-          <p class="t-from">→ <a href="worklog.html#tD">worklog</a> · <a href="notes/D-tools-and-permission.html">D-tools-and-permission.md</a></p>
+          <p class="t-from">→ <a href="worklog.html#tD">worklog</a> · <a href="notes/G-execution-and-sandboxing.html">G-execution-and-sandboxing.md</a> · <a href="notes/D-tools-and-permission.html">D-tools-and-permission.md</a></p>
         </article>
 
         <article class="thread" data-need="source" id="tF">
@@ -759,7 +759,7 @@ rg -n &#39;ctx\.(plugin|on|set|inject)&#39; packages/core --type ts</pre>
           
           <p class="d">An RPC boundary forces the cleanest possible statement of what a harness <em>is</em>, because everything crossing it must be serialisable. <code>BENCHMARK.md</code> points at a Python SDK and a <code>jsonrpc-agent</code> variant.</p>
           <p class="d">Read the SDK's surface — that operation list is dsh's own answer to “what is the harness API?” Then compare it to your toy's function signatures: <strong>what did dsh have to make explicit that you left implicit?</strong></p>
-          <p class="t-from">→ <a href="worklog.html#tN">worklog</a></p>
+          <p class="t-from">→ <a href="worklog.html#tN">worklog</a> · <a href="notes/N-cross-language-embedding.html">N-cross-language-embedding.md</a></p>
         </article>
       </div>
     </div>
