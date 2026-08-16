@@ -1163,6 +1163,26 @@
       "opened": [],
       "resolved": [],
       "issue": null
+    },
+    {
+      "thread": "D",
+      "date": "2026-08-16",
+      "finding": "Phase 3: the same tool built twice. The load-bearing difference is that dsh separates what a tool computed from how the model is told about it — execute returns a canonical value, a pure render projects it — while an MCP tool writes its own sentence inline. Replayable results, Code Mode, and note 02’s structured write wrapper are all one consequence of those two stages existing.",
+      "surprising": true,
+      "note": "notes/03-one-tool-two-harnesses.md",
+      "opened": [],
+      "resolved": [],
+      "issue": null
+    },
+    {
+      "thread": "H",
+      "date": "2026-08-16",
+      "finding": "Translation is lossy in exactly one direction. A dsh tool exposes over MCP trivially; an imported MCP tool has no domain value to declare, so mcp-client synthesises an output schema describing MCP’s envelope — the canonical value becomes “an MCP response”. And an MCP outputSchema using unsupported vocabulary is silently widened to anything by a swallowed exception, the only silent widening this campaign has found in a specimen that otherwise fails loud.",
+      "surprising": true,
+      "note": "notes/03-one-tool-two-harnesses.md",
+      "opened": [],
+      "resolved": [],
+      "issue": null
     }
   ],
   "questionIndex": [
