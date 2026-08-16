@@ -843,6 +843,40 @@
       "opened": [],
       "resolved": [],
       "issue": null
+    },
+    {
+      "thread": "K",
+      "date": "2026-08-16",
+      "finding": "Neither app is the harness. apps/cli is six files importing only cordis and four boot helpers — it resolves a profile and starts a plugin graph — while the real boundary is a 4,565-line RPC surface every UI is a client of. ACP exposes the same core to programs, carrying prompt text, assistant text, cancellation and one-shot permission decisions.",
+      "surprising": true,
+      "note": "notes/K-the-host-boundary.md",
+      "opened": [
+        {
+          "id": "k-store",
+          "q": "The audit pair means an approval cannot commit without its log entry. What guarantees the log commits, and what happens to a session whose store is unwritable?",
+          "ask": "I"
+        },
+        {
+          "id": "k-catalog",
+          "q": "tool-cordis publishes dsh’s own API surface as a tool catalog. Is that for plugin authors, or is the model expected to write plugins at runtime?",
+          "ask": "E"
+        }
+      ],
+      "resolved": [
+        "j-reserved",
+        "d-approval"
+      ],
+      "issue": null
+    },
+    {
+      "thread": "K",
+      "date": "2026-08-16",
+      "finding": "The approval seam takes an answerer, not a human — so an ACP client can hold the permission channel. It fails closed at every level, grants are one-shot with no allow-always outcome, and a decision that cannot be logged is not returned: the audit append and the decision commit together, so no granted permission can exist unwritten. The web UI does nothing structural headless cannot; it composes an answerer.",
+      "surprising": true,
+      "note": "notes/K-the-host-boundary.md",
+      "opened": [],
+      "resolved": [],
+      "issue": null
     }
   ],
   "questionIndex": [
