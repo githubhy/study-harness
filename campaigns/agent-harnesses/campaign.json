@@ -907,6 +907,36 @@
       "opened": [],
       "resolved": [],
       "issue": null
+    },
+    {
+      "thread": "E",
+      "date": "2026-08-16",
+      "finding": "tool-cordis is model-facing: the model can inspect, define, run, stop and remove cordis plugins in the harness it is running inside. Defining is free — it explicitly does not request approval — and running an unauthorized package raises an approval request instead. Writing code is inert; executing it is the risk, and the gate sits exactly there.",
+      "surprising": true,
+      "note": "notes/E-plugin-architecture.md",
+      "opened": [
+        {
+          "id": "e-identity",
+          "q": "cordis_run gates on an authorized Client Package and authorization is plugin-wide across versions. What is the identity of a plugin such that a later version inherits the grant?",
+          "ask": "O"
+        }
+      ],
+      "resolved": [
+        "k-catalog"
+      ],
+      "issue": null
+    },
+    {
+      "thread": "E",
+      "date": "2026-08-16",
+      "finding": "Replay is not a recovery path, it is how everything outside the loop computes. session-projection drives registered units forward over committed events; plugins contribute pure init/apply/view and the framework owns subscription and cache. The checkpoint cache is “a fold shortcut, never an authority — possibly stale but never wrong”, fail-soft on write, and a version mismatch discards the row rather than migrating it.",
+      "surprising": true,
+      "note": "notes/E-plugin-architecture.md",
+      "opened": [],
+      "resolved": [
+        "i-replay"
+      ],
+      "issue": null
     }
   ],
   "questionIndex": [

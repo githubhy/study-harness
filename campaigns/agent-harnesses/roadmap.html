@@ -715,7 +715,7 @@ jq -r &#39;.type&#39; &quot;$F&quot; | sort | uniq -c</pre>
 rg -n &#39;ctx\.(plugin|on|set|inject)&#39; packages/core --type ts</pre>
           <p class="d"><strong>Learn Cordis first or this thread fails.</strong> It's dependency injection plus an event bus — nothing calls anything directly, so grep-based tracing finds nothing and the codebase reads as indirection with no call graph. There's a paper behind it: <em>A Programming Paradigm for Spatiotemporal Composability</em>.</p>
           <p class="d">The repo's own <code>AGENTS.md</code> and <code>CLAUDE.md</code> are written to orient agents working in it, which makes them the best human onboarding docs too — usually fresher than <code>docs/</code>.</p>
-          <p class="t-from">→ <a href="worklog.html#tE">worklog</a></p>
+          <p class="t-from">→ <a href="worklog.html#tE">worklog</a> · <a href="notes/E-plugin-architecture.html">E-plugin-architecture.md</a></p>
         </article>
 
         <article class="thread" data-need="source" id="tH">
