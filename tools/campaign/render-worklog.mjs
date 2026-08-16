@@ -1,11 +1,22 @@
 import { CSS } from './theme.mjs'
 import { esc, rich, attr, GENERATED_MARKER } from './html.mjs'
 import { renderGraph } from './graph.mjs'
+import { renderSpine, renderReports, renderFrontier } from './spine.mjs'
 
-const strip = (data, derived) => {
-  // Band grouping and within-band order come from derived.bands, the same list §4 renders from —
-  // "same order as the roadmap's §4 bands" is a spec requirement, so it cannot be a second sort
-  // here that happens to agree.
+// The worklog: what the campaign found, led by the findings.
+//
+// Almost every instrument here used to be built for a campaign in flight — pips counting down a
+// surprise budget, dry detection, a frontier, a "live" list — and this campaign is finished, so the
+// page's most prominent objects were reporting the absence of something. The layout serves both
+// states now: findings lead, and the work-in-progress instruments stay but subordinate, rendering
+// **empty rather than absent** when there is nothing to report.
+//
+// Findings are filed under the loop's five steps rather than under fifteen thread letters, because
+// "Assemble" and "Execute" mean something to a reader who has never heard of thread J.
+
+const strip = (derived) => {
+  // Kept for narrow widths, where the rail's spine is too tall to lead with. Band grouping and order
+  // come from derived.bands — the one ordering every figure on the site shares.
   const bands = derived.bands.map((band) => {
     const letters = band.letters.map((l) => {
       const d = derived.threads.get(l)
@@ -22,87 +33,81 @@ const strip = (data, derived) => {
        + `</div><div class="strip-row">${bands}</div></div>`
 }
 
-const frontier = (derived) => derived.frontier.length === 0
-  ? '<p class="lede">No open questions. The next thread is a fresh pick.</p>'
-  : `<ul class="frontier">${derived.frontier.map((q) =>
-      `<li>${rich(q.q)} <span class="mono">from ${esc(q.from)} → ask ${esc(q.ask)}</span></li>`).join('')}</ul>`
-
-const entry = (e, group, derived) => {
-  const newest = e === group.entries[0]
-  const state = group.state === 'dry' && newest ? 'dry' : 'live'
+/**
+ * One finding.
+ *
+ * The surprise mark is the point of the change here. 34 of this campaign's 46 findings were logged
+ * surprising, and nothing on the page said so — the signal existed only aggregated into a thread's
+ * pips. It reuses the campaign's own vocabulary rather than inventing a second one: a filled pip for
+ * a finding that moved the model, a hollow one for a finding that confirmed it.
+ */
+const entry = (e, derived, { thread = null, label = '' } = {}) => {
   const opened = e.opened.map((o) => `→ opened: ${rich(o.q)} (${esc(o.ask)})`).join('<br>')
-  // A resolution names the question it closed and the thread that asked it. Both halves of the
-  // graph render, so the trail shows a question being answered rather than quietly vanishing
-  // from the frontier.
+  // A resolution names the question it closed and the thread that asked it, so the trail shows a
+  // question being answered rather than quietly vanishing from the frontier.
   const answered = e.resolved
     .map((id) => derived.questions.get(id))
     .filter(Boolean)
     .map((q) => `→ answered ${esc(q.from)}: ${rich(q.q)}`).join('<br>')
   const marks = [opened, answered].filter(Boolean).join('<br>')
   const issue = e.issue != null ? ` · filed #${esc(String(e.issue))}` : ''
-  // The note holding this finding, as a link rather than the filename in plain text. The log stores
-  // the Markdown source, which is what the build validates exists; the page next to it is what a
-  // reader on the site can open.
   const note = `<a href="${attr(e.note.replace(/\.md$/, '.html'))}">${esc(e.note)}</a>`
-  // The anchor comes from derive, not from this renderer. It used to be computed here from the
-  // entry's position in its group; the thread graph now links to these same anchors, and an id
-  // invented in two places is an id that will eventually disagree with itself.
-  return `<div class="entry" data-state="${attr(state)}" id="${attr(e.entryId)}">`
-       + `<span class="mono">${esc(e.pips)} ${esc(e.date)}</span><br>${rich(e.finding)}<br>`
-       + `<span class="mono">${marks}${marks ? ' · ' : ''}${note}${issue}</span></div>`
+  const surprise = e.surprising
+    ? '<span class="surp" data-s="yes" title="Surprising — this moved the model">●</span>'
+    : '<span class="surp" data-s="no" title="Not surprising — this confirmed the model">○</span>'
+  // Only the finding that tipped a thread dry carries the dry state; earlier ones on the same
+  // now-dry thread stay live, because they were live when they landed. `entries` arrives newest
+  // first, so the tipping one is the head.
+  const state = thread && thread.state === 'dry' && e === thread.entries[0] ? 'dry' : 'live'
+  // The anchor comes from derive, not from this renderer: the thread graph links to these same ids,
+  // and an id invented in two places is one that will eventually disagree with itself.
+  return `<article class="entry" data-state="${attr(state)}" `
+       + `data-surprising="${e.surprising ? 'yes' : 'no'}" id="${attr(e.entryId)}">`
+       + `<p class="e-top">${surprise}${label}<span class="mono">${esc(e.date)}</span></p>`
+       + `<p class="e-body">${rich(e.finding)}</p>`
+       + `<p class="mono e-foot">${marks}${marks ? ' · ' : ''}${note}${issue}</p></article>`
 }
 
-// Every note the campaign has written, in one place. The reports read in order; the thread notes are
-// the evidence each one argues from, so they carry their pips and finding count and sit in the same
-// band order as everything else on this page.
-const noteIndex = (derived) => {
-  const { reports, threads } = derived.noteIndex
-  if (reports.length === 0 && threads.length === 0) return ''
-  const order = derived.bands.flatMap((b) => b.letters)
-  const sorted = [...threads].sort((a, b) => order.indexOf(a.letter) - order.indexOf(b.letter))
-  return '<section><h2 class="sec">The notes</h2>'
-    + `<p class="lede">All ${reports.length + sorted.length}. The numbered reports read in order and`
-    + ' carry the study; the thread notes are the evidence they argue from.</p>'
-    + `<div class="notes-ix"><div><h3 class="nx-h">Reports</h3><ol class="nx">`
-    + reports.map((r) => `<li><a href="${attr(r.href)}">${esc(r.label)}</a></li>`).join('')
-    + `</ol></div><div><h3 class="nx-h">Threads</h3><ul class="nx">`
-    + sorted.map((t) => `<li><a href="${attr(t.href)}">${esc(t.letter)} · ${esc(t.name)}</a>`
-        + ` <span class="mono">${esc(t.pips)} ${t.findings}</span></li>`).join('')
-    + '</ul></div></div></section>'
+/**
+ * A thread inside a section.
+ *
+ * Hybrid by design: a thread with more than one finding earns a block; a thread with exactly one is
+ * a single labelled finding. Either way it owns exactly one element carrying `id="t{letter}"` — the
+ * roadmap links to it, and so does every node and most arcs in the thread graph.
+ */
+const threadIn = (t, derived) => {
+  const note = t.note ? ` · <a href="notes/${attr(t.note)}">read the note</a>` : ''
+  if (t.shape === 'single') {
+    const label = `<b><a href="roadmap.html#t${esc(t.letter)}">${esc(t.letter)} · ${esc(t.name)}</a></b>`
+    return `<div class="tsingle" id="t${attr(t.letter)}">`
+         + entry(t.entries[0], derived, { thread: t, label: `${label} <span class="mono">${t.pips}${note}</span> ` })
+         + '</div>'
+  }
+  const n = t.entries.length
+  return `<section class="tgroup" data-state="${attr(t.state)}" id="t${attr(t.letter)}">`
+       + `<h3 class="tgroup-h"><b><a href="roadmap.html#t${esc(t.letter)}">`
+       + `${esc(t.letter)} · ${esc(t.name)}</a></b>`
+       + `<span class="mono">${esc(t.pips)} · ${n} findings`
+       + `${t.state === 'dry' ? ' · dry' : ''}${note}</span></h3>`
+       + t.entries.map((e) => entry(e, derived, { thread: t })).join('')
+       + '</section>'
 }
 
-// One block per thread, in the same band order as the coverage strip above and the roadmap's §4,
-// so a pip and the section it jumps to are in agreement. The trail used to be flat and
-// chronological, which sounds like the neutral choice and was not: every entry in this campaign
-// carries the same date, so the ordering sorted nothing, and the thread letter — the axis a reader
-// actually navigates by — was present only as a repeated label. Anyone after one thread's findings
-// read all forty-six.
-//
-// An empty log left the Trail as a bare heading with nothing under it, while the frontier directly
-// above it said so in words. Before the first finding lands that is the whole page's state, so it
-// is worth a sentence rather than a silence.
-const trail = (data, derived) => derived.trailByThread.length === 0
-  ? '<p class="lede">Nothing logged yet. The first finding starts the trail.</p>'
-  : derived.trailByThread.map((g) => {
-    const n = g.entries.length
-    // Where #tX lands: the thread's own heading, which is now the top of everything it found.
-    // Previously it pointed at the newest single entry, since that was the only place in a flat
-    // chronological list where a thread could be said to begin.
-    // The thread's own note, at the head of everything it found — the one place a reader who has
-    // just read the findings would look for the long form.
-    const note = derived.noteFor.has(g.letter)
-      ? ` · <a href="notes/${attr(derived.noteFor.get(g.letter))}">read the note</a>` : ''
-    return `<section class="tgroup" data-state="${attr(g.state)}" id="t${attr(g.letter)}">`
-         + `<h3 class="tgroup-h"><b><a href="roadmap.html#t${esc(g.letter)}">`
-         + `${esc(g.letter)} · ${esc(g.name)}</a></b>`
-         + `<span class="mono">${esc(g.pips)} · ${n} finding${n === 1 ? '' : 's'}`
-         + `${g.state === 'dry' ? ' · dry' : ''}${note}</span></h3>`
-         + g.entries.map((e) => entry(e, g, derived)).join('\n')
+const sections = (derived) => derived.sections.length === 0
+  ? '<p class="lede">Nothing logged yet. The first finding starts the record.</p>'
+  : derived.sections.map((s) => {
+    const n = s.threads.reduce((a, t) => a + t.entries.length, 0)
+    return `<section class="lstep" id="s-${attr(s.id)}">`
+         + `<header class="lstep-h"><p class="kick">${esc(s.step)}</p>`
+         + `<h2>${esc(s.label)}</h2><p class="lede">${rich(s.question)}</p>`
+         + `<p class="mono">${s.threads.length} thread${s.threads.length === 1 ? '' : 's'} · `
+         + `${n} finding${n === 1 ? '' : 's'}</p></header>`
+         + s.threads.map((t) => threadIn(t, derived)).join('')
          + '</section>'
-    }).join('\n')
+  }).join('')
 
-// Only threads with no trail entry: those get no group above, and without a fallback the strip's
-// own pip link and the roadmap's → worklog link would both dangle.
+// Only threads with no finding at all: they get no home in a section, and without a fallback the
+// spine's own link and the roadmap's would both dangle.
 const anchors = (data, derived) => data.threads
   .filter((t) => derived.threads.get(t.letter).entries.length === 0)
   .map((t) => `<span id="t${attr(t.letter)}"></span>`).join('')
@@ -116,11 +121,18 @@ export function renderWorklog({ data, derived }) {
     '<div class="page"><main>',
     `<header class="mast"><p class="kick">Worklog · ${esc(data.campaign)}</p>`,
     `<h1>${esc(data.title)} · what has happened</h1></header>`,
-    strip(data, derived),
+    '<div class="wl">',
+    // The rail: the coverage strip, the thread graph and the contents as one object, plus the
+    // reports in reading order and the frontier. Sticky at wide widths; a plain block below the
+    // breakpoint, where the spine gives way to the strip and the horizontal figure.
+    `<aside class="rail">${renderReports({ derived })}${renderSpine({ derived })}`,
+    `${renderFrontier({ derived })}</aside>`,
+    '<div class="wl-main">',
+    strip(derived),
+    anchors(data, derived),
+    sections(derived),
     renderGraph({ data, derived }),
-    noteIndex(derived),
-    '<section><h2 class="sec">Open questions</h2>', frontier(derived), '</section>',
-    '<section><h2 class="sec">Trail</h2>', anchors(data, derived), trail(data, derived), '</section>',
+    '</div></div>',
     `<footer><span><a href="roadmap.html">← roadmap</a></span>`,
     `<span><a href="../index.html">all campaigns</a></span></footer>`,
     '</main></div>',

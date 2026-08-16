@@ -263,6 +263,31 @@ export function derive(data) {
     // them. Grouping here rather than in the renderer keeps the ordering decision in one place —
     // the strip, §4 and this list now walk the threads in the same sequence, so a pip and the
     // section it jumps to agree. Entries stay newest-first inside a group.
+    // The findings, filed under the loop step that owns each thread — the page's spine.
+    //
+    // Grouping by thread was inherited from the coverage strip rather than chosen, and a thread
+    // letter means nothing to a first-time reader where "Assemble" and "Execute" do. Each step keeps
+    // its own `question` gloss from loopSteps, so a section can say what it is about without a second
+    // copy of that text living in a renderer.
+    //
+    // A thread with more than one finding gets a block; a thread with exactly one is rendered as a
+    // single labelled finding. That rule lands on exactly the threads that also have no edges in the
+    // graph — a thread that produced one finding and neither asked nor was asked anything — so the
+    // two shapes track a real distinction rather than a threshold. Either way the thread owns exactly
+    // one element carrying its `#tX` anchor, which the roadmap and every arc in the graph rely on.
+    sections: data.loopSteps.map((step) => ({
+      ...step,
+      threads: (bands.find((b) => b.id === step.id)?.letters ?? [])
+        .map((l) => threads.get(l))
+        .filter((t) => t.entries.length > 0)
+        .map((t) => ({
+          letter: t.letter, name: t.name, state: t.state, pips: t.pips,
+          note: noteFor.get(t.letter) ?? null,
+          shape: t.entries.length > 1 ? 'block' : 'single',
+          entries: [...t.entries].reverse(),
+        })),
+    })).filter((s) => s.threads.length > 0),
+
     trailByThread: bands.flatMap((band) => band.letters
       .map((l) => threads.get(l))
       .filter((t) => t.entries.length > 0)

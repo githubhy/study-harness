@@ -61,10 +61,10 @@ test('thread state drives the pip attribute', () => {
   assert.match(html, /data-state="not-started"[^>]*>B/)
 })
 
-test('the frontier lists open questions with from and ask', () => {
+test('the frontier lists open questions, and links the thread that owes each answer', () => {
   assert.match(html, /Why b\?/)
-  assert.match(html, /from A/)
-  assert.match(html, /ask B/)
+  assert.match(html, /A → B/)
+  assert.match(html, /<a href="#tB">Why b\?<\/a>/)
 })
 
 test('the trail is newest first', () => {
@@ -81,20 +81,33 @@ test('anchors exist for every thread', () => {
   assert.match(html, /id="tB"/)
 })
 
-test("a thread's anchor sits on its own block, not in a clump above the trail", () => {
-  // #tA must land on A's group heading — the top of everything A found — which is what the strip's
-  // A pip and the roadmap's → worklog link both point at. Two earlier shapes were wrong in opposite
-  // directions: all fifteen anchors emitted as bare spans under the Trail heading, so every letter
-  // hopped to the same spot; then on the newest single entry, which was the only place a thread
-  // could be said to begin while the trail was flat and chronological.
-  const groups = [...html.matchAll(/<section class="tgroup"[^>]*id="t([A-O])"[\s\S]*?<\/section>/g)]
-  const a = groups.filter((m) => m[1] === 'A')
-  assert.equal(a.length, 1, 'expected exactly one block to carry #tA')
-  // A has two entries and both are inside its block, newest first.
-  assert.equal([...a[0][0].matchAll(/<div class="entry"/g)].length, 2)
-  assert.ok(a[0][0].indexOf('2026-01-03') < a[0][0].indexOf('2026-01-02'), 'newest entry first')
-  const betweenHeadingAndTrail = html.match(/Trail<\/h2>\n([\s\S]*?)<section class="tgroup"/)[1]
-  assert.doesNotMatch(betweenHeadingAndTrail, /id="tA"/)
+test("every thread owns exactly one element carrying its anchor", () => {
+  // The load-bearing invariant of the hybrid rule. #tA is what the strip's pip, every node in the
+  // spine, and the roadmap's link all point at, and a thread now renders one of three ways — a
+  // block, a single labelled finding, or a bare fallback span when it has no findings at all. All
+  // three must produce exactly one #tX, or a letter jumps to the wrong place or nowhere.
+  const real = renderWorklog(loadCampaign('campaigns/agent-harnesses'))
+  for (const page of [html, real]) {
+    const ids = [...page.matchAll(/\bid="t([A-O])"/g)].map((m) => m[1])
+    assert.deepEqual([...new Set(ids)].sort(), ids.sort(), 'a thread carries more than one anchor')
+  }
+  // A has two findings, so it earns a block, and both sit inside it newest first.
+  const a = html.match(/<section class="tgroup"[^>]*id="tA"[\s\S]*?<\/section>/)[0]
+  assert.equal([...a.matchAll(/<article class="entry"/g)].length, 2)
+  assert.ok(a.indexOf('2026-01-03') < a.indexOf('2026-01-02'), 'newest entry first')
+})
+
+test('a thread with one finding renders as that finding, still carrying its anchor', () => {
+  // The hybrid rule, and it lands on exactly the threads that also have no edges in the graph — one
+  // finding, nothing asked, nothing asked of it. L and N in the real campaign.
+  const { derived } = loadCampaign('campaigns/agent-harnesses')
+  const singles = derived.sections.flatMap((s) => s.threads).filter((t) => t.shape === 'single')
+  assert.deepEqual(singles.map((t) => t.letter), ['L', 'N'])
+  const real = renderWorklog(loadCampaign('campaigns/agent-harnesses'))
+  for (const t of singles) {
+    assert.match(real, new RegExp(`<div class="tsingle" id="t${t.letter}">`))
+    assert.doesNotMatch(real, new RegExp(`<section class="tgroup"[^>]*id="t${t.letter}"`))
+  }
 })
 
 test('the trail groups by thread, in the same order as the coverage strip', () => {
@@ -113,23 +126,27 @@ test('the trail groups by thread, in the same order as the coverage strip', () =
 test('a thread with no entries keeps a fallback anchor so the roadmap link never dangles', () => {
   // B and C are never logged in the mini fixture. They have no trail entry to sit on, so they get
   // the bare anchor — and only they do.
-  const betweenHeadingAndTrail = html.match(/Trail<\/h2>\n([\s\S]*?)<div class="entry"/)[1]
-  assert.match(betweenHeadingAndTrail, /id="tB"/)
-  assert.match(betweenHeadingAndTrail, /id="tC"/)
+  // Neither may collide with a real block, and both must exist or the spine's node links dangle.
+  assert.match(html, /<span id="tB"><\/span>/)
+  assert.match(html, /<span id="tC"><\/span>/)
+  assert.doesNotMatch(html, /<section class="tgroup"[^>]*id="tB"/)
   assert.deepEqual(checkHtml(html), [])
 })
 
-test("each trail entry shows its own stamped pips, not the thread's current pips", () => {
-  // model.mjs stamps e.pips at write time, capturing the run as it stood when that entry was
-  // logged: A's 2026-01-02 entry (surprising) resets to ○○, then 2026-01-03 (unsurprising)
-  // advances to ●○. If the renderer read t.pips (the thread's final pips) instead of e.pips for
-  // every row, both entries would show the same ●○ and this test would catch it — the other
-  // tests in this file don't, since they never look at a specific pip glyph.
-  const newest = html.match(/<span class="mono">([^<]+) 2026-01-03<\/span>/)
-  const oldest = html.match(/<span class="mono">([^<]+) 2026-01-02<\/span>/)
-  assert.ok(newest && oldest, 'expected both dated entries to render their pips span')
-  assert.equal(newest[1], '●○')
-  assert.equal(oldest[1], '○○')
+test("each finding shows its own surprise, not the thread's", () => {
+  // This guarded a real bug: the renderer reading the thread's aggregate rather than the entry's
+  // own value, so every row showed the same glyph. The per-entry signal is now surprise itself
+  // rather than the stamped pips — more direct, and the mark a reader can actually use — but the
+  // requirement is unchanged, so A's two entries must still differ. 2026-01-02 was surprising,
+  // 2026-01-03 was not.
+  const at = (date) => html.match(new RegExp(`data-surprising="([a-z]+)" id="e-A${date}-\\d+"`))
+  const oldest = at('2026-01-02'), newest = at('2026-01-03')
+  assert.ok(newest && oldest, 'expected both dated entries to render')
+  assert.equal(oldest[1], 'yes')
+  assert.equal(newest[1], 'no')
+  // And the visible mark follows the data rather than being emitted unconditionally.
+  assert.match(html, /<span class="surp" data-s="yes"/)
+  assert.match(html, /<span class="surp" data-s="no"/)
 })
 
 test('only the tipping entry carries the dry state; earlier entries on the same thread stay live', () => {
@@ -147,7 +164,7 @@ test('only the tipping entry carries the dry state; earlier entries on the same 
   assert.deepEqual(checkHtml(dryHtml), [])
 
   const byDate = Object.fromEntries(
-    [...dryHtml.matchAll(/<div class="entry" data-state="([^"]+)" id="e-A(\d{4}-\d{2}-\d{2})-\d+">/g)]
+    [...dryHtml.matchAll(/<article class="entry" data-state="([^"]+)" data-surprising="[^"]*" id="e-A(\d{4}-\d{2}-\d{2})-\d+">/g)]
       .map((m) => [m[2], m[1]]))
   assert.equal(byDate['2026-01-02'], 'live')
   assert.equal(byDate['2026-01-03'], 'live')
@@ -165,7 +182,7 @@ test('two findings on one thread on one day get distinct entry ids', () => {
   }] }
   const out = renderWorklog({ data: twice, derived: derive(twice) })
   assert.deepEqual(checkHtml(out), [])
-  const ids = [...out.matchAll(/<div class="entry"[^>]*id="(e-[^"]+)"/g)].map((m) => m[1])
+  const ids = [...out.matchAll(/<article class="entry"[^>]*id="(e-[^"]+)"/g)].map((m) => m[1])
   assert.equal(ids.length, 3)
   assert.equal(new Set(ids).size, 3)
 })
@@ -174,8 +191,9 @@ test('the Trail has an empty state, as the frontier does', () => {
   // With an empty log the section used to be a bare heading with nothing under it, while the
   // frontier immediately above it said so in words.
   const empty = renderWorklog(emptyLog('campaigns/agent-harnesses'))
-  const section = empty.match(/<h2 class="sec">Trail<\/h2>[\s\S]*?<\/section>/)[0]
-  assert.match(section, /Nothing logged yet\. The first finding starts the trail\./)
+  assert.match(empty, /Nothing logged yet\. The first finding starts the record\./)
+  // Every loop-step section is empty too, so none of them renders as a bare heading.
+  assert.doesNotMatch(empty, /<section class="lstep"/)
   // And it is not shown once there is a trail.
   assert.doesNotMatch(html, /Nothing logged yet/)
 })

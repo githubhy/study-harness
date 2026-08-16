@@ -291,6 +291,67 @@
     figure.loop .gedge, figure.loop .gnode circle { transition:stroke .12s, stroke-width .12s, opacity .12s; }
   }
 
+  /* --- worklog: two columns ----------------------------------------------------
+     Rail first in the source so it reaches a keyboard and a screen reader before
+     46 findings do; the grid puts it on the left visually at wide widths. Below
+     the breakpoint it stays where it is in the flow — reports and open questions
+     are a short preamble — while the spine gives way to the strip and the
+     horizontal figure, which are the forms that suit a narrow column.          */
+  .wl { display:grid; grid-template-columns:1fr; gap:0 34px; }
+  .wl-main { min-width:0; }
+  .rail { min-width:0; }
+  /* These undo the contents-rail rules up in the frozen block, which are written for
+     the roadmap's nav and match any nav on any page: nav { display:none } below
+     1120px, and nav a { display:grid; grid-template-columns:24px 1fr }, which put
+     every report title in a 1fr column beside a 24px one and broke each to a word a
+     line. The frozen stylesheet is a verbatim record and cannot be scoped, so the
+     override lives here, where the collision does. */
+  .rail nav { display:block; margin:0 0 22px; }
+  .rail a { display:inline; color:var(--ink); text-decoration:none; }
+  .rail h2 { font-family:var(--mono); font-size:10.5px; letter-spacing:.13em;
+    text-transform:uppercase; color:var(--ink-faint); font-weight:600; margin:0 0 8px; }
+  .rail ol, .rail ul { margin:0; padding:0; list-style:none; display:block; }
+  .rail li { padding:3px 0; font-size:13.5px; line-height:1.4; }
+  .rail a:hover, .rail a:focus-visible { text-decoration:underline; }
+  .rail .quiet { font-size:13px; color:var(--ink-faint); margin:0; line-height:1.5; }
+  figure.spine { display:none; margin:0 0 22px; }
+  /* Intrinsic size, not stretched: the viewBox is ~82 units wide and the rail is 236px,
+     so width:100% would scale every stroke and letter by three. */
+  /* Capped rather than stretched: the viewBox is ~82 units wide and the rail is 236px,
+     so a plain width:100% scaled every stroke, letter and circle by three. */
+  figure.spine svg { display:block; width:100%; max-width:104px; height:auto; }
+  figure.spine figcaption { font-family:var(--mono); font-size:10px; color:var(--ink-faint); margin-top:8px; }
+
+  @media (min-width: 62rem) {
+    .wl { grid-template-columns:236px minmax(0, 1fr); }
+    .rail { position:sticky; top:16px; align-self:start; max-height:calc(100vh - 32px); overflow-y:auto; }
+    figure.spine { display:block; }
+    /* At this width the spine is the strip and the graph, so neither is shown twice. */
+    .wl-main .strip, .wl-main figure.loop { display:none; }
+  }
+
+  /* Clicking a rail link lights up where you landed. This is the whole of "you
+     are here": checkHtml rejects script tags anywhere on the page, so there is no
+     scroll-spy, and scroll-driven CSS is not in Firefox. Better a smaller true
+     thing than a bigger one that works in two browsers of three.              */
+  .tgroup:target, .tsingle:target, .entry:target {
+    box-shadow:-3px 0 0 var(--specimen); padding-left:12px; }
+
+  /* --- worklog: loop-step sections --------------------------------------------- */
+  .lstep { margin:38px 0 0; }
+  .lstep-h { border-top:2px solid var(--ink); padding-top:10px; margin:0 0 4px; }
+  .lstep-h h2 { font-size:24px; letter-spacing:-.02em; margin:2px 0 4px; }
+  .lstep-h .lede { margin:0 0 6px; max-width:56ch; }
+  .lstep-h .mono { font-size:10.5px; color:var(--ink-faint); margin:0; }
+  .tsingle { margin:20px 0 0; }
+  .e-top { display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; margin:0 0 4px; }
+  .e-top .mono { font-size:10.5px; color:var(--ink-faint); margin-left:auto; }
+  .e-body { margin:0 0 6px; }
+  .e-foot { font-size:10.5px; color:var(--ink-faint); margin:0; }
+  .surp { font-family:var(--mono); font-size:11px; line-height:1; }
+  .surp[data-s="yes"] { color:var(--specimen); }
+  .surp[data-s="no"] { color:var(--ink-faint); }
+
   /* --- worklog: the note index -------------------------------------------------
      Two columns where there is room, stacked below it. Reports are an ordered
      list because they are meant to be read in order; threads are not.          */
