@@ -267,6 +267,28 @@
     line-height:1.5; max-width:62ch; }
   .synth a { color:var(--ink); text-decoration:none; }
   .synth a:hover, .synth a:focus-visible { text-decoration:underline; }
+
+  /* --- cross-thread references ------------------------------------------------
+     A "Thread D" inside running prose is a link, but it is also still a sentence:
+     a full underline on 128 of them would shred the page. Dotted underneath keeps
+     it findable and quiet, and it goes solid on hover so the affordance is real. */
+  a.tref { color:inherit; text-decoration:underline dotted var(--rule); text-decoration-thickness:1px; }
+  a.tref:hover, a.tref:focus-visible { color:var(--specimen); text-decoration:underline solid; }
+
+  /* --- worklog: one block per thread ------------------------------------------ */
+  .tgroup { margin:26px 0 0; }
+  .tgroup-h { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;
+    border-bottom:1px solid var(--rule); padding-bottom:6px; margin-bottom:2px; }
+  .tgroup-h b { font-size:15px; font-weight:600; letter-spacing:-.01em; }
+  .tgroup-h .mono { font-size:11px; color:var(--ink-faint); }
+  .tgroup[data-state="dry"] .tgroup-h { border-bottom-color:var(--ink-faint); }
+
+  /* --- board: what has landed -------------------------------------------------
+     Only the "landed" modifier: .c-state's base rule is already up in the frozen
+     block, and .c-top is already a flexbox that puts the chip on the right, so
+     redeclaring either here would be a second home for the same style.          */
+  .c-state[data-done="yes"] { border-color:var(--specimen); color:var(--specimen); }
+  .lane-t .done { font-family:var(--mono); font-size:11px; color:var(--ink-faint); font-weight:400; }
 </style>
 <div class="page"><main>
 <header class="mast">
@@ -290,6 +312,7 @@
       </div>
       <p class="mono" data-role="resume">Note 02’s last open observation, closed by experiment. Given a task that only asked for a file to be created — no “run it”, no “show me the output” — dsh called write then bash, ran it, and reported the result. Since nothing in the base system prompt instructs verification, the behaviour is a model habit rather than a harness instruction: a harness can be credited with behaviour it never asked for, and telling them apart needs the prompt read and the instruction removed from the task. <span class="mono">— A · 2026-08-16</span></p>
       <p class="mono" data-role="totals">15 touched · 0 dry · 0 not started</p>
+      <p class="synth"><a href="agent-harnesses/notes/06-what-a-harness-is.html"><b>Start here · What a harness is</b></a> — The campaign’s conclusion. A harness is an event-sourced system whose log has to double as a provider-valid transcript — and almost everything else follows from that.</p>
       <p class="c-blocks"><a href="agent-harnesses/roadmap.html">roadmap.html</a> · <a href="agent-harnesses/worklog.html">worklog.html</a></p>
     </article></div>
 <div class="cell">

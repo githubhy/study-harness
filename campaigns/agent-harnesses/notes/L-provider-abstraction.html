@@ -267,31 +267,53 @@
     line-height:1.5; max-width:62ch; }
   .synth a { color:var(--ink); text-decoration:none; }
   .synth a:hover, .synth a:focus-visible { text-decoration:underline; }
+
+  /* --- cross-thread references ------------------------------------------------
+     A "Thread D" inside running prose is a link, but it is also still a sentence:
+     a full underline on 128 of them would shred the page. Dotted underneath keeps
+     it findable and quiet, and it goes solid on hover so the affordance is real. */
+  a.tref { color:inherit; text-decoration:underline dotted var(--rule); text-decoration-thickness:1px; }
+  a.tref:hover, a.tref:focus-visible { color:var(--specimen); text-decoration:underline solid; }
+
+  /* --- worklog: one block per thread ------------------------------------------ */
+  .tgroup { margin:26px 0 0; }
+  .tgroup-h { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;
+    border-bottom:1px solid var(--rule); padding-bottom:6px; margin-bottom:2px; }
+  .tgroup-h b { font-size:15px; font-weight:600; letter-spacing:-.01em; }
+  .tgroup-h .mono { font-size:11px; color:var(--ink-faint); }
+  .tgroup[data-state="dry"] .tgroup-h { border-bottom-color:var(--ink-faint); }
+
+  /* --- board: what has landed -------------------------------------------------
+     Only the "landed" modifier: .c-state's base rule is already up in the frozen
+     block, and .c-top is already a flexbox that puts the chip on the right, so
+     redeclaring either here would be a second home for the same style.          */
+  .c-state[data-done="yes"] { border-color:var(--specimen); color:var(--specimen); }
+  .lane-t .done { font-family:var(--mono); font-size:11px; color:var(--ink-faint); font-weight:400; }
 </style>
 <div class="page"><main>
 <header class="mast"><p class="kick">Note · agent-harnesses</p></header>
 <h1>L · Provider abstraction</h1>
 <p class="lede">Thread L was raised by my toy&#39;s shortcut: one hardcoded wire format, one endpoint, one model. The question is what the seam looks like when it is real. Read against source at <code>47f9438</code>.</p>
-<p class="lede">The answer is that there is no single seam. There are three, and they are separable — which is why Thread B kept finding holes shaped like plugins that were not there.</p>
+<p class="lede">The answer is that there is no single seam. There are three, and they are separable — which is why <a class="tref" href="B-agent-loop.html">Thread B</a> kept finding holes shaped like plugins that were not there.</p>
 <h2 class="sec">Three seams, not one adapter interface</h2>
 <div class="tw"><table><thead><tr><th>Package</th><th>Lines</th><th>What it owns</th></tr></thead><tbody><tr><td><code>llm</code></td><td>2,625</td><td><em>&quot;adapter registry with a <strong>waterfall-interceptable</strong> streaming call API&quot;</em></td></tr><tr><td><code>llm-pi-ai</code></td><td>2,706</td><td>a generic adapter owning <em>&quot;a dict of provider routes&quot;</em></td></tr><tr><td><code>llm-deepseek</code></td><td>1,216</td><td>the DeepSeek adapter (note 00 traced <code>DEEPSEEK_BASE_URL</code> here)</td></tr><tr><td><code>llm-retry</code></td><td>494</td><td>retry policy on the loop&#39;s request-recovery extension point</td></tr></tbody></table></div>
-<p class="lede"><strong>1 · The adapter registry</strong> is the obvious seam — <code>LlmAdapter</code> for provider backends, <code>BlockAssembler</code> for chunk assembly. Thread B watched the loop use it: <code>this.loopCtx.llm.stream(request)</code>, one <code>for await</code> over chunks, no non-streaming path anywhere.</p>
-<p class="lede"><strong>2 · The call itself is interceptable.</strong> <em>&quot;waterfall-interceptable streaming call API&quot;</em> — the request goes through <code>agent/request</code> before it is sent, and Thread B&#39;s contract-regression list included *&quot;the <code>agent/request</code> waterfall can supply the model for a model-less agent.&quot;* So an agent can be created with no model at all and have one supplied per-request by a plugin. The provider is not a property of the agent; it is a decision made at each call, by whoever is listening.</p>
-<p class="lede"><strong>3 · Retry is a separate plugin, and this is exactly what Thread B predicted.</strong> B found the loop&#39;s inner <code>while (true)</code> spins only when a plugin answers <code>agent/request-error</code> with <code>{kind:&#39;retry&#39;}</code>, that the default resolver returns <code>undefined</code>, and concluded: <em>&quot;retry is a plugin, and the loop&#39;s only contribution is a hook to hang one on.&quot;</em> <code>llm-retry</code> is that plugin — <em>&quot;provider-routed model-request retry policy on the agent loop&#39;s request recovery extension point.&quot;</em></p>
-<p class="lede">Its one interesting property: <em>&quot;Each scheduled retry is <strong>durable before its cancellable wait</strong>.&quot;</em> The decision to retry, and when, is written to the log <em>before</em> the backoff sleeps. A crash during a two-minute backoff resumes knowing a retry was owed — which is Thread I&#39;s discipline applied to a delay.</p>
+<p class="lede"><strong>1 · The adapter registry</strong> is the obvious seam — <code>LlmAdapter</code> for provider backends, <code>BlockAssembler</code> for chunk assembly. <a class="tref" href="B-agent-loop.html">Thread B</a> watched the loop use it: <code>this.loopCtx.llm.stream(request)</code>, one <code>for await</code> over chunks, no non-streaming path anywhere.</p>
+<p class="lede"><strong>2 · The call itself is interceptable.</strong> <em>&quot;waterfall-interceptable streaming call API&quot;</em> — the request goes through <code>agent/request</code> before it is sent, and <a class="tref" href="B-agent-loop.html">Thread B</a>&#39;s contract-regression list included *&quot;the <code>agent/request</code> waterfall can supply the model for a model-less agent.&quot;* So an agent can be created with no model at all and have one supplied per-request by a plugin. The provider is not a property of the agent; it is a decision made at each call, by whoever is listening.</p>
+<p class="lede"><strong>3 · Retry is a separate plugin, and this is exactly what <a class="tref" href="B-agent-loop.html">Thread B</a> predicted.</strong> B found the loop&#39;s inner <code>while (true)</code> spins only when a plugin answers <code>agent/request-error</code> with <code>{kind:&#39;retry&#39;}</code>, that the default resolver returns <code>undefined</code>, and concluded: <em>&quot;retry is a plugin, and the loop&#39;s only contribution is a hook to hang one on.&quot;</em> <code>llm-retry</code> is that plugin — <em>&quot;provider-routed model-request retry policy on the agent loop&#39;s request recovery extension point.&quot;</em></p>
+<p class="lede">Its one interesting property: <em>&quot;Each scheduled retry is <strong>durable before its cancellable wait</strong>.&quot;</em> The decision to retry, and when, is written to the log <em>before</em> the backoff sleeps. A crash during a two-minute backoff resumes knowing a retry was owed — which is <a class="tref" href="I-persistence-and-resumption.html">Thread I</a>&#39;s discipline applied to a delay.</p>
 <h2 class="sec">The routing layer is the biggest package here</h2>
 <p class="lede"><code>llm-pi-ai</code> (2,706 lines — larger than the DeepSeek adapter and the core service&#39;s registry alike) is worth reading as a statement of intent:</p>
 <p class="lede">&gt; One plugin instance owns a dict of provider routes; a route naming an installed pi-ai provider inherits &gt; that provider&#39;s endpoint, protocol, and model catalog as defaults, and a route pi-ai does not ship is &gt; declared outright.</p>
 <p class="lede">So the specimen is not a DeepSeek client with an abstraction bolted on. <code>llm-deepseek</code> is one adapter beside a generic router that inherits endpoints, <strong>protocols</strong> and model catalogues from an upstream provider registry. Protocol is in that list — the wire format is a route property, not a global.</p>
 <p class="lede">And configuration is live:</p>
 <p class="lede">&gt; Profile facts resolve per request over the optional <code>llm-pi-ai</code> user-settings section and the optional &gt; credential seam, so <strong>a changed key, endpoint, model, or knob reaches the next request without a &gt; restart</strong>; a changed <em>route set</em> re-registers the same adapter instance in place.</p>
-<p class="lede">Resolving per request rather than at mount is what makes that possible, and it is the same shape as <code>sandbox-policy</code> resolving per call (Thread G) and the system prompt assembling per step (Thread A). This harness resolves almost nothing at startup.</p>
+<p class="lede">Resolving per request rather than at mount is what makes that possible, and it is the same shape as <code>sandbox-policy</code> resolving per call (<a class="tref" href="G-execution-and-sandboxing.html">Thread G</a>) and the system prompt assembling per step (<a class="tref" href="A-prompt-and-presentation.html">Thread A</a>). This harness resolves almost nothing at startup.</p>
 <h2 class="sec">What my toy actually got wrong</h2>
 <p class="lede">Not &quot;it only supported one provider&quot; — that is a scope decision and a fine one. The mistake was <strong>collapsing three independent decisions into one constant</strong>: which endpoint, which wire format, and what to do when the call fails. My toy&#39;s <code>fetch</code> call answered all three at once and none of them could be changed without editing it.</p>
 <p class="lede">Note 02 measured a consequence I did not connect at the time. dsh&#39;s calls set <code>stream</code>, <code>stream_options</code>, <code>thinking</code>, <code>reasoning_effort</code> and <code>max_tokens</code>, and the title call disabled thinking while the loop calls enabled it — <em>&quot;the harness varies inference settings per call, not per session.&quot;</em> That is only possible because the request is assembled at the call and interceptable on the way out. A hardcoded <code>fetch</code> cannot vary per call, because there is no per-call decision point to vary at.</p>
 <h2 class="sec">Questions this opens</h2>
-<p class="lede">None. This thread&#39;s question was raised by my own shortcut rather than by another thread, and the source answers it completely. Logged as unsurprising: Thread B predicted the retry seam precisely, and everything else here is the pattern this campaign has already established — resolve late, make the seam a waterfall, keep the policy in a plugin.</p>
+<p class="lede">None. This thread&#39;s question was raised by my own shortcut rather than by another thread, and the source answers it completely. Logged as unsurprising: <a class="tref" href="B-agent-loop.html">Thread B</a> predicted the retry seam precisely, and everything else here is the pattern this campaign has already established — resolve late, make the seam a waterfall, keep the policy in a plugin.</p>
 <h2 class="sec">Provenance</h2>
 <p class="lede">Source read at <code>47f9438</code>. Line counts from <code>wc -l</code> over each <code>src</code>; quoted docstrings from <code>packages/llm/{llm,llm-pi-ai,llm-retry}</code>. The per-call inference settings are from the committed <code>measurements.json</code>, derived from the Task 2.0 capture. No new capture required.</p>
-<footer><span><a href="../roadmap.html">← roadmap</a></span><span><a href="worklog.html">worklog</a></span><span><a href="../index.html">all campaigns</a></span></footer>
+<footer><span><a href="../roadmap.html">← roadmap</a></span><span><a href="../worklog.html">worklog</a></span><span><a href="../../index.html">all campaigns</a></span></footer>
 </main></div>

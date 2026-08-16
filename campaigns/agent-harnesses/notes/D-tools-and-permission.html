@@ -267,6 +267,28 @@
     line-height:1.5; max-width:62ch; }
   .synth a { color:var(--ink); text-decoration:none; }
   .synth a:hover, .synth a:focus-visible { text-decoration:underline; }
+
+  /* --- cross-thread references ------------------------------------------------
+     A "Thread D" inside running prose is a link, but it is also still a sentence:
+     a full underline on 128 of them would shred the page. Dotted underneath keeps
+     it findable and quiet, and it goes solid on hover so the affordance is real. */
+  a.tref { color:inherit; text-decoration:underline dotted var(--rule); text-decoration-thickness:1px; }
+  a.tref:hover, a.tref:focus-visible { color:var(--specimen); text-decoration:underline solid; }
+
+  /* --- worklog: one block per thread ------------------------------------------ */
+  .tgroup { margin:26px 0 0; }
+  .tgroup-h { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;
+    border-bottom:1px solid var(--rule); padding-bottom:6px; margin-bottom:2px; }
+  .tgroup-h b { font-size:15px; font-weight:600; letter-spacing:-.01em; }
+  .tgroup-h .mono { font-size:11px; color:var(--ink-faint); }
+  .tgroup[data-state="dry"] .tgroup-h { border-bottom-color:var(--ink-faint); }
+
+  /* --- board: what has landed -------------------------------------------------
+     Only the "landed" modifier: .c-state's base rule is already up in the frozen
+     block, and .c-top is already a flexbox that puts the chip on the right, so
+     redeclaring either here would be a second home for the same style.          */
+  .c-state[data-done="yes"] { border-color:var(--specimen); color:var(--specimen); }
+  .lane-t .done { font-family:var(--mono); font-size:11px; color:var(--ink-faint); font-weight:400; }
 </style>
 <div class="page"><main>
 <header class="mast"><p class="kick">Note · agent-harnesses</p></header>
@@ -280,7 +302,7 @@ interface ToolDefinition extends ToolSchema {
   execute()         // returns a JSON value, never model-facing text
   finalizeContent?  timeoutMs?  isConcurrencySafe?  presentCall?  presentResult?
 }</pre>
-<p class="lede">The split is not incidental — each extra field is consumed by a different subsystem. <code>isConcurrencySafe</code> decides whether a call may join the ≤10 parallel batch that is the agent loop&#39;s only tunable (Thread B). <code>timeoutMs</code> feeds <code>packages/guard/timeout-policy</code>. <code>presentCall</code> and <code>presentResult</code> belong to the host, not the model. <strong>The wire schema is the smallest part of what a harness needs to know about a tool.</strong></p>
+<p class="lede">The split is not incidental — each extra field is consumed by a different subsystem. <code>isConcurrencySafe</code> decides whether a call may join the ≤10 parallel batch that is the agent loop&#39;s only tunable (<a class="tref" href="B-agent-loop.html">Thread B</a>). <code>timeoutMs</code> feeds <code>packages/guard/timeout-policy</code>. <code>presentCall</code> and <code>presentResult</code> belong to the host, not the model. <strong>The wire schema is the smallest part of what a harness needs to know about a tool.</strong></p>
 <h3 class="sec">A tool never produces text</h3>
 <p class="lede"><code>execute()</code> returns <em>&quot;only its canonical lossless-JSON value&quot;</em>, validated against <code>output.schema</code>. What the model reads is a <strong>pure projection</strong> of that value:</p>
 <pre>render(args: unknown, value: JsonValue): ContentBlock[]</pre>
@@ -310,16 +332,16 @@ interface ToolDefinition extends ToolSchema {
 <p class="lede">The obvious worry is that this is a permission bypass — a script calling tools behind the gate&#39;s back. It is not. <code>code-mode.ts:481</code> fetches the same <code>registry[TOOL_RUNTIME_SCHEDULER]</code> the agent loop uses at <code>tool-calls.ts:169</code>, and <code>prepare</code> is the stage that runs the waterfall and the guards. <strong>One gate, both paths.</strong> Nested calls are scheduled under the same concurrency contract, and each sub-dispatch is logged — though <em>&quot;only the outer curated result enters model history&quot;</em>, which is a context question for C.</p>
 <p class="lede">This also means &quot;25 tools offered&quot; in note 02 is a fact about a <em>presentation mode</em>, not about dsh. The same registry can present itself as 25 schemas or as one.</p>
 <h2 class="sec">The principle showing up twice</h2>
-<p class="lede">Thread B found that a tool ends a turn by setting <code>concludesTurn</code> on its result, and the docstring said <em>&quot;data decides, so listener order cannot change the outcome.&quot;</em> Thread D finds guards with no allow value, so <em>&quot;listener ordering cannot turn a denial back into permission.&quot;</em></p>
+<p class="lede"><a class="tref" href="B-agent-loop.html">Thread B</a> found that a tool ends a turn by setting <code>concludesTurn</code> on its result, and the docstring said <em>&quot;data decides, so listener order cannot change the outcome.&quot;</em> Thread D finds guards with no allow value, so <em>&quot;listener ordering cannot turn a denial back into permission.&quot;</em></p>
 <p class="lede">Two subsystems, same move: where ordering between independent extensions could produce a wrong answer, <strong>make the wrong direction unrepresentable</strong> rather than documenting a required order. That is worth carrying to the next specimen as a question — it is a property of the extension model, not of tools.</p>
 <h2 class="sec">Questions this opens</h2>
 <ul><li><code>restrict</code> narrows what a scope inherits, and guards evaluate the scope chain farthest-first. That is</li></ul>
-<p class="lede">  the delegation-safety story. Does a child actually inherit its parent&#39;s restrictions? → <strong>F</strong></p>
+<p class="lede">  the delegation-safety story. Does a child actually inherit its parent&#39;s restrictions? → <a class="tref" href="F-delegation-and-subagents.html"><strong>F</strong></a></p>
 <ul><li>Code Mode puts only the outer result in model history while sub-dispatches are logged separately.</li></ul>
-<p class="lede">  What does that do to the context curve? → <strong>C</strong></p>
+<p class="lede">  What does that do to the context curve? → <a class="tref" href="C-context-and-compaction.html"><strong>C</strong></a></p>
 <ul><li>The <code>approval</code> service is fetched from the context and may simply be absent. Which hosts register one,</li></ul>
-<p class="lede">  and what does the web UI do that headless cannot? → <strong>K</strong></p>
+<p class="lede">  and what does the web UI do that headless cannot? → <a class="tref" href="K-the-host-boundary.html"><strong>K</strong></a></p>
 <h2 class="sec">Provenance</h2>
 <p class="lede">Source read at <code>47f9438</code>. No capture required. Every quoted docstring is from the specimen&#39;s own source, which is public and MIT-licensed.</p>
-<footer><span><a href="../roadmap.html">← roadmap</a></span><span><a href="worklog.html">worklog</a></span><span><a href="../index.html">all campaigns</a></span></footer>
+<footer><span><a href="../roadmap.html">← roadmap</a></span><span><a href="../worklog.html">worklog</a></span><span><a href="../../index.html">all campaigns</a></span></footer>
 </main></div>

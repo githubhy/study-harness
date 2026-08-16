@@ -80,18 +80,33 @@ test('anchors exist for every thread', () => {
   assert.match(html, /id="tB"/)
 })
 
-test("a thread's anchor sits on its newest trail entry, not in a clump above the trail", () => {
-  // A has two entries; #tA must land on the newer one (2026-01-03), which is what the strip's A
-  // pip and the roadmap's → worklog link both point at. Previously all fifteen anchors were
-  // emitted as empty spans directly after the Trail heading, so every letter hopped to the same
-  // spot regardless of which thread it named.
-  const entries = [...html.matchAll(/<div class="entry"[^>]*>([\s\S]*?)<\/div>/g)]
-  const withAnchor = entries.filter((m) => m[1].includes('id="tA"'))
-  assert.equal(withAnchor.length, 1, 'expected exactly one entry to carry #tA')
-  assert.match(withAnchor[0][0], /2026-01-03/)
-  // And nothing is left stranded between the heading and the first entry.
-  const betweenHeadingAndTrail = html.match(/Trail<\/h2>\n([\s\S]*?)<div class="entry"/)[1]
+test("a thread's anchor sits on its own block, not in a clump above the trail", () => {
+  // #tA must land on A's group heading — the top of everything A found — which is what the strip's
+  // A pip and the roadmap's → worklog link both point at. Two earlier shapes were wrong in opposite
+  // directions: all fifteen anchors emitted as bare spans under the Trail heading, so every letter
+  // hopped to the same spot; then on the newest single entry, which was the only place a thread
+  // could be said to begin while the trail was flat and chronological.
+  const groups = [...html.matchAll(/<section class="tgroup"[^>]*id="t([A-O])"[\s\S]*?<\/section>/g)]
+  const a = groups.filter((m) => m[1] === 'A')
+  assert.equal(a.length, 1, 'expected exactly one block to carry #tA')
+  // A has two entries and both are inside its block, newest first.
+  assert.equal([...a[0][0].matchAll(/<div class="entry"/g)].length, 2)
+  assert.ok(a[0][0].indexOf('2026-01-03') < a[0][0].indexOf('2026-01-02'), 'newest entry first')
+  const betweenHeadingAndTrail = html.match(/Trail<\/h2>\n([\s\S]*?)<section class="tgroup"/)[1]
   assert.doesNotMatch(betweenHeadingAndTrail, /id="tA"/)
+})
+
+test('the trail groups by thread, in the same order as the coverage strip', () => {
+  // A flat chronological list was the wrong axis for a campaign whose entries all share one date:
+  // the dates sorted nothing, and the thread — the axis a reader navigates by — appeared only as a
+  // repeated label. The two orderings must agree, or a pip and the block it jumps to disagree.
+  const pips = [...html.matchAll(/class="pip"[^>]*href="#t([A-O])"/g)].map((m) => m[1])
+  const groups = [...html.matchAll(/<section class="tgroup"[^>]*id="t([A-O])"/g)].map((m) => m[1])
+  assert.deepEqual(groups, pips.filter((l) => groups.includes(l)))
+  // Every entry lives under the thread that produced it.
+  for (const g of html.matchAll(/<section class="tgroup"[^>]*id="t([A-O])"([\s\S]*?)<\/section>/g))
+    for (const e of g[2].matchAll(/id="e-([A-O])/g))
+      assert.equal(e[1], g[1], `an entry from ${e[1]} is filed under ${g[1]}`)
 })
 
 test('a thread with no entries keeps a fallback anchor so the roadmap link never dangles', () => {

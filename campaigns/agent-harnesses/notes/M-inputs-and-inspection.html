@@ -267,12 +267,34 @@
     line-height:1.5; max-width:62ch; }
   .synth a { color:var(--ink); text-decoration:none; }
   .synth a:hover, .synth a:focus-visible { text-decoration:underline; }
+
+  /* --- cross-thread references ------------------------------------------------
+     A "Thread D" inside running prose is a link, but it is also still a sentence:
+     a full underline on 128 of them would shred the page. Dotted underneath keeps
+     it findable and quiet, and it goes solid on hover so the affordance is real. */
+  a.tref { color:inherit; text-decoration:underline dotted var(--rule); text-decoration-thickness:1px; }
+  a.tref:hover, a.tref:focus-visible { color:var(--specimen); text-decoration:underline solid; }
+
+  /* --- worklog: one block per thread ------------------------------------------ */
+  .tgroup { margin:26px 0 0; }
+  .tgroup-h { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;
+    border-bottom:1px solid var(--rule); padding-bottom:6px; margin-bottom:2px; }
+  .tgroup-h b { font-size:15px; font-weight:600; letter-spacing:-.01em; }
+  .tgroup-h .mono { font-size:11px; color:var(--ink-faint); }
+  .tgroup[data-state="dry"] .tgroup-h { border-bottom-color:var(--ink-faint); }
+
+  /* --- board: what has landed -------------------------------------------------
+     Only the "landed" modifier: .c-state's base rule is already up in the frozen
+     block, and .c-top is already a flexbox that puts the chip on the right, so
+     redeclaring either here would be a second home for the same style.          */
+  .c-state[data-done="yes"] { border-color:var(--specimen); color:var(--specimen); }
+  .lane-t .done { font-family:var(--mono); font-size:11px; color:var(--ink-faint); font-weight:400; }
 </style>
 <div class="page"><main>
 <header class="mast"><p class="kick">Note · agent-harnesses</p></header>
 <h1>M · Inputs &amp; code intelligence</h1>
 <p class="lede">Thread M was pulled to answer A&#39;s question: the prompt assembles from mounted plugins, so two profiles produce different prompts from one binary — is any of that inspectable without running a task?</p>
-<p class="lede">It is, and running the inspection produced an empirical confirmation of a claim Thread E had only derived, plus a correction to note 00 that is worth more than either. Read against source at <code>47f9438</code>, with commands run against this checkout.</p>
+<p class="lede">It is, and running the inspection produced an empirical confirmation of a claim <a class="tref" href="E-plugin-architecture.html">Thread E</a> had only derived, plus a correction to note 00 that is worth more than either. Read against source at <code>47f9438</code>, with commands run against this checkout.</p>
 <h2 class="sec"><code>--dump-config</code> composes without booting</h2>
 <pre>dsh --profile &lt;name&gt; --dump-config</pre>
 <p class="lede">&gt; compose the profile&#39;s patch layers through the include plugin&#39;s patch algorithm **without booting or &gt; evaluating <code>!!js</code>**, with one source layer per bundle, the profile&#39;s own patch file, and each <code>--patch</code> &gt; overlay.</p>
@@ -286,17 +308,17 @@
   config: { root: [&#39;.&#39;] }
   disabled: true</pre>
 <p class="lede">So <em>&quot;why is HMR off in headless?&quot;</em> is answerable from the dump alone — the bundle that contributed the entry and the bundle that patched it are both named. That is unusually good config observability, and it is what note 00&#39;s outside observation (&quot;an ordered stack of plugin-bundle patch layers&quot;) looks like from the inside.</p>
-<p class="lede"><strong>Answering A&#39;s question precisely:</strong> the plugin graph is inspectable without running; the <em>assembled system prompt</em> is not, because sections register at mount and assemble per step (Thread A), which needs a boot. But since the graph determines which sections exist, the dump tells you what the prompt will be made of without telling you what it will say.</p>
+<p class="lede"><strong>Answering A&#39;s question precisely:</strong> the plugin graph is inspectable without running; the <em>assembled system prompt</em> is not, because sections register at mount and assemble per step (<a class="tref" href="A-prompt-and-presentation.html">Thread A</a>), which needs a boot. But since the graph determines which sections exist, the dump tells you what the prompt will be made of without telling you what it will say.</p>
 <h2 class="sec">Two profiles, measured</h2>
 <div class="tw"><table><thead><tr><th>Profile</th><th>Plugins</th><th>Disabled</th></tr></thead><tbody><tr><td><code>headless</code></td><td><strong>81</strong></td><td>2</td></tr><tr><td><code>web</code></td><td><strong>129</strong></td><td>25</td></tr></tbody></table></div>
-<p class="lede">Same binary, a 48-plugin difference. This is what Thread K meant by the apps being thin: the difference between &quot;a CLI that answers one task&quot; and &quot;a web application&quot; is entirely a difference in the mounted graph.</p>
-<h3 class="sec">An empirical confirmation of Thread E</h3>
-<p class="lede">Thread E argued, from four packages that do not reference each other, that <strong>the model can extend the harness only where a human is present to approve it</strong>. That argument ran through runtime behaviour: <code>cordis_run</code> raises an approval request, approval fails closed with no answerer, headless mounts no answerer.</p>
+<p class="lede">Same binary, a 48-plugin difference. This is what <a class="tref" href="K-the-host-boundary.html">Thread K</a> meant by the apps being thin: the difference between &quot;a CLI that answers one task&quot; and &quot;a web application&quot; is entirely a difference in the mounted graph.</p>
+<h3 class="sec">An empirical confirmation of <a class="tref" href="E-plugin-architecture.html">Thread E</a></h3>
+<p class="lede"><a class="tref" href="E-plugin-architecture.html">Thread E</a> argued, from four packages that do not reference each other, that <strong>the model can extend the harness only where a human is present to approve it</strong>. That argument ran through runtime behaviour: <code>cordis_run</code> raises an approval request, approval fails closed with no answerer, headless mounts no answerer.</p>
 <p class="lede">The dump shows something stronger. Diffing the two profiles:</p>
 <pre>web only:  cordis-host-runner, cordis-client-runner, ui-cordis
 headless:  none of them</pre>
 <p class="lede"><strong>The machinery is not mounted in headless at all.</strong> It is not that a self-written plugin would be denied at runtime — the approval orchestrator, the client runner and the approval UI are simply absent. The composition enforces the property structurally, and the runtime fail-closed path is the second line of defence rather than the first.</p>
-<p class="lede">That is a better result than Thread E&#39;s, and I could not have got it by reading source. Deriving a property and then measuring it is worth the extra step.</p>
+<p class="lede">That is a better result than <a class="tref" href="E-plugin-architecture.html">Thread E</a>&#39;s, and I could not have got it by reading source. Deriving a property and then measuring it is worth the extra step.</p>
 <h2 class="sec">Correction: there is no <code>tui</code> profile</h2>
 <p class="lede">Note 00 says, of the CLI&#39;s own help text:</p>
 <p class="lede">&gt; <code>web</code>, <code>tui</code> and <code>headless</code> are profiles.</p>
@@ -311,8 +333,8 @@ $ find packages apps -type d -name &#39;*tui*&#39;   →  (nothing)</pre>
 <p class="lede">Corrected in note 00 with the correction left visible rather than edited away.</p>
 <h2 class="sec">Questions this opens</h2>
 <ul><li>Profiles are user-creatable (<code>dsh plugin --profile &lt;name&gt; add &lt;package&gt;</code>), and <code>~/.dsh/profiles</code> holds</li></ul>
-<p class="lede">  the two shipped ones plus a <code>node_modules</code>. A profile is an npm-installed plugin set, so mounting a   capability is <code>pnpm add</code>. What stops a profile from mounting something that contradicts another   plugin? → <strong>E</strong></p>
+<p class="lede">  the two shipped ones plus a <code>node_modules</code>. A profile is an npm-installed plugin set, so mounting a   capability is <code>pnpm add</code>. What stops a profile from mounting something that contradicts another   plugin? → <a class="tref" href="E-plugin-architecture.html"><strong>E</strong></a></p>
 <h2 class="sec">Provenance</h2>
 <p class="lede"><code>--dump-config</code> run against this checkout for both shipped profiles; counts are <code>rg -c &#39;^- id: &#39;</code> over the output. The <code>tui</code> correction is three commands, quoted above with their real output. No API key or capture required — every measurement in this note is free.</p>
-<footer><span><a href="../roadmap.html">← roadmap</a></span><span><a href="worklog.html">worklog</a></span><span><a href="../index.html">all campaigns</a></span></footer>
+<footer><span><a href="../roadmap.html">← roadmap</a></span><span><a href="../worklog.html">worklog</a></span><span><a href="../../index.html">all campaigns</a></span></footer>
 </main></div>

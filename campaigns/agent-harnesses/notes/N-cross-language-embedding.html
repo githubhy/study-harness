@@ -267,6 +267,28 @@
     line-height:1.5; max-width:62ch; }
   .synth a { color:var(--ink); text-decoration:none; }
   .synth a:hover, .synth a:focus-visible { text-decoration:underline; }
+
+  /* --- cross-thread references ------------------------------------------------
+     A "Thread D" inside running prose is a link, but it is also still a sentence:
+     a full underline on 128 of them would shred the page. Dotted underneath keeps
+     it findable and quiet, and it goes solid on hover so the affordance is real. */
+  a.tref { color:inherit; text-decoration:underline dotted var(--rule); text-decoration-thickness:1px; }
+  a.tref:hover, a.tref:focus-visible { color:var(--specimen); text-decoration:underline solid; }
+
+  /* --- worklog: one block per thread ------------------------------------------ */
+  .tgroup { margin:26px 0 0; }
+  .tgroup-h { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;
+    border-bottom:1px solid var(--rule); padding-bottom:6px; margin-bottom:2px; }
+  .tgroup-h b { font-size:15px; font-weight:600; letter-spacing:-.01em; }
+  .tgroup-h .mono { font-size:11px; color:var(--ink-faint); }
+  .tgroup[data-state="dry"] .tgroup-h { border-bottom-color:var(--ink-faint); }
+
+  /* --- board: what has landed -------------------------------------------------
+     Only the "landed" modifier: .c-state's base rule is already up in the frozen
+     block, and .c-top is already a flexbox that puts the chip on the right, so
+     redeclaring either here would be a second home for the same style.          */
+  .c-state[data-done="yes"] { border-color:var(--specimen); color:var(--specimen); }
+  .lane-t .done { font-family:var(--mono); font-size:11px; color:var(--ink-faint); font-weight:400; }
 </style>
 <div class="page"><main>
 <header class="mast"><p class="kick">Note · agent-harnesses</p></header>
@@ -284,18 +306,18 @@ request   notify   respond   respond_error      # generic JSON-RPC, both directi
 next_notification   next_request                # pull
 subscribe_notifications   subscribe_session_notifications</pre>
 <p class="lede">and the entire serialisable vocabulary is four types: <code>Notification</code>, <code>IncomingRequest</code>, <code>ServerInfo</code>, <code>InitializeResponse</code>.</p>
-<p class="lede"><strong>One domain verb.</strong> Everything a harness does, from the outside, is <em>prompt a session and watch what happens</em> — which is exactly Thread K&#39;s enumeration of what crosses the host boundary, arrived at independently and in a different language.</p>
+<p class="lede"><strong>One domain verb.</strong> Everything a harness does, from the outside, is <em>prompt a session and watch what happens</em> — which is exactly <a class="tref" href="K-the-host-boundary.html">Thread K</a>&#39;s enumeration of what crosses the host boundary, arrived at independently and in a different language.</p>
 <h2 class="sec">What the boundary forces</h2>
 <p class="lede">The thread&#39;s real question. Three things, each of which my toy left implicit and each of which becomes unavoidable once a process boundary exists.</p>
 <p class="lede"><strong>1 · Configuration cannot be defaulted.</strong> <em>&quot;The client selects the channel and supplies default configuration; <strong>the runtime itself always requires an explicit configuration</strong>.&quot;</em> In-process, a missing config is a default someone chose. Across a boundary, the runtime refuses to guess — which is the same posture as <code>restrict({})</code> throwing (D) and a depth cap failing at mount (F), applied to the whole harness.</p>
 <p class="lede"><strong>2 · The harness must be able to call back.</strong> <code>next_request</code> / <code>respond</code> / <code>respond_error</code> exist because the boundary is <strong>bidirectional</strong>: the harness asks the embedder things and waits for answers.</p>
-<p class="lede">This is the finding. In-process, Thread G noted the escalation module takes the approval channel as <em>&quot;a minimal STRUCTURAL function shape&quot;</em> — a closure the tool layer passes in. <strong>You cannot pass a closure to another process.</strong> So the thing that was a function pointer becomes a protocol: an incoming request the Python side must answer, or the harness fails closed (K).</p>
-<p class="lede">My toy&#39;s signature was <code>run(task) -&gt; string</code>. It had no representation for the harness asking <em>me</em> anything, because there was always a human at the terminal to notice. The RPC boundary makes that assumption impossible to hold implicitly — and the operations that appear when you remove it are exactly the four Thread K found ACP carrying: prompt, output, cancellation, permission.</p>
-<p class="lede"><strong>3 · Observation is the event stream, literally.</strong> The notifications the Python client dispatches on are <code>session.event</code> and <code>session.status</code>. Thread E argued that the session event log is the single authority and everything else is a fold over it. Here that stops being an architectural claim and becomes the public API: an embedder in another language is handed the same events every internal projection folds.</p>
+<p class="lede">This is the finding. In-process, <a class="tref" href="G-execution-and-sandboxing.html">Thread G</a> noted the escalation module takes the approval channel as <em>&quot;a minimal STRUCTURAL function shape&quot;</em> — a closure the tool layer passes in. <strong>You cannot pass a closure to another process.</strong> So the thing that was a function pointer becomes a protocol: an incoming request the Python side must answer, or the harness fails closed (K).</p>
+<p class="lede">My toy&#39;s signature was <code>run(task) -&gt; string</code>. It had no representation for the harness asking <em>me</em> anything, because there was always a human at the terminal to notice. The RPC boundary makes that assumption impossible to hold implicitly — and the operations that appear when you remove it are exactly the four <a class="tref" href="K-the-host-boundary.html">Thread K</a> found ACP carrying: prompt, output, cancellation, permission.</p>
+<p class="lede"><strong>3 · Observation is the event stream, literally.</strong> The notifications the Python client dispatches on are <code>session.event</code> and <code>session.status</code>. <a class="tref" href="E-plugin-architecture.html">Thread E</a> argued that the session event log is the single authority and everything else is a fold over it. Here that stops being an architectural claim and becomes the public API: an embedder in another language is handed the same events every internal projection folds.</p>
 <h2 class="sec">Why nothing asked for this thread</h2>
 <p class="lede">Fourteen threads raised twenty-plus questions of each other and not one pointed here — and reading it explains why. <strong>The cross-language boundary introduces no new mechanism.</strong> It is the same event log, the same approval seam, the same explicit-configuration posture, expressed in a form where nothing can be left to a shared address space.</p>
 <p class="lede">Which makes it the best summary of the specimen available, and the answer to the thread&#39;s second prompt — <em>what did dsh have to make explicit that you left implicit?</em> Not features. <strong>The existence of a second party.</strong> My toy assumed one process, one human, one language, and a function that returns when it is done. Every one of those assumptions is a thing dsh had to name, and naming them is most of what the other fourteen threads found it doing.</p>
 <h2 class="sec">Provenance</h2>
 <p class="lede">Source read at <code>47f9438</code>. Operation list from <code>rg</code> over <code>python/sdk/src/deepseek_harness/client.py</code>; model classes from <code>models.py</code>; quoted lines from <code>python/README.md</code>. No capture required. Logged unsurprising: it introduced no mechanism the campaign had not already found.</p>
-<footer><span><a href="../roadmap.html">← roadmap</a></span><span><a href="worklog.html">worklog</a></span><span><a href="../index.html">all campaigns</a></span></footer>
+<footer><span><a href="../roadmap.html">← roadmap</a></span><span><a href="../worklog.html">worklog</a></span><span><a href="../../index.html">all campaigns</a></span></footer>
 </main></div>

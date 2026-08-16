@@ -27,12 +27,30 @@ test('links each thread to its worklog entry', () => {
   assert.match(html, /href="worklog\.html#tA"/)
 })
 
-test('emits no state chips', () => {
-  // Scoped to markup, not the whole page: theme.mjs stays a byte-verbatim copy of the
-  // pre-migration stylesheet (including its now-inert .c-state rule), so the requirement is
-  // "emit no chip element", not "the string c-state may not appear anywhere in the page".
-  assert.doesNotMatch(html, /<span class="c-state"/)
-  assert.doesNotMatch(html, />not started</)
+test('every state chip is derived from the phase\'s report, never hand-written', () => {
+  // The pre-migration page carried six chips, all reading "not started", under an instruction to
+  // "edit c-state as you go" — hand-maintained state that was never once maintained. The migration
+  // deleted them, and the board then swung the other way: it showed no state at all, so it printed
+  // the same lanes on the first day and the last. The chip is back, but as a derivation. This test
+  // is the guard that keeps it one: for every phase, the chip must agree with whether that phase
+  // has a writeup, so a chip can never be edited into saying something the data does not.
+  const { data, derived } = loadCampaign(MINI)
+  assert.ok(derived.phases.some((p) => p.done), 'fixture must have a landed phase')
+  assert.ok(derived.phases.some((p) => !p.done), 'fixture must have an unlanded phase')
+  for (const p of derived.phases) {
+    const card = html.match(new RegExp(`<span class="c-id">${p.id.replace(/[.*+?^${}()|[\]\\·]/g, '\\$&')}</span>([\\s\\S]{0,200})`))
+    assert.ok(card, `no card found for ${p.id}`)
+    assert.match(card[1], new RegExp(`data-done="${p.done ? 'yes' : 'no'}"`), `${p.id} chip disagrees with its report`)
+  }
+  // And nothing in the source data carries state to hand-edit in the first place.
+  assert.ok(data.phases.every((p) => !('done' in p) && !('state' in p)), 'phases must not store their own state')
+})
+
+test('a phase with two reports links both', () => {
+  // Phase 4 committed its predictions blind and scored them afterwards. Listing only the first
+  // would hide the half that makes the other worth anything.
+  const real = renderRoadmap(loadCampaign('campaigns/agent-harnesses'))
+  assert.match(real, /04 · Transfer predictions<\/a> · <a href="notes\/05-transfer-scored\.html">/)
 })
 
 test('escapes shell metacharacters in entry commands', () => {

@@ -28,8 +28,9 @@ Nothing under any `captures/` is ever committed, and this repo is public.
 
 ## Generated pages
 
-`campaigns/index.html`, `campaigns/agent-harnesses/roadmap.html`, and `campaigns/agent-harnesses/worklog.html`
-are **generated**. Never hand-edit them — edit `campaigns/<name>/campaign.json` and rebuild:
+`campaigns/index.html`, `campaigns/agent-harnesses/roadmap.html`, `campaigns/agent-harnesses/worklog.html`,
+and every `campaigns/<name>/notes/*.html` are **generated** — a note's `.md` is the only copy of its prose.
+Never hand-edit any of them; edit `campaigns/<name>/campaign.json` (or the note's Markdown) and rebuild:
 
     node tools/build-campaign.mjs --all
     node tools/build-campaign.mjs --all --check   # exits 1 if a page has drifted from its data
@@ -41,7 +42,17 @@ edited directly, then rebuilt.
 
 Logging a finding is: write `notes/<LETTER>-<slug>.md`, append one entry to `campaign.json`'s `log`,
 rebuild, and commit all of it together. Surprise pips, dry detection, the frontier, totals, the
-thread graph, and the package census are all derived — never write them by hand.
+thread graph, the package census, each phase's landed/not-landed chip, and the links between notes
+are all derived — never write them by hand.
+
+Two consequences worth knowing when writing a note. A phase is shown as landed **iff** it carries a
+`writeup`, so adding the report link is what marks it done; there is no status field to set. And
+"Thread D" or "→ **D**" in a note's prose becomes a link to D's own note automatically — write the
+prose, not the Markdown link.
+
+The build resolves every relative link against where the page will sit on disk and refuses to write
+a page that points at a file that does not exist. `checkHtml` sees only a string, so it cannot do
+this; two hardcoded footer paths once shipped 44 dead links with every test passing.
 
 ### Frozen baselines
 

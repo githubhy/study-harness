@@ -103,8 +103,25 @@ export function readCampaign(dir, override) {
       if (!openedIds.has(id)) fail(`log[${i}] resolves "${id}", which was never opened`)
   })
 
+  // A phase's writeup is the report it produced, and the only evidence in this data that the phase
+  // has actually landed — §3 derives its state from nothing else. So the href has to resolve to a
+  // real note source, not just be a plausible string: the pages it names are generated, and a typo
+  // in one would otherwise render a phase as done and link it to a 404.
+  data.phases.forEach((p, i) => {
+    for (const w of writeups(p)) {
+      if (typeof w.href !== 'string' || typeof w.label !== 'string')
+        fail(`phases[${i}].writeup needs a string href and label`)
+      const source = w.href.replace(/\.html$/, '.md')
+      if (!existsSync(fromRoot(dir, source))) fail(`phases[${i}].writeup ${w.href} has no source at ${source}`)
+    }
+  })
+
   return { ...data, dir }
 }
+
+/** `writeup` is one report or several — Phase 4 wrote its predictions and its scoring separately. */
+export const writeups = (phase) =>
+  phase.writeup == null ? [] : Array.isArray(phase.writeup) ? phase.writeup : [phase.writeup]
 
 const pipsFor = (run, budget) => '●'.repeat(Math.min(run, budget)) + '○'.repeat(Math.max(budget - run, 0))
 
@@ -166,10 +183,32 @@ export function derive(data) {
     letters: data.threads.filter((t) => t.loop === s.id).sort(byLetter).map((t) => t.letter),
   }))
 
+  // Where a thread's own note lives, so prose that says "Thread D" can link to it. A thread's
+  // findings get written into several notes (D's landed in D, G, 03 and C), but exactly one of
+  // them is the thread's own — the file whose name starts with its letter. Taking it from the log
+  // rather than from a directory listing means the map is built from the same committed data that
+  // already had to name an existing file, and a thread with no note of its own simply has no entry
+  // rather than a link to a file nobody wrote.
+  const noteFor = new Map()
+  for (const e of byDate) {
+    const base = e.note.split('/').pop()
+    if (base.startsWith(`${e.thread}-`) && !noteFor.has(e.thread)) noteFor.set(e.thread, base.replace(/\.md$/, '.html'))
+  }
+
+  // §3's lanes describe what *blocked* each phase, which never changes. Whether the phase has
+  // landed is a separate axis, and the only evidence for it in this data is whether the phase
+  // produced its report. Deriving it here rather than storing a `done` flag keeps it in the same
+  // class as the pips and the frontier: a fact about the record, not a second thing to remember to
+  // update. Validation above guarantees every writeup names a note that exists.
+  const phases = data.phases.map((p) => ({ ...p, reports: writeups(p), done: writeups(p).length > 0 }))
+
   const list = [...threads.values()]
   return {
     threads,
     bands,
+    noteFor,
+    phases,
+    phaseTotals: { done: phases.filter((p) => p.done).length, total: phases.length },
     totals: {
       touched: list.filter((t) => t.state !== 'not-started').length,
       dry: list.filter((t) => t.state === 'dry').length,
@@ -180,6 +219,17 @@ export function derive(data) {
     frontier,
     questions,
     trail: trail.reverse(),
+    // The trail grouped by the thread that produced each entry, in the one band ordering above.
+    // Flat chronological order was the wrong axis for this campaign: every entry carries the same
+    // date, so the dates sorted nothing and a reader after one thread's findings had to scan all of
+    // them. Grouping here rather than in the renderer keeps the ordering decision in one place —
+    // the strip, §4 and this list now walk the threads in the same sequence, so a pip and the
+    // section it jumps to agree. Entries stay newest-first inside a group.
+    trailByThread: bands.flatMap((band) => band.letters
+      .map((l) => threads.get(l))
+      .filter((t) => t.entries.length > 0)
+      .map((t) => ({ letter: t.letter, name: t.name, state: t.state, pips: t.pips, band: band.id,
+                     entries: [...t.entries].reverse() }))),
     edges,
     census: data.threads.map(({ letter, name, loop, needs, packages }) => ({ letter, name, loop, needs, packages })),
   }

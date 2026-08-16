@@ -33,8 +33,20 @@ const card = ({ data, derived }) => {
       </div>
       <p class="mono" data-role="resume">${resume}</p>
       <p class="mono" data-role="totals">${touched} touched · ${dry} dry · ${notStarted} not started</p>
+      ${synthesis({ data, derived })}
       <p class="c-blocks"><a href="${attr(data.campaign)}/roadmap.html">roadmap.html</a> · <a href="${attr(data.campaign)}/worklog.html">worklog.html</a></p>
     </article>`
+}
+
+// The campaign's conclusion, from the same `synthesis` block the roadmap masthead renders — one home
+// for the text, two places that link it. The board is the front door and the answer was two clicks
+// past it: in to the roadmap, then down to the "Start here" line. A reader who wants the finding
+// rather than the method should not have to walk the method to reach it. Only the href differs, and
+// only because the board sits one directory above the campaign.
+const synthesis = ({ data }) => {
+  const s = data.synthesis
+  if (!s) return ''
+  return `<p class="synth"><a href="${attr(`${data.campaign}/${s.href}`)}"><b>${esc(s.title)}</b></a> — ${rich(s.blurb)}</p>`
 }
 
 // ---------- Active: cards, plus the empty-state block while there's only one campaign ----------

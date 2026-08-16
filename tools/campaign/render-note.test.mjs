@@ -60,7 +60,37 @@ test('a rendered real note passes every HTML property check', () => {
   const html = renderNote({ markdown, campaign: 'agent-harnesses', title: 'What my harness lacks', measurements })
   assert.deepEqual(checkHtml(html), [])
   assert.doesNotMatch(html, /undefined/)
-  assert.match(html, /href="roadmap\.html"/)
+  assert.match(html, /href="\.\.\/roadmap\.html"/)
+})
+
+test('every footer link is relative to the note, which lives one level below the roadmap', () => {
+  // Two of these three were hardcoded from the roadmap's directory: `worklog.html` resolved to
+  // notes/worklog.html and `../index.html` to the campaign directory, so 44 of the 66 links on the
+  // twenty-two note pages were dead while every test and property check passed. The defaults are
+  // asserted here; build-campaign.mjs resolves them against disk, which is what actually catches a
+  // recurrence.
+  const html = renderNote({ markdown: '# t', campaign: 'c', title: 't' })
+  assert.match(html, /href="\.\.\/roadmap\.html"/)
+  assert.match(html, /href="\.\.\/worklog\.html"/)
+  assert.match(html, /href="\.\.\/\.\.\/index\.html"/)
+  assert.doesNotMatch(html, /href="worklog\.html"/)
+})
+
+test('cross-thread references become links, and only where they are unambiguous', () => {
+  const notes = new Map([['D', 'D-tools.html'], ['J', 'J-cost.html']])
+  const md = (s) => renderNoteBody(s, undefined, { notes, self: 'B' })
+  // The two idioms the notes actually use.
+  assert.match(md('- what stops a runaway run? → **J**'), /<a class="tref" href="J-cost\.html"><strong>J<\/strong><\/a>/)
+  assert.match(md('Thread D showed the gate.'), /<a class="tref" href="D-tools\.html">Thread D<\/a>/)
+  // A possessive keeps its "'s" outside the link.
+  assert.match(md("Thread J's accounting"), /<a class="tref" href="J-cost\.html">Thread J<\/a>&#39;s/)
+  // A lone capital is far too common in this prose to treat as a reference.
+  assert.doesNotMatch(md('the **J** curve, and section (D)'), /tref/)
+  // A letter with no note of its own stays plain rather than linking to a file nobody wrote.
+  assert.doesNotMatch(md('Thread K said so'), /tref/)
+  // A note does not link to itself, and nothing is linked inside code.
+  assert.doesNotMatch(md('Thread B watched the stream'), /tref/)
+  assert.doesNotMatch(md('run `grep "Thread D" .`'), /tref/)
 })
 
 test('a chart citing a measurement fails loudly when none is supplied', () => {

@@ -267,6 +267,28 @@
     line-height:1.5; max-width:62ch; }
   .synth a { color:var(--ink); text-decoration:none; }
   .synth a:hover, .synth a:focus-visible { text-decoration:underline; }
+
+  /* --- cross-thread references ------------------------------------------------
+     A "Thread D" inside running prose is a link, but it is also still a sentence:
+     a full underline on 128 of them would shred the page. Dotted underneath keeps
+     it findable and quiet, and it goes solid on hover so the affordance is real. */
+  a.tref { color:inherit; text-decoration:underline dotted var(--rule); text-decoration-thickness:1px; }
+  a.tref:hover, a.tref:focus-visible { color:var(--specimen); text-decoration:underline solid; }
+
+  /* --- worklog: one block per thread ------------------------------------------ */
+  .tgroup { margin:26px 0 0; }
+  .tgroup-h { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;
+    border-bottom:1px solid var(--rule); padding-bottom:6px; margin-bottom:2px; }
+  .tgroup-h b { font-size:15px; font-weight:600; letter-spacing:-.01em; }
+  .tgroup-h .mono { font-size:11px; color:var(--ink-faint); }
+  .tgroup[data-state="dry"] .tgroup-h { border-bottom-color:var(--ink-faint); }
+
+  /* --- board: what has landed -------------------------------------------------
+     Only the "landed" modifier: .c-state's base rule is already up in the frozen
+     block, and .c-top is already a flexbox that puts the chip on the right, so
+     redeclaring either here would be a second home for the same style.          */
+  .c-state[data-done="yes"] { border-color:var(--specimen); color:var(--specimen); }
+  .lane-t .done { font-family:var(--mono); font-size:11px; color:var(--ink-faint); font-weight:400; }
 </style>
 <div class="page"><main>
 <header class="mast"><p class="kick">Note · agent-harnesses</p></header>
@@ -283,15 +305,15 @@
 <h2 class="sec">The eight ledger rows</h2>
 <p class="lede"><strong>1 · Which tools exist and get called</strong> · RECALL Claude Code offers on the order of 15–20 tools, named in TitleCase (<code>Read</code>, <code>Write</code>, <code>Edit</code>, <code>Bash</code>, <code>Glob</code>, <code>Grep</code>, <code>Task</code>, <code>TodoWrite</code>, <code>WebFetch</code>, <code>WebSearch</code>) rather than dsh&#39;s <code>snake_case</code>. Expect <code>Read</code>/<code>Edit</code>/<code>Bash</code> to dominate call counts, and a long tail of tools that appear in almost no transcript. <em>Falsified by</em>: snake_case names, or a flat call distribution.</p>
 <p class="lede"><strong>2 · How the loop terminates</strong> · INFERENCE Same as dsh: semantically, when the model stops emitting tool calls. I predict <strong>no step cap</strong> visible in transcript structure — no run ending at a suspiciously round number of assistant turns. I also predict transcripts show runs of highly variable length with no clustering at any particular count. <em>Falsified by</em>: a modal run length at a round number.</p>
-<p class="lede"><strong>3 · How permissions are gated</strong> · RECALL Per-tool, before execution, with a persistent allow-list — unlike dsh, where Thread K found grants are strictly one-shot and a standing policy is a separate <em>preset</em>. I predict Claude Code&#39;s grants persist per tool-plus-argument-pattern within a project. <em>Falsified by</em>: evidence of one-shot-only approval.</p>
-<p class="lede"><strong>4 · Whether hooks can block</strong> · RECALL, informed by dsh&#39;s bridge Yes. Thread J read dsh&#39;s bridge, which maps <code>PreToolUse</code> <code>deny</code> and <code>ask</code>, and <code>Stop</code> <code>deny</code> to forced continuation. Since that bridge is written against the real format, I predict Claude Code has the same semantics natively, including <code>stop_hook_active</code> actually being set — the field dsh hardcodes to <code>false</code>. <em>Falsified by</em>: the bridge&#39;s event set not matching what transcripts show firing.</p>
-<p class="lede"><strong>5 · Whether sub-agents fork context</strong> · RECALL Sub-agents get a <strong>fresh</strong> context, not a fork — a task description in, a report out. That is the same shape as dsh&#39;s <code>SubagentResult</code> (Thread H: output blocks, optional structured value, stop reason). I predict transcripts show a sub-agent&#39;s internal steps absent from the parent&#39;s transcript. <em>Falsified by</em>: parent transcripts containing child tool calls inline.</p>
+<p class="lede"><strong>3 · How permissions are gated</strong> · RECALL Per-tool, before execution, with a persistent allow-list — unlike dsh, where <a class="tref" href="K-the-host-boundary.html">Thread K</a> found grants are strictly one-shot and a standing policy is a separate <em>preset</em>. I predict Claude Code&#39;s grants persist per tool-plus-argument-pattern within a project. <em>Falsified by</em>: evidence of one-shot-only approval.</p>
+<p class="lede"><strong>4 · Whether hooks can block</strong> · RECALL, informed by dsh&#39;s bridge Yes. <a class="tref" href="J-observability-and-cost.html">Thread J</a> read dsh&#39;s bridge, which maps <code>PreToolUse</code> <code>deny</code> and <code>ask</code>, and <code>Stop</code> <code>deny</code> to forced continuation. Since that bridge is written against the real format, I predict Claude Code has the same semantics natively, including <code>stop_hook_active</code> actually being set — the field dsh hardcodes to <code>false</code>. <em>Falsified by</em>: the bridge&#39;s event set not matching what transcripts show firing.</p>
+<p class="lede"><strong>5 · Whether sub-agents fork context</strong> · RECALL Sub-agents get a <strong>fresh</strong> context, not a fork — a task description in, a report out. That is the same shape as dsh&#39;s <code>SubagentResult</code> (<a class="tref" href="H-interop.html">Thread H</a>: output blocks, optional structured value, stop reason). I predict transcripts show a sub-agent&#39;s internal steps absent from the parent&#39;s transcript. <em>Falsified by</em>: parent transcripts containing child tool calls inline.</p>
 <p class="lede"><strong>6 · Whether the model reasons before acting</strong> · INFERENCE Yes, and visibly — a narration message before the first tool call, as note 02 observed dsh doing. I predict this is a model habit rather than a harness instruction, and therefore appears in both. <em>Falsified by</em>: transcripts showing tool calls with no preceding assistant text.</p>
-<p class="lede"><strong>7 · What the system prompt says</strong> · RECALL Not directly visible in transcripts (the prompt is not stored in the message log), so this row is likely <strong>unscoreable</strong> from this evidence. I predict I cannot score it, which is itself the finding: Thread A could read dsh&#39;s prompt because dsh is open source, and the transfer specimen affords no equivalent. <em>Falsified by</em>: transcripts containing the system prompt.</p>
+<p class="lede"><strong>7 · What the system prompt says</strong> · RECALL Not directly visible in transcripts (the prompt is not stored in the message log), so this row is likely <strong>unscoreable</strong> from this evidence. I predict I cannot score it, which is itself the finding: <a class="tref" href="A-prompt-and-presentation.html">Thread A</a> could read dsh&#39;s prompt because dsh is open source, and the transfer specimen affords no equivalent. <em>Falsified by</em>: transcripts containing the system prompt.</p>
 <p class="lede"><strong>8 · What the tool schemas declare</strong> · RECALL Likewise not in transcripts — only <em>calls</em> are, with their arguments. I predict I can recover argument <em>shapes</em> by observing calls but not the declared schemas, and specifically that I will <strong>not</strong> be able to tell whether Claude Code separates a canonical value from a rendered projection the way Phase 3 found dsh doing. That distinction is invisible from the outside, which is exactly why Phase 3 had to build the tool twice instead of watching one. <em>Falsified by</em>: schema declarations appearing in the log.</p>
 <h2 class="sec">What I expect the shape of the result to be</h2>
-<p class="lede">Rows 7 and 8 unscoreable, rows 1 and 5 confirmed as recall, row 2 the only genuinely interesting inference. If that is how it lands, the honest summary of Phase 4 is that <strong>transcripts are a weak instrument for architectural questions</strong> — they show what happened, not what the harness is — and the campaign&#39;s real transfer evidence was the thing Thread J stumbled on: dsh&#39;s own executable model of Claude Code, which is source rather than observation.</p>
+<p class="lede">Rows 7 and 8 unscoreable, rows 1 and 5 confirmed as recall, row 2 the only genuinely interesting inference. If that is how it lands, the honest summary of Phase 4 is that <strong>transcripts are a weak instrument for architectural questions</strong> — they show what happened, not what the harness is — and the campaign&#39;s real transfer evidence was the thing <a class="tref" href="J-observability-and-cost.html">Thread J</a> stumbled on: dsh&#39;s own executable model of Claude Code, which is source rather than observation.</p>
 <h2 class="sec">Provenance</h2>
 <p class="lede">Written 2026-08-16 against no transcript. <code>~/.claude/projects</code> holds 4,019 <code>.jsonl</code> files across 21 project directories; that count is from <code>find</code>, taken before writing this note, and no file was opened. Transcripts are personal working history: the scoring note will cite structure, counts, and tool names only, never conversation content.</p>
-<footer><span><a href="../roadmap.html">← roadmap</a></span><span><a href="worklog.html">worklog</a></span><span><a href="../index.html">all campaigns</a></span></footer>
+<footer><span><a href="../roadmap.html">← roadmap</a></span><span><a href="../worklog.html">worklog</a></span><span><a href="../../index.html">all campaigns</a></span></footer>
 </main></div>
