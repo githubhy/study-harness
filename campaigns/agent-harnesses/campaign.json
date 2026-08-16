@@ -999,6 +999,62 @@
         "o-bounded"
       ],
       "issue": null
+    },
+    {
+      "thread": "C",
+      "date": "2026-08-16",
+      "finding": "Dropping is layered: a model-free size-based pruner keeps head 4096 and tail 1024 of any tool result over 8192 chars with a visible marker, and range compaction selects positionally by retainRatio then substitutes semantically via an LLM summary. Cheap structural pruning first, expensive summarisation only when that is not enough — and nothing is deleted, because a pruned node is shadowed so replay recovers it and the token meter is told what it would have cost.",
+      "surprising": true,
+      "note": "notes/C-context-and-compaction.md",
+      "opened": [
+        {
+          "id": "c-exempt",
+          "q": "retainRatio keeps recent history and summarises the rest, so the system prompt and injected reminders are presumably outside the compactable range. What is structurally exempt from compaction?",
+          "ask": "A"
+        }
+      ],
+      "resolved": [],
+      "issue": null
+    },
+    {
+      "thread": "C",
+      "date": "2026-08-16",
+      "finding": "My toy clipped head-only, unconditionally, and silently. dsh keeps the tail too — which is where a tool result’s answer usually is — applies a threshold so small results are untouched, and marks the gap so the model can tell a truncation from an ending. That is exactly the failure note 02 measured: 5 of 9 results clipped, the model narrowing to compensate, and the run ending at the step cap with no answer.",
+      "surprising": false,
+      "note": "notes/C-context-and-compaction.md",
+      "opened": [],
+      "resolved": [
+        "d-codectx"
+      ],
+      "issue": null
+    },
+    {
+      "thread": "A",
+      "date": "2026-08-16",
+      "finding": "The system prompt is a registry of ordered named sections, not a document, and every tool ships its own. The prompt is therefore a function of what is mounted — restrict a tool and its prose leaves with it — so a central capability list that drifts out of step with the capabilities is a bug that cannot be written. The 4,113 bytes note 02 measured is the sum of what the headless profile mounts, not a chosen length.",
+      "surprising": true,
+      "note": "notes/A-prompt-and-presentation.md",
+      "opened": [
+        {
+          "id": "a-dump",
+          "q": "The prompt assembles from mounted plugins, so two profiles produce different prompts from one binary. Is the assembled prompt inspectable without running a task?",
+          "ask": "M"
+        }
+      ],
+      "resolved": [
+        "c-exempt"
+      ],
+      "issue": null
+    },
+    {
+      "thread": "A",
+      "date": "2026-08-16",
+      "finding": "Nothing in the base system prompt instructs the model to verify its work — the repo’s only such instruction lives in the goal-round driver. So note 02’s observation resolves as task-driven: our canonical task said to run the file, and the toy and dsh were under identical instructions after all. Whether the model verifies unasked is behavioural and still needs a capture with a task that does not request it.",
+      "surprising": false,
+      "note": "notes/A-prompt-and-presentation.md",
+      "opened": [],
+      "resolved": [],
+      "issue": null
     }
   ],
   "questionIndex": [
