@@ -6,6 +6,19 @@ import { checkHtml } from './checks.mjs'
 
 const html = renderWorklog(loadCampaign('tools/campaign/fixtures/mini'))
 
+/**
+ * A campaign's threads with its log emptied.
+ *
+ * The two empty-state tests below used to read the real campaign directly, back when its log
+ * happened to be empty. That made them assertions that nothing had been logged yet — they went
+ * red on the first genuine finding, which is the one moment the empty state stops being worth
+ * testing and starts being unreachable. Stating the precondition here keeps them about rendering.
+ */
+const emptyLog = (dir) => {
+  const data = { ...readCampaign(dir), log: [] }
+  return { data, derived: derive(data) }
+}
+
 test('passes every HTML property check', () => {
   assert.deepEqual(checkHtml(html), [])
 })
@@ -144,7 +157,7 @@ test('two findings on one thread on one day get distinct entry ids', () => {
 test('the Trail has an empty state, as the frontier does', () => {
   // With an empty log the section used to be a bare heading with nothing under it, while the
   // frontier immediately above it said so in words.
-  const empty = renderWorklog(loadCampaign('campaigns/agent-harnesses'))
+  const empty = renderWorklog(emptyLog('campaigns/agent-harnesses'))
   const section = empty.match(/<h2 class="sec">Trail<\/h2>[\s\S]*?<\/section>/)[0]
   assert.match(section, /Nothing logged yet\. The first finding starts the trail\./)
   // And it is not shown once there is a trail.
@@ -157,10 +170,9 @@ test('the page says it is generated and names the command that rebuilds it', () 
 })
 
 test('an empty log renders as "nothing has happened yet", not broken', () => {
-  // The real campaign (campaigns/agent-harnesses) has all fifteen threads and an empty log —
-  // exactly the "nothing has happened yet" state this property is about. "Not started" is
+  // Fifteen threads, none logged — the "nothing has happened yet" state. "Not started" is
   // expressed purely by absence: no chip claims it, dashed pips and an empty frontier line do.
-  const empty = renderWorklog(loadCampaign('campaigns/agent-harnesses'))
+  const empty = renderWorklog(emptyLog('campaigns/agent-harnesses'))
   assert.deepEqual(checkHtml(empty), [])
   assert.match(empty, /0 touched · 0 dry · 15 not started/)
   assert.match(empty, /live · none/)

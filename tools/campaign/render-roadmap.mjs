@@ -289,7 +289,21 @@ const renderDetail = (d) => {
 const fromWordingFor = (data, letter) =>
   (data.questionIndex ?? []).filter((e) => e.threads.includes(letter)).map((e) => e.from)
 
-const renderThreadCard = (t, data) => {
+/**
+ * Links to the notes a thread has produced, newest first.
+ *
+ * Derived from the log rather than declared on the thread, so a card can never claim a finding
+ * that was not logged, nor miss one that was. A thread with nothing logged yet links only to the
+ * worklog, where its empty row still tells the reader it is untouched.
+ */
+const findingLinks = (t, derived) => {
+  const notes = [...new Set((derived.threads.get(t.letter)?.entries ?? [])
+    .map((e) => e.note).filter(Boolean))].reverse()
+  return notes.map((n) =>
+    ` · <a href="${attr(n.replace(/\.md$/, '.html'))}">${esc(n.replace(/^notes\//, ''))}</a>`).join('')
+}
+
+const renderThreadCard = (t, data, derived) => {
   const tags = [
     ...t.packages.map((p) => `<span class="pkg">${esc(p)}</span>`),
     needsBadge(t.needs) ? `<span class="tag t-cap">${esc(needsBadge(t.needs))}</span>` : '',
@@ -316,7 +330,7 @@ const renderThreadCard = (t, data) => {
           <div class="tags">${tags}</div>
           ${entry}
           ${details}
-          <p class="t-from">→ <a href="worklog.html#t${attr(t.letter)}">worklog</a></p>
+          <p class="t-from">→ <a href="worklog.html#t${attr(t.letter)}">worklog</a>${findingLinks(t, derived)}</p>
         </article>`
 }
 
@@ -339,7 +353,7 @@ const sMenu = (data, derived) => {
         <span class="band-n">${members.length} thread${members.length === 1 ? '' : 's'} · ${sumPackages(members)} packages</span>
       </div>
       <div class="band-body${bodyCls}">
-        ${members.map((t) => renderThreadCard(t, data)).join('\n\n        ')}
+        ${members.map((t) => renderThreadCard(t, data, derived)).join('\n\n        ')}
       </div>
     </div>`
   }).join('\n\n    ')

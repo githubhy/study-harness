@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { loadCampaign } from './model.mjs'
+import { loadCampaign, readCampaign, derive } from './model.mjs'
 import { renderRoadmap } from './render-roadmap.mjs'
 import { checkHtml } from './checks.mjs'
 
@@ -224,4 +224,26 @@ test('an omitted optional phase field (pre, halt, or detail) leaves no blank-lin
 test('the real campaign roadmap also has no stacked blank lines', () => {
   const real = renderRoadmap(loadCampaign('campaigns/agent-harnesses'))
   noStackedBlankLines(real)
+})
+
+test('a thread card links the notes its log entries produced, and only those', () => {
+  // Derived from the log, so a card cannot claim a finding that was never logged. Two entries
+  // citing one note must link it once, not twice.
+  const data = {
+    ...readCampaign('campaigns/agent-harnesses'),
+    log: [
+      { thread: 'B', date: '2026-08-16', finding: 'One.', surprising: true,
+        note: 'notes/B-agent-loop.md', opened: [], resolved: [], issue: null },
+      { thread: 'B', date: '2026-08-16', finding: 'Two.', surprising: true,
+        note: 'notes/B-agent-loop.md', opened: [], resolved: [], issue: null },
+    ],
+  }
+  const html = renderRoadmap({ data, derived: derive(data) })
+  const card = (letter) =>
+    html.match(new RegExp(`<p class="t-from">→ <a href="worklog\\.html#t${letter}">[\\s\\S]*?</p>`))[0]
+
+  const linked = [...card('B').matchAll(/href="(notes\/[^"]+)"/g)].map((m) => m[1])
+  assert.deepEqual(linked, ['notes/B-agent-loop.html'])   // .md rewritten to .html, deduped
+  // A thread with nothing logged makes no claim at all.
+  assert.doesNotMatch(card('A'), /notes\//)
 })

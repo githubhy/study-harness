@@ -686,7 +686,44 @@
       "source": "not stored locally"
     }
   ],
-  "log": [],
+  "log": [
+    {
+      "thread": "B",
+      "date": "2026-08-16",
+      "finding": "dsh has no step cap anywhere in the repo. The agent loop is three nested loops, its entire config is one concurrency integer, and termination is a closed set of six recorded reasons — one of which only a crash recovery ever writes.",
+      "surprising": true,
+      "note": "notes/B-agent-loop.md",
+      "opened": [
+        {
+          "id": "b-runaway",
+          "q": "If nothing counts steps, what actually stops a runaway run — cost, tokens, or only the user?",
+          "ask": "J"
+        },
+        {
+          "id": "b-gate",
+          "q": "Where does a permission gate live, given the agent loop contains none?",
+          "ask": "D"
+        },
+        {
+          "id": "b-replay",
+          "q": "The loop’s product is a balanced event log, and a backend closes crash-orphaned turns on reload. What reads it back?",
+          "ask": "I"
+        }
+      ],
+      "resolved": [],
+      "issue": null
+    },
+    {
+      "thread": "B",
+      "date": "2026-08-16",
+      "finding": "A turn does not end when the model stops calling tools: the step reason and an empty next-step inbox are both required, so a tool result can extend a turn the model considered over, or end one it wanted to continue.",
+      "surprising": true,
+      "note": "notes/B-agent-loop.md",
+      "opened": [],
+      "resolved": [],
+      "issue": null
+    }
+  ],
   "questionIndex": [
     {
       "shortcut": "<code>.slice(0, 4000)</code> on every tool result",
