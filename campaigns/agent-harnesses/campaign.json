@@ -1291,6 +1291,16 @@
         "c-batch"
       ],
       "issue": null
+    },
+    {
+      "thread": "A",
+      "date": "2026-08-16",
+      "finding": "Note 02’s last open observation, closed by experiment. Given a task that only asked for a file to be created — no “run it”, no “show me the output” — dsh called write then bash, ran it, and reported the result. Since nothing in the base system prompt instructs verification, the behaviour is a model habit rather than a harness instruction: a harness can be credited with behaviour it never asked for, and telling them apart needs the prompt read and the instruction removed from the task.",
+      "surprising": true,
+      "note": "notes/A-prompt-and-presentation.md",
+      "opened": [],
+      "resolved": [],
+      "issue": null
     }
   ],
   "questionIndex": [

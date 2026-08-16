@@ -87,9 +87,27 @@ Which resolves the observation, though not the way the note hoped. Our canonical
 with node and show me the output"* — the task said to. So that run is not evidence of harness-driven
 verification either way, and my toy and dsh were under identical instructions after all.
 
-What remains genuinely open is behavioural, not structural: whether the model verifies unasked. That needs
-a capture with a task that does not request it, and it is a claim about the model as much as the harness.
-Recorded as open rather than answered.
+### And then it was tested
+
+*Added 2026-08-16.* The behavioural half needed a capture with a task that does not request verification,
+so I took one. The task, verbatim and deliberately narrow:
+
+> Create a file at `…/verify/fizz.js` that prints the numbers 1 to 5, one per line.
+
+No "run it", no "show me the output", no "make sure it works". The tool calls dsh made:
+
+```
+write   →   bash
+```
+
+**It ran the file it had only been asked to write**, and reported the output. So the behaviour is real and
+it is unasked — and since nothing in the base system prompt instructs it (above), **verification here is a
+model habit, not a harness instruction.**
+
+That matters for the category, not just this specimen. A harness can be given credit for behaviour it
+never asked for, and the only way to tell the two apart is to read the prompt and then remove the
+instruction from the task. Note 02 recorded the behaviour and correctly refused to attribute it; this is
+where the attribution lands.
 
 ## Questions this opens
 

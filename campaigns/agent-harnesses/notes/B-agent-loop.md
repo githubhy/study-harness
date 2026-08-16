@@ -130,7 +130,7 @@ Every observation from the blind run, against a line or marked open.
 | It never asked permission | Confirmed, and sharper: **the loop contains no gate to ask with.** It appends `tool/call`, prepares, runs. Any approval must live in the tool runtime's `prepare` or a plugin. → Thread D |
 | It never retried | Confirmed, and sharper: retry is opt-in and absent by default. |
 | It displayed nothing between steps | Consistent — the loop only appends session events. Rendering is a subscriber. Not proof for the headless profile specifically. |
-| It verified its own work | **Still open.** Nothing in the loop causes this. Prompt or model behaviour. → Thread A |
+| It verified its own work | **Answered (A).** Nothing in the loop or the base prompt causes it; a task that only asked for a file still produced `write` → `bash`. A model habit, not a harness instruction. |
 
 ### The superseding snapshot, answered
 

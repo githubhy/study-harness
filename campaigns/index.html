@@ -288,7 +288,7 @@
         <div><div class="n-id">Specimen</div><div class="n-t"><b>deepseek-harness</b> @ <b>47f9438</b></div></div>
         <div><div class="n-id">Transfer specimen</div><div class="n-t"><b>Claude Code</b> · <b>transcripts</b></div></div>
       </div>
-      <p class="mono" data-role="resume">Re-ran the Code Mode comparison without the per-file constraint that invalidated the first attempt. Code Mode sent 48.6% less — 214 KB against 417 KB, two run_code calls replacing nine tool calls, final request half the size. Both halves now settle and point opposite ways: the floor is always higher because schemas move into the prompt, the slope is much lower when the model can batch. The deciding factor is not the harness, it is whether the task lets a program loop. <span class="mono">— D · 2026-08-16</span></p>
+      <p class="mono" data-role="resume">Note 02’s last open observation, closed by experiment. Given a task that only asked for a file to be created — no “run it”, no “show me the output” — dsh called write then bash, ran it, and reported the result. Since nothing in the base system prompt instructs verification, the behaviour is a model habit rather than a harness instruction: a harness can be credited with behaviour it never asked for, and telling them apart needs the prompt read and the instruction removed from the task. <span class="mono">— A · 2026-08-16</span></p>
       <p class="mono" data-role="totals">15 touched · 0 dry · 0 not started</p>
       <p class="c-blocks"><a href="agent-harnesses/roadmap.html">roadmap.html</a> · <a href="agent-harnesses/worklog.html">worklog.html</a></p>
     </article></div>

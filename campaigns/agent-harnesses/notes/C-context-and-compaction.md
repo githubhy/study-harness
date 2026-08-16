@@ -86,22 +86,18 @@ This is Thread E's architecture doing exactly what it was built for. Compaction 
 it is a different fold over the same log. A harness whose truth was the in-memory message array would have
 had to destroy something here.
 
-## What this note cannot answer
+## What source alone could not answer
 
-Two things, and I would rather leave them open than guess.
+Everything above is read, not measured. Two questions needed a capture, and the sections that follow
+report the experiment that took one — so this section states what was open *before* it, and what is
+**still** open after.
 
-- **The growth curve under real pressure.** Note 02 measured a 3-step run: dsh started 31× larger than my
-  toy and grew ×1.18 where the toy grew ×4.3, and I wrote then that the open question is what happens on a
-  thirty-step task. Nothing above answers that — `thresholdRatio` says compaction fires as a fraction of
-  the window, but which fraction, how often it fires in practice, and what the curve looks like across it
-  are empirical. **Needs a capture of a long-running task.**
-- **Code Mode's effect on the curve** — Thread D's question. Code Mode puts only the outer `run_code`
-  result in model history while sub-dispatches are logged separately, so a run that would have been twelve
-  tool results might be one. That should flatten the curve substantially, and it is a *prediction*, not a
-  finding. **Needs a capture in each presentation mode to compare.**
-
-Both are one experiment: the canonical task made long enough to trigger compaction, run twice, once per
-presentation mode. That is the next capture this campaign should take.
+- **The growth curve under real pressure.** `thresholdRatio` says compaction fires as a fraction of the
+  window, but which fraction, how often, and what the curve looks like across it are empirical.
+  → *Partly settled below: the curve was measured for 8–9 steps, but the run never reached compaction, so
+  the shape across a compaction event remains unobserved.*
+- **Code Mode's effect on the curve.** A prediction, not a finding.
+  → *Settled below, in both directions: the floor is higher, the slope is lower when the model can batch.*
 
 ## The experiment, run
 
@@ -242,5 +238,15 @@ alongside `contextBytes`, and note 02 carries a dated correction rather than edi
 ## Provenance
 
 Source read at `47f9438`. Pruner defaults quoted from `compaction-tool-result-pruner/src/config.ts`;
-`compaction-basic`'s config fields from its schema. **No capture was taken for this note** — the two
-questions above are marked open rather than answered.
+`compaction-basic`'s config fields from its schema.
+
+**Four captures were taken for this note** — `long-native`, `long-code`, `batch-native`, `batch-code` —
+through the redacting proxy, and are gitignored; the derived figures are committed in
+`measurements.json` and re-checked against the captures on every build. Every byte figure quoted here is
+a full request body including the `tools` array, not the messages-only `contextBytes` that understated
+this campaign's earlier numbers.
+
+**Still open:** no run reached compaction. 129 KB of context did not cross `thresholdRatio` for this
+model, so range compaction — the LLM-summarisation half of this note — remains read but never observed.
+Testing it needs a run long enough to overflow the window, which is a much larger experiment than the
+four above.

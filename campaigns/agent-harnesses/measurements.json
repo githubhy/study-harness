@@ -510,6 +510,58 @@
         "deepseek-chat"
       ],
       "streamed": false
+    },
+    "unasked": {
+      "source": "captures/session-unasked.jsonl",
+      "requests": 4,
+      "contextBytes": [
+        29468,
+        708,
+        30782,
+        31357
+      ],
+      "toolSchemaBytes": [
+        26983,
+        0,
+        26983,
+        26983
+      ],
+      "requestBytes": [
+        56631,
+        850,
+        57945,
+        58520
+      ],
+      "messageCounts": [
+        5,
+        2,
+        7,
+        9
+      ],
+      "systemPromptBytes": 4031,
+      "toolsOffered": 25,
+      "toolResultSizes": [
+        188,
+        10
+      ],
+      "firstRequestRoles": [
+        "system",
+        "user",
+        "user",
+        "user",
+        "user"
+      ],
+      "firstRequestBytes": [
+        4031,
+        186,
+        16031,
+        480,
+        8342
+      ],
+      "models": [
+        "deepseek-v4-flash"
+      ],
+      "streamed": true
     }
   }
 }
