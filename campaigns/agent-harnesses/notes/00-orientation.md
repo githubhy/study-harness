@@ -73,9 +73,18 @@ Two corrections to the plan's Task 0.1:
 
 **dsh boots "profiles", not commands.** `dsh --help` describes a profile as *"an ordered stack of
 plugin-bundle patch layers under your own overrides"*, with `--patch` applying a further overlay.
-`web`, `tui` and `headless` are profiles. This is the Cordis plugin architecture surfacing at the
+~~`web`, `tui` and `headless` are profiles.~~ This is the Cordis plugin architecture surfacing at the
 command line, and it is Thread E's subject arriving a phase early — the extension boundary is the
 *first* thing the CLI exposes, before any notion of a task.
+
+> **Corrected 2026-08-16 (Thread M). There is no `tui` profile.** `~/.dsh/profiles` holds exactly
+> `headless` and `web`; `dsh --profile tui` errors with *"profile "tui" does not exist"*; and no
+> directory matching `*tui*` exists anywhere in the checkout. The help text never claimed one — it
+> documents `--profile <name>` and a `web` subcommand alias, and lists no profile inventory at all.
+> The detail was invented, not observed. Recorded rather than deleted, because it is the failure that
+> note 02's blind-observation discipline exists to prevent, occurring in a note that had no such guard:
+> a claim about what a source *says* needs the same provenance as a claim about what code *does*.
+> See `notes/M-inputs-and-inspection.md`.
 
 **There is a built-in mock LLM server**, `packages/test-support/llm-mock-server`, with its own CLI and
 a `pnpm mock:llm` script. If it speaks the same `/chat/completions` shape, a capture could be taken

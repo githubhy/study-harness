@@ -1055,6 +1055,44 @@
       "opened": [],
       "resolved": [],
       "issue": null
+    },
+    {
+      "thread": "M",
+      "date": "2026-08-16",
+      "finding": "--dump-config composes a profile’s patch layers without booting and annotates every plugin with the bundle that contributed it and the bundle that patched it, so “why is HMR off in headless?” is answerable from the dump alone. Measured: headless mounts 81 plugins, web mounts 129. The plugin graph is inspectable without running; the assembled prompt is not, but the graph determines what it will be made of.",
+      "surprising": true,
+      "note": "notes/M-inputs-and-inspection.md",
+      "opened": [
+        {
+          "id": "m-conflict",
+          "q": "Profiles are user-creatable and a profile is an npm-installed plugin set, so mounting a capability is pnpm add. What stops a profile mounting something that contradicts another plugin?",
+          "ask": "E"
+        }
+      ],
+      "resolved": [
+        "a-dump"
+      ],
+      "issue": null
+    },
+    {
+      "thread": "M",
+      "date": "2026-08-16",
+      "finding": "Diffing the profiles confirms Thread E structurally rather than behaviourally: cordis-host-runner, cordis-client-runner and ui-cordis are web-only. The model cannot run a self-written plugin headless not because approval would deny it, but because the orchestrator and approval UI are not mounted at all. Deriving a property and then measuring it was worth the extra step.",
+      "surprising": true,
+      "note": "notes/M-inputs-and-inspection.md",
+      "opened": [],
+      "resolved": [],
+      "issue": null
+    },
+    {
+      "thread": "M",
+      "date": "2026-08-16",
+      "finding": "Note 00 asserted that web, tui and headless are profiles. There is no tui — not a profile, not a package, not a directory anywhere in the checkout, and the help text never claimed one. The detail completed itself because a terminal UI is a normal thing for a harness to have. A claim about what a source says needs the same provenance as a claim about what code does; note 00 had provenance for its commands and none for its prose.",
+      "surprising": false,
+      "note": "notes/M-inputs-and-inspection.md",
+      "opened": [],
+      "resolved": [],
+      "issue": null
     }
   ],
   "questionIndex": [
