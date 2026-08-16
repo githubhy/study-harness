@@ -937,6 +937,28 @@
         "i-replay"
       ],
       "issue": null
+    },
+    {
+      "thread": "H",
+      "date": "2026-08-16",
+      "finding": "Interop is normalization. An MCP server’s tools are registered on ctx.tools under mcp__<server>__<name> and are not a category at all — so without a line of MCP-aware code elsewhere they inherit the three-stage gate, the output.schema and render() contract, per-scope restriction, and Code Mode bindings. Hook dialects and foreign subagent runtimes get the same treatment onto their own seams.",
+      "surprising": true,
+      "note": "notes/H-interop.md",
+      "opened": [],
+      "resolved": [],
+      "issue": null
+    },
+    {
+      "thread": "H",
+      "date": "2026-08-16",
+      "finding": "A foreign child returns three fields: output blocks, an optional schema-validated value, and a stop reason. Its internal steps, tool calls and permission decisions never enter dsh’s log. This confirms rather than extends F — the delegation boundary is also the observability boundary, for the same reason the policy guarantees stopped there.",
+      "surprising": false,
+      "note": "notes/H-interop.md",
+      "opened": [],
+      "resolved": [
+        "f-foreign"
+      ],
+      "issue": null
     }
   ],
   "questionIndex": [
