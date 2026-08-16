@@ -959,6 +959,34 @@
         "f-foreign"
       ],
       "issue": null
+    },
+    {
+      "thread": "O",
+      "date": "2026-08-16",
+      "finding": "ralph, the one tool name note 02 could not guess, is a Ralph loop: a fresh structured-output child per round carrying only the immutable objective and the previous bounded handoff. It is context management by delegation rather than compaction — growth is avoided instead of managed — and because it rides the subagent seam the depth cap applies and every round stays individually replayable.",
+      "surprising": true,
+      "note": "notes/O-agent-self-management.md",
+      "opened": [
+        {
+          "id": "o-bounded",
+          "q": "A Ralph loop has no round cap of its own, only inherited delegation depth. With the unbounded Stop-hook continuation, is any dsh loop bounded by something other than a human?",
+          "ask": "J"
+        }
+      ],
+      "resolved": [],
+      "issue": null
+    },
+    {
+      "thread": "O",
+      "date": "2026-08-16",
+      "finding": "Approving a model-written plugin for future versions is an explicit choice, not a default: approve() takes a required approveFutureVersions boolean threaded from the UI. Identity is the stable pluginId; the scope of the grant is a separate answer. Given grants at the approval seam are otherwise one-shot, this is the only durable grant in the system and it sits behind a checkbox.",
+      "surprising": false,
+      "note": "notes/O-agent-self-management.md",
+      "opened": [],
+      "resolved": [
+        "e-identity"
+      ],
+      "issue": null
     }
   ],
   "questionIndex": [

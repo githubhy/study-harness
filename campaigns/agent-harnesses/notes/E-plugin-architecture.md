@@ -27,9 +27,12 @@ The gate is placed carefully, and not where I expected:
 | `cordis_run` | *"An unauthorized Client Package creates an approval request and returns awaiting-approval; an authorized Package returns starting"* |
 
 **Defining is free; running is gated.** Writing code is inert, executing it is the risk, and the boundary
-sits exactly there. Plugin-wide authorization then covers later versions, so a human approves a plugin
-once rather than every edit — and the model is told to *"correct the same Plugin and retry autonomously.
-Do not request approval again after"* a failure it can fix itself.
+sits exactly there. The model is told to *"correct the same Plugin and retry autonomously. Do not request
+approval again after"* a failure it can fix itself.
+
+Authorization can extend to later versions of the same plugin — but **not automatically**: Thread O found
+that `approve()` takes a required `approveFutureVersions` boolean threaded from the approval UI, with no
+default. The human decides at that moment whether they are approving this version or the plugin.
 
 ### What that composes to
 
