@@ -557,6 +557,19 @@ const nav = (data, derived) => {
 </nav>`
 }
 
+/**
+ * The campaign's conclusion, linked from the top of its own roadmap.
+ *
+ * A synthesis note that nothing links to is a front door with no handle — which is exactly what
+ * happened when 06 was first written. Optional, so a campaign without one renders nothing rather
+ * than an empty box.
+ */
+const renderSynthesis = (data) => {
+  const s = data.synthesis
+  if (!s) return ''
+  return `<p class="synth"><a href="${attr(s.href)}"><b>${esc(s.title)}</b></a> — ${rich(s.blurb)}</p>`
+}
+
 const masthead = (data, derived) => {
   const { source, evidence } = splitByNeeds(data.threads)
   const packages = packageTotal(data, derived.census, data.infrastructurePackages ?? [])
@@ -565,6 +578,7 @@ const masthead = (data, derived) => {
     <p class="kick">Campaign <b style="color:var(--ink-soft);font-weight:500">${esc(data.campaign)}</b> · ${esc(data.specimen.short ?? data.specimen.name)} @ ${esc(data.specimen.pinned)} · nothing on this page is hidden</p>
     <h1>${esc(data.title)}</h1>
     <p class="sf">${rich(data.copy.standfirst)}</p>
+    ${renderSynthesis(data)}
     <div class="facts">
       <span>specimen <b>${esc(data.specimen.name)}</b></span>
       <span>pinned <b>${esc(data.specimen.pinned)}</b> · ${esc(data.specimen.date)}</span>

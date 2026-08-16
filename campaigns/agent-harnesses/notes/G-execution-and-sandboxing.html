@@ -257,6 +257,16 @@
   .viz-k { display:flex; flex-wrap:wrap; gap:4px 16px; font-family:var(--mono); font-size:10.5px; color:var(--ink-soft); margin:8px 0 0; }
   .viz-k b { font-weight:500; }
   .viz-sw { display:inline-block; width:9px; height:9px; margin-right:5px; vertical-align:-1px; }
+
+  /* --- synthesis link ---------------------------------------------------------
+     Appended after the frozen pre-migration body, like the series tokens above:
+     that block is a verbatim record and inserting into it breaks the check that
+     proves it was copied whole.                                                 */
+  .synth { margin:14px 0 0; padding:10px 14px; border-left:2px solid var(--specimen);
+    background:color-mix(in oklab, var(--specimen) 8%, transparent); font-size:15px;
+    line-height:1.5; max-width:62ch; }
+  .synth a { color:var(--ink); text-decoration:none; }
+  .synth a:hover, .synth a:focus-visible { text-decoration:underline; }
 </style>
 <div class="page"><main>
 <header class="mast"><p class="kick">Note · agent-harnesses</p></header>

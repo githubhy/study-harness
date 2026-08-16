@@ -247,3 +247,18 @@ test('a thread card links the notes its log entries produced, and only those', (
   // A thread with nothing logged makes no claim at all.
   assert.doesNotMatch(card('A'), /notes\//)
 })
+
+test('the synthesis link renders when declared and vanishes when not', () => {
+  // A synthesis note nothing links to is a front door with no handle, which is what happened when
+  // note 06 was first written — it rendered, passed every check, and was unreachable.
+  const base = readCampaign('campaigns/agent-harnesses')
+  const withIt = renderRoadmap({ data: base, derived: derive(base) })
+  assert.match(withIt, /class="synth"/)
+  assert.match(withIt, /href="notes\/06-what-a-harness-is\.html"/)
+
+  const without = { ...base }
+  delete without.synthesis
+  const out = renderRoadmap({ data: without, derived: derive(without) })
+  assert.doesNotMatch(out, /class="synth"/)
+  assert.deepEqual(checkHtml(out), [])   // and no empty box left behind
+})

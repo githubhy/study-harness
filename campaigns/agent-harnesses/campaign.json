@@ -1400,5 +1400,10 @@
         "O"
       ]
     }
-  ]
+  ],
+  "synthesis": {
+    "href": "notes/06-what-a-harness-is.html",
+    "title": "Start here · What a harness is",
+    "blurb": "The campaign’s conclusion. A harness is an event-sourced system whose log has to double as a provider-valid transcript — and almost everything else follows from that."
+  }
 }

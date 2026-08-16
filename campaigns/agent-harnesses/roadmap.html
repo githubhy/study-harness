@@ -257,6 +257,16 @@
   .viz-k { display:flex; flex-wrap:wrap; gap:4px 16px; font-family:var(--mono); font-size:10.5px; color:var(--ink-soft); margin:8px 0 0; }
   .viz-k b { font-weight:500; }
   .viz-sw { display:inline-block; width:9px; height:9px; margin-right:5px; vertical-align:-1px; }
+
+  /* --- synthesis link ---------------------------------------------------------
+     Appended after the frozen pre-migration body, like the series tokens above:
+     that block is a verbatim record and inserting into it breaks the check that
+     proves it was copied whole.                                                 */
+  .synth { margin:14px 0 0; padding:10px 14px; border-left:2px solid var(--specimen);
+    background:color-mix(in oklab, var(--specimen) 8%, transparent); font-size:15px;
+    line-height:1.5; max-width:62ch; }
+  .synth a { color:var(--ink); text-decoration:none; }
+  .synth a:hover, .synth a:focus-visible { text-decoration:underline; }
 </style>
 <div class="page"><div class="cols">
 <nav aria-label="Contents">
@@ -307,6 +317,7 @@
     <p class="kick">Campaign <b style="color:var(--ink-soft);font-weight:500">agent-harnesses</b> · dsh @ 47f9438 · nothing on this page is hidden</p>
     <h1>Harness Dissection</h1>
     <p class="sf">Build a transferable model of <strong>agent harnesses as a category</strong> by dissecting DeepSeek Harness — then test whether that model explains a harness it was never derived from.</p>
+    <p class="synth"><a href="notes/06-what-a-harness-is.html"><b>Start here · What a harness is</b></a> — The campaign’s conclusion. A harness is an event-sourced system whose log has to double as a provider-valid transcript — and almost everything else follows from that.</p>
     <div class="facts">
       <span>specimen <b>deepseek-harness</b></span>
       <span>pinned <b>47f9438</b> · 2026-08-13</span>
