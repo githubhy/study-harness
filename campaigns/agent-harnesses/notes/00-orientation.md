@@ -60,8 +60,14 @@ Two corrections to the plan's Task 0.1:
   pnpm 10.33.0 resolves to 11.7.0 inside the repo.
 - **`ls packages | wc -l` reports 54, not 49.** Five of those entries are files
   (`README.md`, `README.zh.md`, `README.i18n.yaml`, `AGENTS.md`, `CLAUDE.md`). There are exactly **49
-  package directories**, and the roadmap's census names every one — verified against this checkout,
-  not against the frozen snapshot the generator tests use.
+  directories**, and the roadmap's census names every one — verified against this checkout, not against
+  the frozen snapshot the generator tests use.
+
+  **Corrected 2026-08-16 (Thread J).** This note originally called those 49 "package directories". They
+  are not packages: there is no `package.json` at that depth. They are **groups**, and they contain
+  **219 leaf packages** (`packages/*/*/package.json`). The census still enumerates all 49 groups, which
+  is what it claims to do — but the specimen is 219 packages, not 49, and every one of them registers a
+  runtime invariant. See `notes/J-observability-and-cost.md`.
 
 ## Two things worth knowing before Phase 1
 

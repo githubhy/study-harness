@@ -204,3 +204,34 @@ test('an omitted optional section leaves no blank-line trace', () => {
   const body = real.replace(/\n<style>[\s\S]*?<\/style>\n/, '\n')
   assert.doesNotMatch(body, /\n\s*\n/)
 })
+
+test('a resolution names the question it closed and who asked it', () => {
+  // Closing a question used to be invisible: it left the frontier and nothing said why. Both
+  // halves of the graph must render, or the trail shows questions vanishing rather than answered.
+  const base = readCampaign('campaigns/agent-harnesses')
+  const data = {
+    ...base,
+    log: [
+      { thread: 'B', date: '2026-08-16', finding: 'Asks.', surprising: true, note: 'notes/B-agent-loop.md',
+        opened: [{ id: 'q-x', q: 'What stops a runaway run?', ask: 'J' }], resolved: [], issue: null },
+      { thread: 'J', date: '2026-08-17', finding: 'Answers.', surprising: true, note: 'notes/B-agent-loop.md',
+        opened: [], resolved: ['q-x'], issue: null },
+    ],
+  }
+  const derived = derive(data)
+  const out = renderWorklog({ data, derived })
+
+  assert.match(out, /→ answered B: What stops a runaway run\?/)
+  assert.equal(derived.frontier.length, 0)              // and it leaves the frontier
+  assert.deepEqual(checkHtml(out), [])
+})
+
+test('an entry resolving nothing renders no answered line', () => {
+  const base = readCampaign('campaigns/agent-harnesses')
+  const data = {
+    ...base,
+    log: [{ thread: 'B', date: '2026-08-16', finding: 'Only.', surprising: true,
+      note: 'notes/B-agent-loop.md', opened: [], resolved: [], issue: null }],
+  }
+  assert.doesNotMatch(renderWorklog({ data, derived: derive(data) }), /answered/)
+})

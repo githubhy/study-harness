@@ -511,7 +511,7 @@ while read -r p; do rg -q "$p" campaigns/${data.campaign}/roadmap.html \\
   ].filter(Boolean).join('\n    ')
   return `<section id="s8">
     <span class="snum">§ 8</span>
-    <h2 class="sec">Package census · all ${total} accounted for</h2>
+    <h2 class="sec">Package census · all ${total} groups accounted for</h2>
     ${sectionBody}
   </section>`
 }

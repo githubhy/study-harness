@@ -147,7 +147,7 @@ test('a census-raised thread keeps its own FROM text, having no questionIndex en
 
 test('the package total falls back to the derived count when none is claimed', () => {
   // mini states no specimen.packageCount: pkg-a, shared, pkg-b, pkg-c, util = 5.
-  assert.match(html, /Package census · all 5 accounted for/)
+  assert.match(html, /Package census · all 5 groups accounted for/)
   assert.match(html, /packages <b>5<\/b>, all covered/)
 })
 

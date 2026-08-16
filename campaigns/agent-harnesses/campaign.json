@@ -722,6 +722,44 @@
       "opened": [],
       "resolved": [],
       "issue": null
+    },
+    {
+      "thread": "J",
+      "date": "2026-08-16",
+      "finding": "Nothing inside dsh can stop a run. token-meter takes no settings at all — observation is total and deliberately powerless — and cancel() has four causes of which only user, parent and disposed are ever produced; hook is reserved and has no producer anywhere.",
+      "surprising": true,
+      "note": "notes/J-observability-and-cost.md",
+      "opened": [
+        {
+          "id": "j-ask",
+          "q": "PreToolUse can return ask, so the permission gate sits at the tool seam. Who renders that prompt, and what happens headless where nobody can answer?",
+          "ask": "D"
+        },
+        {
+          "id": "j-inherit",
+          "q": "SubagentStart can inject context into a child. Does a child inherit the parent’s hook config?",
+          "ask": "F"
+        },
+        {
+          "id": "j-reserved",
+          "q": "The hook cancel cause is reserved and unused. Is it dead, or a seam a host is expected to fill?",
+          "ask": "K"
+        }
+      ],
+      "resolved": [
+        "b-runaway"
+      ],
+      "issue": null
+    },
+    {
+      "thread": "J",
+      "date": "2026-08-16",
+      "finding": "dsh runs unmodified Claude Code and Codex hook configs on its own seams — and a Stop hook that denies forces the turn to continue, unbounded. Both bridges carry TODO(stop-loop-guard) and defer the fix to hook authors, while hardcoding stop_hook_active to false, which is the signal a hook would self-limit with.",
+      "surprising": true,
+      "note": "notes/J-observability-and-cost.md",
+      "opened": [],
+      "resolved": [],
+      "issue": null
     }
   ],
   "questionIndex": [

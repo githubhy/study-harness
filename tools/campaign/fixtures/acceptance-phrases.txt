@@ -58,4 +58,4 @@ canonical task
 Universal
 dsh-specific
 Missing
-all 49 accounted for
+all 49 groups accounted for

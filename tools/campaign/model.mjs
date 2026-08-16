@@ -141,6 +141,12 @@ export function derive(data) {
   const frontier = byDate.flatMap((e) => e.opened.map((o) => ({ ...o, from: e.thread, date: e.date })))
     .filter((o) => !resolved.has(o.id))
 
+  // Every question by id, so an entry that resolves one can say which. Without it the graph is
+  // only half visible on the page: opening a question renders, closing one silently removes it
+  // from the frontier and is never shown to have happened. Validation above already guarantees
+  // every resolved id was opened somewhere, so a lookup here cannot miss.
+  const questions = new Map(byDate.flatMap((e) => e.opened.map((o) => [o.id, { ...o, from: e.thread }])))
+
   const edges = [
     ...byDate.flatMap((e) => e.opened.map((o) => ({ from: e.thread, to: o.ask, label: o.q, kind: 'opened' }))),
     ...data.threads.filter((t) => t.gates).map((t) => ({ from: t.letter, to: t.gates, label: 'gates', kind: 'gates' })),
@@ -172,6 +178,7 @@ export function derive(data) {
     live: list.filter((t) => t.state === 'live')
       .sort((a, b) => Date.parse(b.lastDate) - Date.parse(a.lastDate)).map((t) => t.letter),
     frontier,
+    questions,
     trail: trail.reverse(),
     edges,
     census: data.threads.map(({ letter, name, loop, needs, packages }) => ({ letter, name, loop, needs, packages })),

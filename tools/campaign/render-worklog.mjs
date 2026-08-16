@@ -42,6 +42,14 @@ const trail = (data, derived) => derived.trail.length === 0
     // entry keeps its own, which the id-uniqueness check below relies on.
     const anchor = newest ? `<span id="t${attr(e.thread)}"></span>` : ''
     const opened = e.opened.map((o) => `→ opened: ${rich(o.q)} (${esc(o.ask)})`).join('<br>')
+    // A resolution names the question it closed and the thread that asked it. Both halves of the
+    // graph render, so the trail shows a question being answered rather than quietly vanishing
+    // from the frontier.
+    const answered = e.resolved
+      .map((id) => derived.questions.get(id))
+      .filter(Boolean)
+      .map((q) => `→ answered ${esc(q.from)}: ${rich(q.q)}`).join('<br>')
+    const marks = [opened, answered].filter(Boolean).join('<br>')
     const issue = e.issue != null ? ` · filed #${esc(String(e.issue))}` : ''
     // Thread plus date is not unique: two findings on one thread on one day collide. The index is
     // the entry's position in its own thread's history, so appending a finding never renumbers the
@@ -50,7 +58,7 @@ const trail = (data, derived) => derived.trail.length === 0
     return `<div class="entry" data-state="${attr(state)}" id="e-${attr(`${e.thread}${e.date}-${n}`)}">${anchor}`
          + `<b><a href="roadmap.html#t${esc(e.thread)}">${esc(e.thread)} · ${esc(t.name)}</a></b> `
          + `<span class="mono">${esc(e.pips)} ${esc(e.date)}</span><br>${rich(e.finding)}<br>`
-         + `<span class="mono">${opened}${opened ? ' · ' : ''}${esc(e.note)}${issue}</span></div>`
+         + `<span class="mono">${marks}${marks ? ' · ' : ''}${esc(e.note)}${issue}</span></div>`
     }).join('\n')
 
 // Only threads with no trail entry: those have nowhere in the trail to anchor, and without a
