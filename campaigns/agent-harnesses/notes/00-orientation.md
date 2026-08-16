@@ -90,6 +90,24 @@ Verified by `tools/capture-proxy/smoke.test.mjs` against a **stub upstream**, so
 and costs nothing. The test plants `sk-SMOKETEST…` in an `Authorization` header, an `X-Api-Key`, and
 the stub's `Set-Cookie`, then asserts none of it reaches disk. Five tests, all passing.
 
+```diagram
+kind: chain
+title: How a number reaches a chart
+caption: The proxy forwards to api.deepseek.com and tees a copy to disk. Everything downstream is derived, so the figure in a note and the bytes on the wire are the same fact rather than two copies of it.
+node: harness | DEEPSEEK_BASE_URL
+node: capture proxy | forwards + tees
+node: capture jsonl | gitignored
+node: measure.mjs | facts only
+node: measurements | committed, 3 KB
+node: note chart | cites by reference
+edge: request
+edge: redacted copy
+edge: read
+edge: derive
+edge: at build
+back: --check re-derives and fails if a re-taken capture disagrees
+```
+
 The check the plan calls non-negotiable, run as written:
 
 ```

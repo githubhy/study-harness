@@ -9,6 +9,7 @@
 import { CSS } from './theme.mjs'
 import { esc, attr, GENERATED_MARKER } from './html.mjs'
 import { renderChart } from './render-chart.mjs'
+import { renderDiagram } from './render-diagram.mjs'
 
 /**
  * Inline spans.
@@ -58,8 +59,9 @@ export function renderNoteBody(markdown, measurements) {
       // A `chart` fence is data, not sample code: it renders. Everything else is
       // shown verbatim. A malformed spec throws rather than emitting a broken
       // figure — a chart that silently draws nothing is worse than a build error.
-      out.push(info === 'chart'
-        ? renderChart(body.join('\n'), measurements)
+      out.push(
+        info === 'chart' ? renderChart(body.join('\n'), measurements)
+        : info === 'diagram' ? renderDiagram(body.join('\n'))
         : `<pre>${esc(body.join('\n'))}</pre>`)
       continue
     }

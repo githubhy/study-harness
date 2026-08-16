@@ -5,6 +5,26 @@ tools, a loop, a step cap. It is the experimental control — the only harness i
 every byte I can account for — and the table at the bottom is the thread menu, derived rather than
 assumed. Written 2026-08-16.
 
+```diagram
+kind: chain
+title: The control loop, and where each shortcut sits
+caption: Five stages and a return edge. The shortcuts are not scattered through the code — each one sits at a particular stage, which is why the stages and the thread menu line up.
+node: assemble | messages + tools
+node: call model | POST /chat/completions
+node: parse calls | tool_calls
+node: execute | execSync, on the host
+node: append | role tool
+edge: prompt
+edge: assistant msg
+edge: name + args
+edge: stdout
+back: nothing is ever dropped — the whole context is re-sent on the next step
+mark: 1 | one fixed prompt · A
+mark: 2 | one wire format · L
+mark: 4 | no gate · D, G
+mark: 5 | slice(0, 4000) · C
+```
+
 ## It works
 
 The canonical task, through the capture proxy:
@@ -52,6 +72,18 @@ doing it. The run ended at the step cap with no answer at all.
 
 Of the nine tool results the run produced, **five were clipped at exactly 4,000 bytes**. A value that
 appears five times to the byte is not data; it is a ceiling.
+
+```diagram
+kind: chain
+title: How two caps failed together
+caption: Neither cap failed on its own terms. The result cap turned each answer into a partial one, the model spent a step narrowing its query, and the step cap ended the run before the narrowing converged.
+node: result clipped | at 4,000 bytes
+node: model narrows | head, sed, awk, python
+node: one step spent | of ten
+edge: partial answer
+edge: new command
+back: nine times over, until the step cap ended the run with no answer at all
+```
 
 ```chart
 kind: bars

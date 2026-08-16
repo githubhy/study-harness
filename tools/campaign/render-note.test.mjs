@@ -68,3 +68,32 @@ test('a chart citing a measurement fails loudly when none is supplied', () => {
   assert.throws(() => renderNoteBody('```chart\nkind: series\nseries: a | @run.contextBytes\n```'),
     /no capture "run"/)
 })
+
+test('two diagrams on one page get distinct, stable marker ids', () => {
+  // Both defining `dg-arrow` is a duplicate id; the property checks caught it.
+  const page = renderNoteBody([
+    '```diagram', 'kind: chain', 'node: a', 'node: b', 'edge: x', '```',
+    '```diagram', 'kind: chain', 'node: c', 'node: d', 'edge: y', '```',
+  ].join('\n'))
+  const ids = [...page.matchAll(/<marker id="(dg-[a-z0-9]+)"/g)].map((m) => m[1])
+  assert.equal(ids.length, 2)
+  assert.notEqual(ids[0], ids[1])
+  // Stable across renders, so a rebuild is not spurious drift.
+  const again = renderNoteBody(['```diagram', 'kind: chain', 'node: a', 'node: b', 'edge: x', '```'].join('\n'))
+  assert.match(again, new RegExp(`id="${ids[0]}"`))
+})
+
+test('a diagram draws its stages, labelled arrows, and return edge', () => {
+  const html = renderNoteBody([
+    '```diagram', 'kind: chain', 'title: T',
+    'node: assemble | messages', 'node: call model', 'edge: prompt',
+    'back: re-sent every step', 'mark: 1 | no gate', '```',
+  ].join('\n'))
+  assert.equal((html.match(/<rect /g) ?? []).length, 2)
+  assert.match(html, />assemble</)
+  assert.match(html, />messages</)          // the sub-label
+  assert.match(html, />prompt</)            // the arrow carries what moves
+  assert.match(html, />re-sent every step</)
+  assert.match(html, /stroke-dasharray/)    // the return edge is distinguishable
+  assert.match(html, /var\(--specimen\)/)   // the mark is the one accented thing
+})
