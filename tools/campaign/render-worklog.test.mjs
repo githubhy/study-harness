@@ -272,3 +272,16 @@ test('each finding links the note that holds it, rather than naming the file', (
   assert.match(real, /<a href="notes\/A-prompt-and-presentation\.html">notes\/A-prompt-and-presentation\.md<\/a>/)
   assert.doesNotMatch(real, /<span class="mono">notes\/[^<]*\.md<\/span>/)
 })
+
+test("every target the thread graph links to exists on the page it is drawn on", () => {
+  // The graph's arches point at entry anchors and its nodes at thread blocks, and both ids are now
+  // derived rather than invented by each renderer — which is the point: an id computed in two places
+  // is one that eventually disagrees with itself, and the failure would be a figure full of links
+  // that quietly go nowhere.
+  const page = renderWorklog(loadCampaign('campaigns/agent-harnesses'))
+  const figure = page.match(/<figure class="loop">[\s\S]*?<\/figure>/)[0]
+  const ids = new Set([...page.matchAll(/\bid="([^"]+)"/g)].map((m) => m[1]))
+  const targets = [...figure.matchAll(/<a href="#([^"]+)"/g)].map((m) => m[1])
+  assert.ok(targets.length >= 30, `expected the real graph's links, got ${targets.length}`)
+  assert.deepEqual(targets.filter((t) => !ids.has(t)), [])
+})

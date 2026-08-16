@@ -94,3 +94,38 @@ test('the figure is only as tall as its tallest arch', () => {
   const h = (s) => +s.match(/viewBox="0 0 [\d.]+ ([\d.]+)"/)[1]
   assert.ok(h(short) < h(tall), `expected the mini fixture to be shorter: ${h(short)} vs ${h(tall)}`)
 })
+
+test('every arch links to the finding that answered its question', () => {
+  const real = loadCampaign('campaigns/agent-harnesses')
+  const svg = renderGraph(real)
+  const opened = real.derived.edges.filter((e) => e.kind === 'opened')
+
+  // One link per arch, and each points at the entry that closed it rather than merely at the thread.
+  // A hover title made this a picture; the href is what makes it navigation.
+  for (const e of opened) {
+    const answer = real.derived.answeredBy.get(e.id)
+    assert.ok(answer, `${e.id} should be answered in this campaign`)
+    assert.ok(svg.includes(`<a href="#${answer}"`), `no arch links to ${answer}`)
+  }
+  // Every arch carries a hit path far wider than the 1px it draws — a 1px stroke is not a target.
+  const hits = [...svg.matchAll(/class="gedge-hit"[^>]*stroke-width="(\d+)"[^>]*pointer-events="stroke"/g)]
+  assert.equal(hits.length, opened.length)
+  assert.ok(hits.every((m) => +m[1] >= 10), 'hit paths must be a usable width')
+})
+
+test('an unanswered question points at the thread that owes the answer', () => {
+  const real = loadCampaign('campaigns/agent-harnesses')
+  const edge = real.derived.edges.find((e) => e.kind === 'opened')
+  // Drop the resolution: the arch has nowhere to land, so it goes to the thread that was asked.
+  const answeredBy = new Map(real.derived.answeredBy)
+  answeredBy.delete(edge.id)
+  const svg = renderGraph({ data: real.data, derived: { ...real.derived, answeredBy, frontier: [{ id: edge.id }] } })
+  assert.match(svg, new RegExp(`<a href="#t${edge.to}" aria-label="[^"]*owes the answer`))
+})
+
+test('every node links to its own block in the trail', () => {
+  const real = loadCampaign('campaigns/agent-harnesses')
+  const svg = renderGraph(real)
+  for (const l of real.derived.bands.flatMap((b) => b.letters))
+    assert.ok(svg.includes(`<a href="#t${l}"`), `no link to ${l}'s block`)
+})

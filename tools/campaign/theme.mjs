@@ -271,6 +271,22 @@ export const CSS = `<style>
   a.tref { color:inherit; text-decoration:underline dotted var(--rule); text-decoration-thickness:1px; }
   a.tref:hover, a.tref:focus-visible { color:var(--specimen); text-decoration:underline solid; }
 
+  /* --- worklog: the thread graph is navigation --------------------------------
+     Every arch and every node is a link. The marks stay quiet until pointed at:
+     an arch brightens and thickens, a node's circle takes the accent, so the one
+     under the cursor separates from twenty others crossing the same space.
+     Presentation attributes lose to any CSS rule, which is what lets these
+     override the inline opacity the SVG sets per arch.                          */
+  figure.loop a { cursor:pointer; }
+  figure.loop a:hover .gedge, figure.loop a:focus-visible .gedge {
+    opacity:1; stroke-width:2.4; stroke:var(--specimen); }
+  figure.loop a:hover .gnode circle, figure.loop a:focus-visible .gnode circle {
+    stroke:var(--specimen); stroke-width:2; }
+  figure.loop a:focus-visible { outline:2px solid var(--specimen); outline-offset:3px; }
+  @media (prefers-reduced-motion: no-preference) {
+    figure.loop .gedge, figure.loop .gnode circle { transition:stroke .12s, stroke-width .12s, opacity .12s; }
+  }
+
   /* --- worklog: the note index -------------------------------------------------
      Two columns where there is room, stacked below it. Reports are an ordered
      list because they are meant to be read in order; threads are not.          */

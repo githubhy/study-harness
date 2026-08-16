@@ -104,29 +104,51 @@ export function renderGraph({ derived }) {
 
   // Arcs start and end at the circle's rim rather than its centre, so the arrowhead lands on the
   // node it points at instead of underneath it.
+  //
+  // Each arch is a link, because an arch is a question and the useful thing to do with a question is
+  // read its answer. An answered one goes to the finding that closed it; a standing one goes to the
+  // thread that owes it, which is where the answer will appear. A hover title alone made the graph
+  // something to look at rather than something to use.
+  //
+  // The hit path is the whole reason this works: a 1px stroke is an unusable click target, so an
+  // invisible 14px-wide copy of the same curve takes the pointer. `pointer-events="stroke"` asks for
+  // the stroke *geometry* rather than its paint, so the width counts even though nothing is drawn.
   const edges = arcs.map((a) => {
     const y = a.up ? axisY - R : axisY + R
+    const d = arch(a.x1, a.x2, y, a.h, a.up)
     const ink = a.open ? ' stroke="var(--specimen)" stroke-width="1.6" opacity="1"'
                        : ' stroke="currentColor" stroke-width="1" opacity=".42"'
-    return `<path class="gedge" data-dir="${a.up ? 'forward' : 'back'}" data-open="${a.open ? 'yes' : 'no'}" `
-         + `d="${arch(a.x1, a.x2, y, a.h, a.up)}" fill="none"${ink} `
-         + `marker-end="url(#${a.open ? 'gar-open' : 'gar'})">`
+    const answer = derived.answeredBy?.get(a.id)
+    const href = answer ? `#${answer}` : `#t${a.to}`
+    const where = answer ? 'read the finding that answered it' : `see ${a.to}, which owes the answer`
+    const label = `${a.from} asked ${a.to}: ${a.label}${a.open ? ' — still open' : ''}. Go to ${where}.`
+    return `<a href="${attr(href)}" aria-label="${attr(label)}">`
+         + `<path class="gedge-hit" d="${d}" fill="none" stroke="transparent" stroke-width="14" `
+         + `pointer-events="stroke"/>`
+         + `<path class="gedge" data-dir="${a.up ? 'forward' : 'back'}" data-open="${a.open ? 'yes' : 'no'}" `
+         + `d="${d}" fill="none"${ink} pointer-events="none" `
+         + `marker-end="url(#${a.open ? 'gar-open' : 'gar'})"/>`
          + `<title>${esc(a.from)} → ${esc(a.to)}: ${esc(a.label)}`
-         + `${a.open ? ' (open)' : ''}</title></path>`
+         + `${a.open ? ' (open)' : ''}</title></a>`
   }).join('')
 
   // Drawn last so the circles sit over the arc ends. A dry thread is filled — it is the state that
   // stops work, so it should be the one that reads as solid.
+  // A node goes to its own block in the trail below — everything that thread found. The circle is
+  // already a comfortable target, so it needs no hit path of its own.
   const nodes = order.map((letter) => {
     const d = derived.threads.get(letter)
     const x = at.get(letter)
     const dash = d.state === 'not-started' ? ' stroke-dasharray="3 3"' : ''
     const fill = d.state === 'dry' ? 'var(--sunk)' : 'var(--raised)'
-    return `<g class="gnode" data-state="${attr(d.state)}">`
+    const n = d.entries.length
+    return `<a href="#t${attr(letter)}" aria-label="${attr(`${letter} · ${d.name} — ${d.state},`
+         + ` ${n} finding${n === 1 ? '' : 's'}. Go to its block in the trail.`)}">`
+         + `<g class="gnode" data-state="${attr(d.state)}">`
          + `<circle cx="${x}" cy="${axisY}" r="${R}" fill="${fill}" stroke="currentColor"${dash}/>`
          + `<text x="${x}" y="${axisY + 4}" text-anchor="middle" font-size="11" fill="currentColor" `
-         + `font-family="ui-monospace, Menlo, monospace">${esc(letter)}</text>`
-         + `<title>${esc(letter)} · ${esc(d.name)} — ${esc(d.state)}</title></g>`
+         + `font-family="ui-monospace, Menlo, monospace" pointer-events="none">${esc(letter)}</text>`
+         + `<title>${esc(letter)} · ${esc(d.name)} — ${esc(d.state)}</title></g></a>`
   }).join('')
 
   const up = arcs.filter((a) => a.up).length

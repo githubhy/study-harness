@@ -143,7 +143,12 @@ export function derive(data) {
     t.run = e.surprising ? 0 : t.run + 1
     t.lastDate = e.date
     if (e.issue != null) t.issue = e.issue
-    const stamped = { ...e, pips: pipsFor(t.run, budget) }
+    // The entry's own anchor. Thread plus date is not unique — two findings on one thread on one day
+    // collide — so it carries its position in its own thread's history, counted from the oldest, and
+    // appending a finding never renumbers what is already published. Derived here rather than in the
+    // worklog because the thread graph now links to these anchors too, and an id invented separately
+    // in two renderers is an id that will eventually disagree with itself.
+    const stamped = { ...e, pips: pipsFor(t.run, budget), entryId: `e-${e.thread}${e.date}-${t.entries.length}` }
     t.entries.push(stamped)
     trail.push(stamped)
   }
@@ -163,6 +168,14 @@ export function derive(data) {
   // from the frontier and is never shown to have happened. Validation above already guarantees
   // every resolved id was opened somewhere, so a lookup here cannot miss.
   const questions = new Map(byDate.flatMap((e) => e.opened.map((o) => [o.id, { ...o, from: e.thread }])))
+
+  // Which finding closed which question. An edge on the thread graph is a question, and the useful
+  // thing to do with one is to go and read the answer — so the graph needs to know where the answer
+  // landed, not just that it did.
+  // `trail` rather than `byDate`: only the stamped copies carry entryId, and it is still oldest-first
+  // here — the reverse for display happens in the return below.
+  const answeredBy = new Map()
+  for (const e of trail) for (const id of e.resolved) answeredBy.set(id, e.entryId)
 
   const edges = [
     // The id travels with the edge so a renderer can tell an answered question from a standing one
@@ -242,6 +255,7 @@ export function derive(data) {
       .sort((a, b) => Date.parse(b.lastDate) - Date.parse(a.lastDate)).map((t) => t.letter),
     frontier,
     questions,
+    answeredBy,
     trail: trail.reverse(),
     // The trail grouped by the thread that produced each entry, in the one band ordering above.
     // Flat chronological order was the wrong axis for this campaign: every entry carries the same

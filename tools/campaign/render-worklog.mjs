@@ -44,11 +44,10 @@ const entry = (e, group, derived) => {
   // the Markdown source, which is what the build validates exists; the page next to it is what a
   // reader on the site can open.
   const note = `<a href="${attr(e.note.replace(/\.md$/, '.html'))}">${esc(e.note)}</a>`
-  // Thread plus date is not unique: two findings on one thread on one day collide. The index is
-  // the entry's position in its own thread's history, so appending a finding never renumbers the
-  // entries already published. Counted from the oldest, so it survives the newest-first display.
-  const n = group.entries.length - 1 - group.entries.indexOf(e)
-  return `<div class="entry" data-state="${attr(state)}" id="e-${attr(`${e.thread}${e.date}-${n}`)}">`
+  // The anchor comes from derive, not from this renderer. It used to be computed here from the
+  // entry's position in its group; the thread graph now links to these same anchors, and an id
+  // invented in two places is an id that will eventually disagree with itself.
+  return `<div class="entry" data-state="${attr(state)}" id="${attr(e.entryId)}">`
        + `<span class="mono">${esc(e.pips)} ${esc(e.date)}</span><br>${rich(e.finding)}<br>`
        + `<span class="mono">${marks}${marks ? ' · ' : ''}${note}${issue}</span></div>`
 }
