@@ -165,7 +165,9 @@ export function derive(data) {
   const questions = new Map(byDate.flatMap((e) => e.opened.map((o) => [o.id, { ...o, from: e.thread }])))
 
   const edges = [
-    ...byDate.flatMap((e) => e.opened.map((o) => ({ from: e.thread, to: o.ask, label: o.q, kind: 'opened' }))),
+    // The id travels with the edge so a renderer can tell an answered question from a standing one
+    // without re-deriving the frontier for itself.
+    ...byDate.flatMap((e) => e.opened.map((o) => ({ from: e.thread, to: o.ask, label: o.q, id: o.id, kind: 'opened' }))),
     ...data.threads.filter((t) => t.gates).map((t) => ({ from: t.letter, to: t.gates, label: 'gates', kind: 'gates' })),
   ]
 

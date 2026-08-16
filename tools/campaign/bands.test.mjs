@@ -56,12 +56,15 @@ test("the worklog's coverage strip follows derive's order", () => {
 })
 
 test("the thread graph's node layout follows derive's order", () => {
-  // Row position within a column, so the graph node sits where the strip letter sits.
-  const rowOf = (svg, letter) => {
-    const node = svg.match(new RegExp(`<rect x="(\\d+)" y="(\\d+)"[^>]*/><text[^>]*>${letter} `))
+  // Position along the axis, so the graph node sits at the same point in the sequence as the strip
+  // letter directly above it. This read a row within a column while the graph was a five-column
+  // grid; it is one axis now, so the same requirement is an x rather than a y — the assertion that
+  // matters is unchanged, and it is still perturbation that gives it the power to fail.
+  const xOf = (svg, letter) => {
+    const node = svg.match(new RegExp(`<circle cx="([\\d.]+)"[^>]*/><text[^>]*>${letter}</text>`))
     assert.ok(node, `expected a node for ${letter}`)
-    return Number(node[2])
+    return Number(node[1])
   }
   const svg = renderGraph(flipped())
-  assert.ok(rowOf(svg, 'C') < rowOf(svg, 'A'), 'expected C above A in the assemble column')
+  assert.ok(xOf(svg, 'C') < xOf(svg, 'A'), 'expected C left of A on the axis')
 })
