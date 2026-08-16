@@ -760,6 +760,45 @@
       "opened": [],
       "resolved": [],
       "issue": null
+    },
+    {
+      "thread": "D",
+      "date": "2026-08-16",
+      "finding": "The permission boundary is three stages, not one: restrict removes a tool from view entirely, the tools/pre-execute waterfall is negotiable and defaults to allow, and guards are deny-only so listener order cannot turn a denial back into permission. dsh did not decline to ask on our headless run — nothing was installed that wanted to be asked.",
+      "surprising": true,
+      "note": "notes/D-tools-and-permission.md",
+      "opened": [
+        {
+          "id": "d-inherit",
+          "q": "restrict narrows what a scope inherits and guards walk the scope chain farthest-first. Does a child actually inherit its parent’s restrictions?",
+          "ask": "F"
+        },
+        {
+          "id": "d-codectx",
+          "q": "Code Mode puts only the outer result in model history while sub-dispatches are logged separately. What does that do to the context curve?",
+          "ask": "C"
+        },
+        {
+          "id": "d-approval",
+          "q": "The approval service is fetched from context and may be absent. Which hosts register one, and what can the web UI do that headless cannot?",
+          "ask": "K"
+        }
+      ],
+      "resolved": [
+        "b-gate",
+        "j-ask"
+      ],
+      "issue": null
+    },
+    {
+      "thread": "D",
+      "date": "2026-08-16",
+      "finding": "A tool never produces model-facing text. execute() returns a canonical JSON value validated against output.schema, and a pure render() projects it into content blocks — which is why results replay, why Code Mode can hand a program the value, and why note 02 saw a structured wrapper where the toy returned a sentence.",
+      "surprising": true,
+      "note": "notes/D-tools-and-permission.md",
+      "opened": [],
+      "resolved": [],
+      "issue": null
     }
   ],
   "questionIndex": [
