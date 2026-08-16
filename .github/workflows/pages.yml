@@ -1,0 +1,74 @@
+# Publishes the campaign report — and only the report.
+#
+# Pages was first pointed at the repo root, which serves the whole repo. That put
+# tools/campaign/fixtures/ on the public site: byte-verbatim copies of the hand-written pages the
+# generator replaced, carrying the *same* <title> as the live pages that superseded them and still
+# showing every phase as "not started". Nothing linked to them, but nothing marked them as history
+# either. Assembling the site explicitly means the published surface is exactly the pages meant to
+# be read, and anything else in the repo simply is not there to find.
+name: Publish the report
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never two deploys at once, and never cancel one half-done: a cancelled deploy leaves the live
+# site in whatever state it reached.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # The pages are generated from campaign.json and board.json, so a commit that edits the data
+      # and forgets to rebuild would otherwise publish a page that no longer matches it. --check
+      # regenerates every page and exits 1 on any difference. This is the same gate as local work;
+      # running it here is what makes it one nobody can skip.
+      - name: The generated pages match their data
+        run: node tools/build-campaign.mjs --all --check
+
+      - name: The generator's own tests pass
+        run: node --test tools/campaign/*.test.mjs
+
+      # Only the redirect and the pages under campaigns/. Every link target in the whole site is a
+      # .html file (checked below, not assumed), so nothing else needs to travel.
+      - name: Assemble the site
+        run: |
+          mkdir -p _site
+          cp index.html _site/
+          find campaigns -name '*.html' -exec cp --parents {} _site/ \;
+          find _site -name '*.html' | sort
+
+      # A subset of a repo is exactly where a link that was fine in place becomes a 404. One
+      # forgotten pattern in the copy above and a page ships pointing at nothing, so the assembled
+      # directory is checked as the thing that will actually be served.
+      - name: Every link resolves inside the published site
+        run: node tools/check-site.mjs _site
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

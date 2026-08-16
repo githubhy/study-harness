@@ -54,6 +54,16 @@ The build resolves every relative link against where the page will sit on disk a
 a page that points at a file that does not exist. `checkHtml` sees only a string, so it cannot do
 this; two hardcoded footer paths once shipped 44 dead links with every test passing.
 
+### The published site
+
+`.github/workflows/pages.yml` publishes <https://githubhy.github.io/study-harness/> on every push to
+`main`. It re-runs `--all --check` and the generator's tests, then assembles **only** the root
+redirect and `campaigns/**/*.html` — publishing from the repo root instead served
+`tools/campaign/fixtures/`, whose frozen pages carry the same `<title>` as the live ones they
+replaced. `tools/check-site.mjs` then proves the assembled directory is self-contained; run it on any
+site directory locally. A page added outside `campaigns/` will not be published until the assembly
+step is widened to include it.
+
 ### Frozen baselines
 
 `tools/campaign/fixtures/roadmap-premigration.html` and `board-premigration.html` are frozen records
