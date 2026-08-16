@@ -204,6 +204,10 @@ const renderBlocks = (phase) => {
   if (phase.produces?.length) lines.push(`produces ${phase.produces.map((p) => `<b>${esc(p)}</b>`).join(' · ')}`)
   if (phase.unblocks) lines.push(`unblocks <b>${esc(phase.unblocks)}</b>`)
   if (phase.consumes) lines.push(`consumes <b>${esc(phase.consumes)}</b>`)
+  // The written record for this phase, rendered from its Markdown source.
+  if (phase.writeup) {
+    lines.push(`report <a href="${attr(phase.writeup.href)}">${esc(phase.writeup.label)}</a>`)
+  }
   return lines.join('<br>')
 }
 

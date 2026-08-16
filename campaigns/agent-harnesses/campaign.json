@@ -156,7 +156,11 @@
         "DSH_CMD"
       ],
       "unblocks": "Task 0.2",
-      "consumes": null
+      "consumes": null,
+      "writeup": {
+        "href": "notes/00-orientation.html",
+        "label": "00 · Orientation"
+      }
     },
     {
       "id": "Task 0.2",
@@ -176,7 +180,11 @@
       "note": null,
       "produces": [],
       "unblocks": "everything downstream",
-      "consumes": null
+      "consumes": null,
+      "writeup": {
+        "href": "notes/00-orientation.html",
+        "label": "00 · Orientation"
+      }
     },
     {
       "id": "Phase 1 · the control",
@@ -200,7 +208,11 @@
       "note": "· uses the DeepSeek key",
       "produces": [],
       "unblocks": "the whole 15-thread menu",
-      "consumes": null
+      "consumes": null,
+      "writeup": {
+        "href": "notes/01-what-my-harness-lacks.html",
+        "label": "01 · What my harness lacks"
+      }
     },
     {
       "id": "Task 2.0 · observation only",
@@ -217,7 +229,11 @@
       "note": null,
       "produces": [],
       "unblocks": "Thread B · Threads A, C",
-      "consumes": null
+      "consumes": null,
+      "writeup": {
+        "href": "notes/02-baseline-behavior.html",
+        "label": "02 · Baseline behaviour"
+      }
     },
     {
       "id": "Phase 3",

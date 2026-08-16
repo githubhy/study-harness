@@ -1,9 +1,13 @@
 #!/usr/bin/env node
 import { readdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs'
+
+/** A campaign directory's own name, for the note page's kicker. */
+const name0 = (dir) => dir.split('/').filter(Boolean).pop()
 import { join } from 'node:path'
 import { loadCampaign, fromRoot } from './campaign/model.mjs'
 import { renderRoadmap } from './campaign/render-roadmap.mjs'
 import { renderWorklog } from './campaign/render-worklog.mjs'
+import { renderNote } from './campaign/render-note.mjs'
 import { renderBoard } from './campaign/render-board.mjs'
 import { checkHtml } from './campaign/checks.mjs'
 
@@ -50,9 +54,22 @@ function main() {
       const dir = join('campaigns', name)
       const model = loadCampaign(dir)
       models.push(model)
+      // Every note gets a page rendered from its Markdown, so the prose has one home.
+      const notesDir = join(dir, 'notes')
+      const notePages = (existsSync(fromRoot(notesDir)) ? readdirSync(fromRoot(notesDir)) : [])
+        .filter((name) => name.endsWith('.md'))
+        .sort()
+        .map((name) => {
+          const markdown = readFileSync(fromRoot(join(notesDir, name)), 'utf8')
+          const title = (markdown.match(/^#\s+(.*)$/m)?.[1] ?? name).replace(/^\d+\s*·\s*/, '')
+          return [join('notes', name.replace(/\.md$/, '.html')),
+                  renderNote({ markdown, campaign: name0(dir), title, back: '../roadmap.html' })]
+        })
+
       for (const [file, html] of [
         ['roadmap.html', renderRoadmap(model)],
         ['worklog.html', renderWorklog(model)],
+        ...notePages,
       ]) {
         const path = join(dir, file)
         if (!gate(path, html)) { failed++; continue }

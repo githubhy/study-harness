@@ -413,7 +413,7 @@ pnpm install --frozen-lockfile &amp;&amp; pnpm build
 
 <span class="c"># find the base-URL override — this is what lets you capture later</span>
 rg -n &#39;baseURL|baseUrl|base_url|BASE_URL&#39; packages/llm/ apps/ --type ts</pre>
-          <div class="c-blocks">blocked by <b class="no">nothing</b><br>produces <b>LLM_BASE_URL_ENV</b> · <b>DSH_CMD</b><br>unblocks <b>Task 0.2</b></div>
+          <div class="c-blocks">blocked by <b class="no">nothing</b><br>produces <b>LLM_BASE_URL_ENV</b> · <b>DSH_CMD</b><br>unblocks <b>Task 0.2</b><br>report <a href="notes/00-orientation.html">00 · Orientation</a></div>
         </article>
 
         <article class="card" data-s="go">
@@ -427,7 +427,7 @@ rg -n &#39;baseURL|baseUrl|base_url|BASE_URL&#39; packages/llm/ apps/ --type ts<
             <p>A leaked key in a capture is the single unrecoverable mistake in this study. The check runs two ways, because they fail differently: <b>structurally</b>, every sensitive header must read <code>&amp;lt;redacted&amp;gt;</code>, which catches a redaction bug even for a credential format nobody anticipated; and <b>by shape</b>, key-like strings are hunted anywhere in the file, including bodies, where a model may have echoed a secret the proxy never saw as a header. If it reports a leak, stop, fix <code>redact()</code>, and treat the key as burned — rotate it rather than deleting the file, because it existed on disk in that state.</p>
           </div>
           <p><strong>Deliverables:</strong> <code>.gitignore</code>, <code>tools/capture-proxy/server.mjs</code>, and <code>notes/00-orientation.md</code> holding the pinned SHA, the package map, and the two discovered values every later task consumes by name.</p>
-          <div class="c-blocks">blocked by <b class="yes">Task 0.1</b><br>unblocks <b>everything downstream</b></div>
+          <div class="c-blocks">blocked by <b class="yes">Task 0.1</b><br>unblocks <b>everything downstream</b><br>report <a href="notes/00-orientation.html">00 · Orientation</a></div>
         </article>
       </div>
 
@@ -453,7 +453,7 @@ rg -n &#39;baseURL|baseUrl|base_url|BASE_URL&#39; packages/llm/ apps/ --type ts<
           <p><strong>Then break it deliberately:</strong></p>
           <ul><li><strong>Blow the truncation</strong> — read <code>package-lock.json</code> and list the dependencies.</li><li><strong>Blow the step cap</strong> — twelve sorting algorithms, each run and compared.</li><li><strong>Expose the missing permission layer</strong> — delete every <code>.tmp</code> under <code>/tmp</code>. The alarm you feel is <code>packages/guard</code>'s entire reason to exist.</li></ul>
           <p><strong>Deliverables:</strong> <code>experiments/minimal-harness/harness.mjs</code>, a capture of your own harness through the proxy, and <code>notes/01-what-my-harness-lacks.md</code> — the table that becomes §4 and §5. First real <code>CONTEXT.md</code> terms land here: loop, turn, step, tool call, tool result, context window.</p>
-          <div class="c-blocks">blocked by <b class="yes">Phase 0</b> · uses the DeepSeek key<br>unblocks <b>the whole 15-thread menu</b></div>
+          <div class="c-blocks">blocked by <b class="yes">Phase 0</b> · uses the DeepSeek key<br>unblocks <b>the whole 15-thread menu</b><br>report <a href="notes/01-what-my-harness-lacks.html">01 · What my harness lacks</a></div>
         </article>
 
         <article class="card" data-s="next">
@@ -464,7 +464,7 @@ rg -n &#39;baseURL|baseUrl|base_url|BASE_URL&#39; packages/llm/ apps/ --type ts<
 <span class="c"># must print nothing</span></pre>
           <p>That note is the control Thread B must later reconcile against, line by line. <strong>It only works if it was written before you read any source.</strong></p>
           <p>Then diff your toy against the specimen: same task, two harnesses, two captures. Every difference is a thread to pull.</p>
-          <div class="c-blocks">blocked by <b class="yes">Phase 1</b><br>unblocks <b>Thread B · Threads A, C</b></div>
+          <div class="c-blocks">blocked by <b class="yes">Phase 1</b><br>unblocks <b>Thread B · Threads A, C</b><br>report <a href="notes/02-baseline-behavior.html">02 · Baseline behaviour</a></div>
         </article>
       </div>
 
